@@ -26,7 +26,7 @@
 <img src="https://img.shields.io/github/stars/rainxchzed/Github-Store?color=ffff00&style=for-the-badge&labelColor=a1a116&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPnN0YXI8L3RpdGxlPjxwYXRoIGQ9Ik0xMiwxNy4yN0wxOC4xOCwyMUwxNi41NCwxMy45N0wyMiw5LjI0TDE0LjgxLDguNjJMMTIsMkw5LjE5LDguNjJMMiw5LjI0TDcuNDUsMTMuOTdMNS44MiwyMUwxMiwxNy4yN1oiIGZpbGw9IndoaXRlIiAvPjwvc3ZnPg=="/>
 </a>
 
-<img src="https://img.shields.io/badge/55K+-Users-8ce2ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPmFjY291bnQtZ3JvdXA8L3RpdGxlPjxwYXRoIGQ9Ik0xMiwxMi43NUM3LDEyLjc1IDMsMTMuMzUgMywxNi4yNVYxOEgyMVYxNi4yNUMyMSwxMy4zNSAxNywxMi43NSAxMiwxMi43NU0xNyw3QTE3LDE3IDAgMCwxIDE3LDdNMjEsMTYuMjVWMThIMjRWMTYuMjVDMjQsMTQuNDMgMjEuNSwxMy44NyAxOSwxMy41QzIwLjEyLDE0LjEgMjEsMTUgMjEsMTYuMjVNMiw3QTIsMiAwIDAsMSA0LDVIMjBBMiwyIDAgMCwxIDIyLDdBMiwyIDAgMCwxIDIwLDlINEEyLDIgMCAwLDEgMiw3TTEyLDEwQTMsMyAwIDAsMSA5LDdBMywzIDAgMCwxIDEyLDRBMywzIDAgMCwxIDE1LDdBMywzIDAgMCwxIDEyLDEwWiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+&labelColor=0782ab"/>
+<img src="https://img.shields.io/badge/65K+-Users-8ce2ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPmFjY291bnQtZ3JvdXA8L3RpdGxlPjxwYXRoIGQ9Ik0xMiwxMi43NUM3LDEyLjc1IDMsMTMuMzUgMywxNi4yNVYxOEgyMVYxNi4yNUMyMSwxMy4zNSAxNywxMi43NSAxMiwxMi43NU0xNyw3QTE3LDE3IDAgMCwxIDE3LDdNMjEsMTYuMjVWMThIMjRWMTYuMjVDMjQsMTQuNDMgMjEuNSwxMy44NyAxOSwxMy41QzIwLjEyLDE0LjEgMjEsMTUgMjEsMTYuMjVNMiw3QTIsMiAwIDAsMSA0LDVIMjBBMiwyIDAgMCwxIDIyLDdBMiwyIDAgMCwxIDIwLDlINEEyLDIgMCAwLDEgMiw3TTEyLDEwQTMsMyAwIDAsMSA5LDdBMywzIDAgMCwxIDEyLDRBMywzIDAgMCwxIDE1LDdBMywzIDAgMCwxIDEyLDEwWiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+&labelColor=0782ab"/>
 
 </br>
 </br>
@@ -64,7 +64,7 @@ Built with Kotlin Multiplatform and Compose Multiplatform for Android and Deskto
 </div>
 
 > [!CAUTION]
-> Free and Open-Source Android is under threat. Google will turn Android into a locked-down platform, restricting your essential freedom to install apps of your choice. Make your voice heard – [LINK](https://keepandroidopen.org/).
+> Free and Open-Source Android is under threat. Google will turn Android into a locked-down platform, restricting your essential freedom to install apps of your choice. Make your voice heard – [keepandroidopen.org](https://keepandroidopen.org/).
 
 <p align="middle">
     <img src="./screenshots/banner.jpeg" width="99%" />
@@ -153,25 +153,42 @@ GitHub® is a registered trademark of GitHub, Inc.
 ## 🚀 Features
 
 - **Smart discovery**
-    - Home sections for “Trending”, “Recently Updated”, and “New” projects with time‑based filters.
+    - Home sections for “Trending”, “Hot Release”, and “Most Popular” projects with time‑based filters.
     - Only repos with valid installable assets are shown.
     - Platform‑aware topic scoring so Android/desktop users see relevant apps first.
+    - Overhauled search with improved relevance ranking and performance.
 
-- **Latest‑release installs**
-    - Fetches `/releases/latest` for each repo.
-    - Shows only assets from the latest release.
-    - Single “Install latest” action, plus an expandable list of all installers for that release.
+- **Release browser & installs**
+    - Release picker to browse and install from any release, not just the latest.
+    - Fetches all releases for each repository.
+    - Single “Install latest” action, plus an expandable list of all available releases and their installers.
+    - Manual install option with automatic compatibility checks.
 
 - **Rich details screen**
-    - App name, version, “Install latest” button.
+    - App name, version, “Install latest” button, and share action.
     - Stars, forks, open issues.
     - Rendered README content (“About this app”).
-    - Latest release notes (body) with markdown formatting.
+    - Release notes with Markdown formatting for any selected release.
     - List of installers with platform labels and file sizes.
+    - Deep linking support — open repository details directly via URL.
+    - Developer profile screen to explore a developer’s repositories and activity.
+
+- **App management**
+    - Open, uninstall, and downgrade installed apps directly from GitHub Store.
+    - Android: APK architecture matching (armv7/armv8), package monitoring, and update tracking.
+    - Desktop (Windows/macOS/Linux): downloads installers to the user’s Downloads folder and opens them with the default handler.
+
+- **Starred repositories**
+    - Save and browse your starred GitHub repositories from within the app.
+
+- **Network & performance**
+    - Dynamic proxy support for configurable network routing.
+    - Enhanced caching system for faster loading and reduced API usage.
 
 - **Cross‑platform UX**
-    - Android: opens APK downloads with the package installer, tracks installations in a local database, and shows them in a dedicated Apps screen with update indicators.
-    - Desktop (Windows/macOS/Linux): downloads installers to the user’s Downloads folder and opens them with the default handler; no hidden temp locations.
+    - Android: native splash screen, session expiration handling, and adaptive icon.
+    - Desktop: Linux AppImage support prioritized alongside DEB and RPM formats.
+    - Localized in 12 languages: English, Spanish, French, Japanese, Korean, Polish, Russian, Chinese, Bengali, Hindi, Italian, and Turkish.
 
 ---
 
@@ -183,11 +200,7 @@ Your project can appear automatically if it follows these conditions:
 1. **Public repository on GitHub**
     - Visibility must be `public`.
 
-2. **At least one published release**
-    - Created via GitHub Releases (not only tags).
-    - The latest release must not be a draft or prerelease.
-
-3. **Installable assets in the latest release**
+2. **Installable assets in the latest release**
     - The latest release must contain at least one asset file with a supported extension:
         - Android: `.apk`
         - Windows: `.exe`, `.msi`
@@ -196,13 +209,13 @@ Your project can appear automatically if it follows these conditions:
     - GitHub Store ignores GitHub’s auto‑generated source artifacts (`Source code (zip)` /
       `Source code (tar.gz)`).
 
-4. **Discoverable by search / topics**
+3. **Discoverable by search / topics**
     - Repositories are fetched via the public GitHub Search API.
     - Topic, language, and description help the ranking:
         - Android apps: topics like `android`, `mobile`, `apk`.
         - Desktop apps: topics like `desktop`, `windows`, `linux`, `macos`, `compose-desktop`,
           `electron`.
-    - Having at least a few stars makes it more likely to appear under Popular/Updated/New sections.
+    - Having at least a few stars makes it more likely to appear under Trending/Hot Release/Most Popular sections.
 
 If your repo meets these conditions, GitHub Store can find it through search and show it
 automatically—no manual submission required.
@@ -220,18 +233,22 @@ automatically—no manual submission required.
     - For candidate repos, calls `/repos/{owner}/{repo}/releases/latest`.
     - Checks the `assets` array for platform‑specific file extensions.
     - If no suitable asset is found, the repo is excluded from results.
+    - Users can also browse all releases via the release picker.
 
 3. **Details screen**
     - Repository info: name, owner, description, stars, forks, issues.
-    - Latest release: tag, published date, body (changelog), assets.
+    - Release browser: browse any release with its tag, date, changelog, and assets.
     - README: loaded from the default branch and rendered as “About this app”.
+    - Developer profile link and share action.
+    - Accessible via deep links for direct navigation.
 
 4. **Install flow**
-    - When the user taps “Install latest”:
-        - Picks the best matching asset for the current platform.
-        - Streams the download.
+    - When the user taps “Install latest” or selects a specific release:
+        - Picks the best matching asset for the current platform (with architecture matching on Android).
+        - Streams the download with caching support.
         - Delegates to the OS installer (APK installer on Android, default handler on desktop).
         - On Android, records the installation in a local database and uses package monitoring to keep the installed list in sync.
+        - Supports open, uninstall, and downgrade actions for managed apps.
 
 ---
 
@@ -243,9 +260,9 @@ automatically—no manual submission required.
 - **Knows what you installed**
   Tracks apps installed via GitHub Store (Android) and highlights when new releases are available, so you can update them without hunting through GitHub again.
 
-- **Always the latest release**  
-  Installs are guaranteed to come from the latest published release; the changelog you see is
-  exactly what you’re installing.
+- **Always up to date**
+  Installs default to the latest published release, with the option to browse and install from
+  any previous release via the release picker.
 
 - **Uniform experience across platforms**  
   Same UI and logic for Android and desktop, with platform‑native install behavior.
