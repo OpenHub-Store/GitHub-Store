@@ -165,7 +165,7 @@ GitHub® is a registered trademark of GitHub, Inc.
     - App name, version, “Install latest” button, and share action.
     - Stars, forks, open issues.
     - Rendered README content (“About this app”).
-    - Release notes with markdown formatting for any selected release.
+    - Release notes with Markdown formatting for any selected release.
     - List of installers with platform labels and file sizes.
     - Deep linking support — open repository details directly via URL.
     - Developer profile screen to explore a developer’s repositories and activity.
