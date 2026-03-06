@@ -254,7 +254,8 @@ jobs:
 
           # Build .AppImage
           OUTPUT="composeApp/build/compose/binaries/main/GitHub-Store-x86_64.AppImage"
-          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool-x86_64.AppImage "$APPDIR" "$OUTPUT"
+          UPINFO="gh-releases-zsync|rainxchzed|Github-Store|latest|*x86_64.AppImage.zsync"
+          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool-x86_64.AppImage -u "$UPINFO" "$APPDIR" "$OUTPUT"
 
           echo "Created AppImage:"
           ls -lh "$OUTPUT"
@@ -275,7 +276,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-appimage
-          path: composeApp/build/compose/binaries/main/GitHub-Store-x86_64.AppImage
+          path: |
+            composeApp/build/compose/binaries/main/GitHub-Store-x86_64.AppImage
+            composeApp/build/compose/binaries/main/GitHub-Store-x86_64.AppImage.zsync
           if-no-files-found: error
           retention-days: 30
           compression-level: 0
