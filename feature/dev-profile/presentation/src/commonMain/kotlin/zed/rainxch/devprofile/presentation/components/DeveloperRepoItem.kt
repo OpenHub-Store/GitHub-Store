@@ -36,14 +36,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import zed.rainxch.githubstore.core.presentation.res.*
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.core.presentation.components.ExpressiveCard
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.formatCount
 import zed.rainxch.devprofile.domain.model.DeveloperRepository
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -54,40 +54,41 @@ fun DeveloperRepoItem(
     repository: DeveloperRepository,
     onItemClick: () -> Unit,
     onToggleFavorite: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     ExpressiveCard(
         onClick = onItemClick,
         modifier = modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-
                     Text(
                         text = repository.name,
                         maxLines = 1,
                         style = MaterialTheme.typography.titleLarge,
                         overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Text(
-                        text = stringResource(
-                            resource = Res.string.updated_on_date,
-                            formatRelativeDate(repository.updatedAt)
-                        ).replaceFirstChar { it.uppercase() },
+                        text =
+                            stringResource(
+                                resource = Res.string.updated_on_date,
+                                formatRelativeDate(repository.updatedAt),
+                            ).replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.titleMedium,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                 }
 
@@ -100,17 +101,19 @@ fun DeveloperRepoItem(
                     shape = MaterialShapes.Cookie6Sided.toShape(),
                 ) {
                     Icon(
-                        imageVector = if (repository.isFavorite) {
-                            Icons.Filled.Favorite
-                        } else {
-                            Icons.Outlined.FavoriteBorder
-                        },
-                        contentDescription = if (repository.isFavorite) {
-                            stringResource(Res.string.remove_from_favourites)
-                        } else {
-                            stringResource(Res.string.add_to_favourites)
-                        },
-                        modifier = Modifier.size(20.dp)
+                        imageVector =
+                            if (repository.isFavorite) {
+                                Icons.Filled.Favorite
+                            } else {
+                                Icons.Outlined.FavoriteBorder
+                            },
+                        contentDescription =
+                            if (repository.isFavorite) {
+                                stringResource(Res.string.remove_from_favourites)
+                            } else {
+                                stringResource(Res.string.add_to_favourites)
+                            },
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
@@ -129,29 +132,30 @@ fun DeveloperRepoItem(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 RepoStat(
                     icon = Icons.Default.Star,
                     value = formatCount(repository.stargazersCount),
-                    contentDescription = $$"$${repository.stargazersCount} $${stringResource(Res.string.stars)}"
+                    contentDescription = $$"$${repository.stargazersCount} $${stringResource(Res.string.stars)}",
                 )
 
                 RepoStat(
                     icon = Icons.AutoMirrored.Filled.CallSplit,
                     value = formatCount(repository.forksCount),
-                    contentDescription = "${repository.forksCount} ${stringResource(Res.string.forks)}"
+                    contentDescription = "${repository.forksCount} ${stringResource(Res.string.forks)}",
                 )
 
                 if (repository.openIssuesCount > 0) {
                     RepoStat(
                         icon = Icons.Outlined.Warning,
                         value = formatCount(repository.openIssuesCount),
-                        contentDescription = "${repository.openIssuesCount} ${stringResource(Res.string.issues)}"
+                        contentDescription = "${repository.openIssuesCount} ${stringResource(Res.string.issues)}",
                     )
                 }
 
@@ -161,35 +165,37 @@ fun DeveloperRepoItem(
                         label = {
                             Text(
                                 text = language,
-                                style = MaterialTheme.typography.labelSmall
+                                style = MaterialTheme.typography.labelSmall,
                             )
                         },
-                        modifier = Modifier.height(32.dp)
+                        modifier = Modifier.height(32.dp),
                     )
                 }
             }
 
-            val repoBadges = buildList {
-                if (repository.hasInstallableAssets) {
-                    add(
-                        RepoBadge(
-                            text = repository.latestVersion
-                                ?: stringResource(Res.string.has_release),
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            val repoBadges =
+                buildList {
+                    if (repository.hasInstallableAssets) {
+                        add(
+                            RepoBadge(
+                                text =
+                                    repository.latestVersion
+                                        ?: stringResource(Res.string.has_release),
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
                         )
-                    )
-                }
-                if (repository.isInstalled) {
-                    add(
-                        RepoBadge(
-                            text = stringResource(Res.string.installed),
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                    }
+                    if (repository.isInstalled) {
+                        add(
+                            RepoBadge(
+                                text = stringResource(Res.string.installed),
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            ),
                         )
-                    )
+                    }
                 }
-            }
 
             if (repoBadges.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -197,16 +203,16 @@ fun DeveloperRepoItem(
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     repoBadges.forEach { badge ->
                         Badge(
-                            containerColor = badge.containerColor
+                            containerColor = badge.containerColor,
                         ) {
                             Text(
                                 text = badge.text,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = badge.contentColor
+                                color = badge.contentColor,
                             )
                         }
                     }
@@ -221,18 +227,18 @@ private fun RepoStat(
     icon: ImageVector,
     value: String,
     contentDescription: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
             modifier = Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Text(
@@ -247,46 +253,59 @@ private fun RepoStat(
 private data class RepoBadge(
     val text: String,
     val containerColor: Color,
-    val contentColor: Color
+    val contentColor: Color,
 )
 
 @Composable
 private fun formatRelativeDate(dateString: String): String {
-    val instant = try {
-        Instant.parse(dateString)
-    } catch (_: IllegalArgumentException) {
-        return dateString
-    }
+    val instant =
+        try {
+            Instant.parse(dateString)
+        } catch (_: IllegalArgumentException) {
+            return dateString
+        }
     val now = Clock.System.now()
     val duration = now - instant
 
     return when {
-        duration.inWholeDays > 365 -> stringResource(
-            Res.string.time_years_ago,
-            (duration.inWholeDays / 365).toInt()
-        )
+        duration.inWholeDays > 365 -> {
+            stringResource(
+                Res.string.time_years_ago,
+                (duration.inWholeDays / 365).toInt(),
+            )
+        }
 
-        duration.inWholeDays > 30 -> stringResource(
-            Res.string.time_months_ago,
-            (duration.inWholeDays / 30).toInt()
-        )
+        duration.inWholeDays > 30 -> {
+            stringResource(
+                Res.string.time_months_ago,
+                (duration.inWholeDays / 30).toInt(),
+            )
+        }
 
-        duration.inWholeDays > 0 -> stringResource(
-            Res.string.time_days_ago,
-            duration.inWholeDays.toInt()
-        )
+        duration.inWholeDays > 0 -> {
+            stringResource(
+                Res.string.time_days_ago,
+                duration.inWholeDays.toInt(),
+            )
+        }
 
-        duration.inWholeHours > 0 -> stringResource(
-            Res.string.time_hours_ago,
-            duration.inWholeHours.toInt()
-        )
+        duration.inWholeHours > 0 -> {
+            stringResource(
+                Res.string.time_hours_ago,
+                duration.inWholeHours.toInt(),
+            )
+        }
 
-        duration.inWholeMinutes > 0 -> stringResource(
-            Res.string.time_minutes_ago,
-            duration.inWholeMinutes.toInt()
-        )
+        duration.inWholeMinutes > 0 -> {
+            stringResource(
+                Res.string.time_minutes_ago,
+                duration.inWholeMinutes.toInt(),
+            )
+        }
 
-        else -> stringResource(Res.string.just_now)
+        else -> {
+            stringResource(Res.string.just_now)
+        }
     }
 }
 
@@ -295,26 +314,27 @@ private fun formatRelativeDate(dateString: String): String {
 private fun PreviewDeveloperRepoItem() {
     GithubStoreTheme {
         DeveloperRepoItem(
-            repository = DeveloperRepository(
-                id = 1,
-                name = "awesome-kotlin-app",
-                fullName = "developer/awesome-kotlin-app",
-                description = "An amazing Kotlin Multiplatform application that demonstrates modern Android development",
-                htmlUrl = "",
-                stargazersCount = 2340,
-                forksCount = 456,
-                openIssuesCount = 23,
-                language = "Kotlin",
-                hasReleases = true,
-                hasInstallableAssets = true,
-                isInstalled = true,
-                isFavorite = false,
-                latestVersion = "v1.5.2",
-                updatedAt = Clock.System.now().toString(),
-                pushedAt = null
-            ),
+            repository =
+                DeveloperRepository(
+                    id = 1,
+                    name = "awesome-kotlin-app",
+                    fullName = "developer/awesome-kotlin-app",
+                    description = "An amazing Kotlin Multiplatform application that demonstrates modern Android development",
+                    htmlUrl = "",
+                    stargazersCount = 2340,
+                    forksCount = 456,
+                    openIssuesCount = 23,
+                    language = "Kotlin",
+                    hasReleases = true,
+                    hasInstallableAssets = true,
+                    isInstalled = true,
+                    isFavorite = false,
+                    latestVersion = "v1.5.2",
+                    updatedAt = Clock.System.now().toString(),
+                    pushedAt = null,
+                ),
             onItemClick = {},
-            onToggleFavorite = {}
+            onToggleFavorite = {},
         )
     }
 }

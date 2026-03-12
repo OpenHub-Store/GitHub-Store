@@ -7,7 +7,7 @@ import java.net.URI
 class DesktopBrowserHelper : BrowserHelper {
     override fun openUrl(
         url: String,
-        onFailure: (error: String) -> Unit
+        onFailure: (error: String) -> Unit,
     ) {
         val os = System.getProperty("os.name").lowercase()
 
@@ -19,8 +19,11 @@ class DesktopBrowserHelper : BrowserHelper {
                     processBuilder.start()
                 }
 
-                Desktop.isDesktopSupported() && Desktop.getDesktop()
-                    .isSupported(Desktop.Action.BROWSE) -> {
+                Desktop.isDesktopSupported() &&
+                    Desktop
+                        .getDesktop()
+                        .isSupported(Desktop.Action.BROWSE)
+                -> {
                     Desktop.getDesktop().browse(URI(url))
                 }
 
@@ -32,5 +35,4 @@ class DesktopBrowserHelper : BrowserHelper {
             onFailure("Failed to open browser: ${e.message}. Please visit: $url")
         }
     }
-
 }

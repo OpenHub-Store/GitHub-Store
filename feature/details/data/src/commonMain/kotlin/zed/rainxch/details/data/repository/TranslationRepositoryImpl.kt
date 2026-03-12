@@ -16,12 +16,16 @@ import zed.rainxch.details.domain.model.TranslationResult
 import zed.rainxch.details.domain.repository.TranslationRepository
 
 class TranslationRepositoryImpl(
-    private val localizationManager: LocalizationManager
-) : TranslationRepository, AutoCloseable {
-
+    private val localizationManager: LocalizationManager,
+) : TranslationRepository,
+    AutoCloseable {
     private val httpClient: HttpClient = createPlatformHttpClient(ProxyConfig.None)
 
-    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
 
     private val cacheMutex = Mutex()
     private val cache = LinkedHashMap<String, TranslationResult>(50, 0.75f, true)
@@ -31,7 +35,7 @@ class TranslationRepositoryImpl(
     override suspend fun translate(
         text: String,
         targetLanguage: String,
-        sourceLanguage: String
+        sourceLanguage: String,
     ): TranslationResult {
         val cacheKey = "${text.hashCode()}:$targetLanguage"
         cacheMutex.withLock { cache[cacheKey] }?.let { return it }
@@ -49,12 +53,15 @@ class TranslationRepositoryImpl(
             }
         }
 
-        val result = TranslationResult(
-            translatedText = translatedParts.dropLast(1)
-                .joinToString("") { (text, delim) -> text + delim } +
-                    translatedParts.lastOrNull()?.first.orEmpty(),
-            detectedSourceLanguage = detectedLang
-        )
+        val result =
+            TranslationResult(
+                translatedText =
+                    translatedParts
+                        .dropLast(1)
+                        .joinToString("") { (text, delim) -> text + delim } +
+                        translatedParts.lastOrNull()?.first.orEmpty(),
+                detectedSourceLanguage = detectedLang,
+            )
 
         cacheMutex.withLock {
             if (cache.size >= maxCacheSize) {
@@ -66,31 +73,31 @@ class TranslationRepositoryImpl(
         return result
     }
 
-    override fun getDeviceLanguageCode(): String {
-        return localizationManager.getPrimaryLanguageCode()
-    }
+    override fun getDeviceLanguageCode(): String = localizationManager.getPrimaryLanguageCode()
 
     private suspend fun translateSingleChunk(
         text: String,
         targetLanguage: String,
-        sourceLanguage: String
+        sourceLanguage: String,
     ): TranslationResult {
-        val responseText = httpClient.get(
-            "https://translate.googleapis.com/translate_a/single"
-        ) {
-            parameter("client", "gtx")
-            parameter("sl", sourceLanguage)
-            parameter("tl", targetLanguage)
-            parameter("dt", "t")
-            parameter("q", text)
-        }.bodyAsText()
+        val responseText =
+            httpClient
+                .get(
+                    "https://translate.googleapis.com/translate_a/single",
+                ) {
+                    parameter("client", "gtx")
+                    parameter("sl", sourceLanguage)
+                    parameter("tl", targetLanguage)
+                    parameter("dt", "t")
+                    parameter("q", text)
+                }.bodyAsText()
 
         return try {
             parseTranslationResponse(responseText)
         } catch (_: Exception) {
             TranslationResult(
                 translatedText = text,
-                detectedSourceLanguage = null
+                detectedSourceLanguage = null,
             )
         }
     }
@@ -99,19 +106,21 @@ class TranslationRepositoryImpl(
         val root = json.parseToJsonElement(responseText).jsonArray
 
         val segments = root[0].jsonArray
-        val translatedText = segments.joinToString("") { segment ->
-            segment.jsonArray[0].jsonPrimitive.content
-        }
+        val translatedText =
+            segments.joinToString("") { segment ->
+                segment.jsonArray[0].jsonPrimitive.content
+            }
 
-        val detectedLang = try {
-            root[2].jsonPrimitive.content
-        } catch (_: Exception) {
-            null
-        }
+        val detectedLang =
+            try {
+                root[2].jsonPrimitive.content
+            } catch (_: Exception) {
+                null
+            }
 
         return TranslationResult(
             translatedText = translatedText,
-            detectedSourceLanguage = detectedLang
+            detectedSourceLanguage = detectedLang,
         )
     }
 
@@ -146,7 +155,7 @@ class TranslationRepositoryImpl(
 
     private fun chunkLargeParagraph(
         paragraph: String,
-        chunks: MutableList<Pair<String, String>>
+        chunks: MutableList<Pair<String, String>>,
     ) {
         val lines = paragraph.split("\n")
         val currentChunk = StringBuilder()

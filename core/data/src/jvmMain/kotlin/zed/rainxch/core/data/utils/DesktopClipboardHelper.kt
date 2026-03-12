@@ -6,19 +6,23 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 
 class DesktopClipboardHelper : ClipboardHelper {
-    override fun copy(label: String, text: String) {
+    override fun copy(
+        label: String,
+        text: String,
+    ) {
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(StringSelection(text), null)
     }
 
-    override fun getText(): String? {
-        return try {
+    override fun getText(): String? =
+        try {
             val clipboard = Toolkit.getDefaultToolkit().systemClipboard
             if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
                 clipboard.getData(DataFlavor.stringFlavor) as? String
-            } else null
+            } else {
+                null
+            }
         } catch (_: Exception) {
             null
         }
-    }
 }

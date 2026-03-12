@@ -9,5 +9,5 @@ data class CacheEntryEntity(
     val key: String,
     val jsonData: String,
     val cachedAt: Long,
-    val expiresAt: Long
+    val expiresAt: Long,
 )

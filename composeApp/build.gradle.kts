@@ -74,7 +74,7 @@ kotlin {
             implementation(libs.jetbrains.compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
-            
+
             implementation(libs.androidx.compose.ui.tooling.preview)
             implementation(libs.jetbrains.compose.viewmodel)
             implementation(libs.jetbrains.lifecycle.compose)
@@ -101,24 +101,28 @@ kotlin {
     }
 }
 
-
 compose.desktop {
     application {
         mainClass = "zed.rainxch.githubstore.DesktopAppKt"
         nativeDistributions {
             packageName = "GitHub-Store"
-            packageVersion = libs.versions.projectVersionName.get().toString()
+            packageVersion =
+                libs.versions.projectVersionName
+                    .get()
+                    .toString()
             vendor = "rainxchzed"
             includeAllModules = true
 
-            val currentOs = org.gradle.internal.os.OperatingSystem.current()
+            val currentOs =
+                org.gradle.internal.os.OperatingSystem
+                    .current()
             targetFormats(
                 *when {
                     currentOs.isWindows -> arrayOf(TargetFormat.Exe, TargetFormat.Msi)
                     currentOs.isMacOsX -> arrayOf(TargetFormat.Dmg, TargetFormat.Pkg)
-                    currentOs.isLinux  -> arrayOf(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+                    currentOs.isLinux -> arrayOf(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
                     else -> emptyArray()
-                }
+                },
             )
             windows {
                 iconFile.set(project.file("src/jvmMain/resources/logo/app_icon.ico"))
@@ -131,7 +135,8 @@ compose.desktop {
                 bundleID = "zed.rainxch.githubstore"
 
                 infoPlist {
-                    extraKeysRawXml = """
+                    extraKeysRawXml =
+                        """
                         <key>CFBundleURLTypes</key>
                         <array>
                             <dict>
@@ -143,13 +148,19 @@ compose.desktop {
                                 </array>
                             </dict>
                         </array>
-                    """.trimIndent()
+                        """.trimIndent()
                 }
             }
             linux {
                 iconFile.set(project.file("src/jvmMain/resources/logo/app_icon.png"))
-                appRelease = libs.versions.projectVersionName.get().toString()
-                debPackageVersion = libs.versions.projectVersionName.get().toString()
+                appRelease =
+                    libs.versions.projectVersionName
+                        .get()
+                        .toString()
+                debPackageVersion =
+                    libs.versions.projectVersionName
+                        .get()
+                        .toString()
                 menuGroup = "Development"
                 appCategory = "Development"
             }

@@ -32,18 +32,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.coil3.CoilImage
-import zed.rainxch.githubstore.core.presentation.res.*
 import io.github.fletchmckee.liquid.liquefiable
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.core.domain.model.GithubUserProfile
 import zed.rainxch.details.presentation.DetailsAction
 import zed.rainxch.details.presentation.utils.LocalTopbarLiquidState
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun LazyListScope.author(
     author: GithubUserProfile?,
-    onAction: (DetailsAction) -> Unit
+    onAction: (DetailsAction) -> Unit,
 ) {
     item {
         val liquidState = LocalTopbarLiquidState.current
@@ -56,9 +56,10 @@ fun LazyListScope.author(
             text = stringResource(Res.string.author),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .padding(bottom = 12.dp)
-                .liquefiable(liquidState),
+            modifier =
+                Modifier
+                    .padding(bottom = 12.dp)
+                    .liquefiable(liquidState),
             fontWeight = FontWeight.Bold,
         )
 
@@ -67,47 +68,49 @@ fun LazyListScope.author(
                 author?.login?.let { author ->
                     onAction(
                         DetailsAction.OpenDeveloperProfile(
-                            author
-                        )
+                            author,
+                        ),
                     )
                 }
             },
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-            ),
-            shape = RoundedCornerShape(32.dp)
+            colors =
+                CardDefaults.outlinedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+            shape = RoundedCornerShape(32.dp),
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 CoilImage(
                     imageModel = { author?.avatarUrl },
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .liquefiable(liquidState),
+                    modifier =
+                        Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .liquefiable(liquidState),
                     loading = {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularWavyProgressIndicator()
                         }
-                    }
+                    },
                 )
 
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     author?.login?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.liquefiable(liquidState)
+                            modifier = Modifier.liquefiable(liquidState),
                         )
                     }
 
@@ -119,7 +122,7 @@ fun LazyListScope.author(
                             maxLines = 2,
                             softWrap = false,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.liquefiable(liquidState)
+                            modifier = Modifier.liquefiable(liquidState),
                         )
                     }
 
@@ -127,17 +130,18 @@ fun LazyListScope.author(
 
                     author?.htmlUrl?.let {
                         Row(
-                            modifier = Modifier.clickable {
-                                onAction(DetailsAction.OpenAuthorInBrowser)
-                            },
+                            modifier =
+                                Modifier.clickable {
+                                    onAction(DetailsAction.OpenAuthorInBrowser)
+                                },
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Icon(
                                 painter = painterResource(Res.drawable.ic_github),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
                             )
 
                             Text(
@@ -154,15 +158,16 @@ fun LazyListScope.author(
                         onClick = {
                             onAction(DetailsAction.OpenDeveloperProfile(author))
                         },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = stringResource(Res.string.open_developer_profile),
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }

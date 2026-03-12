@@ -29,47 +29,47 @@ fun TranslationControls(
     onTranslateClick: () -> Unit,
     onLanguagePickerClick: () -> Unit,
     onToggleTranslation: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         when {
             translationState.isTranslating -> {
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     text = stringResource(Res.string.translating),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             translationState.isShowingTranslation -> {
                 TextButton(
                     onClick = onToggleTranslation,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 ) {
                     Text(
                         text = stringResource(Res.string.show_original),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
                 IconButton(
                     onClick = onLanguagePickerClick,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = stringResource(Res.string.change_language),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
@@ -77,26 +77,27 @@ fun TranslationControls(
             translationState.translatedText != null && !translationState.isShowingTranslation -> {
                 TextButton(
                     onClick = onToggleTranslation,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 ) {
                     Text(
-                        text = stringResource(
-                            Res.string.translated_to,
-                            translationState.targetLanguageDisplayName ?: ""
-                        ),
+                        text =
+                            stringResource(
+                                Res.string.translated_to,
+                                translationState.targetLanguageDisplayName ?: "",
+                            ),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
                 IconButton(
                     onClick = onLanguagePickerClick,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = stringResource(Res.string.change_language),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
@@ -104,24 +105,24 @@ fun TranslationControls(
             else -> {
                 IconButton(
                     onClick = onTranslateClick,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.GTranslate,
                         contentDescription = stringResource(Res.string.translate),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 }
                 IconButton(
                     onClick = onLanguagePickerClick,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(28.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = stringResource(Res.string.change_language),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }

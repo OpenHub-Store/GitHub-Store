@@ -10,9 +10,8 @@ import zed.rainxch.core.domain.repository.AuthenticationState
 
 class UnauthorizedInterceptor(
     private val authenticationState: AuthenticationState,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
 ) {
-
     class Config {
         var authenticationState: AuthenticationState? = null
         var scope: CoroutineScope? = null
@@ -25,16 +24,21 @@ class UnauthorizedInterceptor(
         override fun prepare(block: Config.() -> Unit): UnauthorizedInterceptor {
             val config = Config().apply(block)
             return UnauthorizedInterceptor(
-                authenticationState = requireNotNull(config.authenticationState) {
-                    "AuthenticationState must be provided"
-                },
-                scope = requireNotNull(config.scope) {
-                    "CoroutineScope must be provided"
-                }
+                authenticationState =
+                    requireNotNull(config.authenticationState) {
+                        "AuthenticationState must be provided"
+                    },
+                scope =
+                    requireNotNull(config.scope) {
+                        "CoroutineScope must be provided"
+                    },
             )
         }
 
-        override fun install(plugin: UnauthorizedInterceptor, scope: HttpClient) {
+        override fun install(
+            plugin: UnauthorizedInterceptor,
+            scope: HttpClient,
+        ) {
             scope.receivePipeline.intercept(HttpReceivePipeline.After) {
                 if (subject.status.value == 401) {
                     plugin.scope.launch {

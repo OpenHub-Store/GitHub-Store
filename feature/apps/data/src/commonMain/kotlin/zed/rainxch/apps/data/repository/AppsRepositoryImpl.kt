@@ -21,20 +21,19 @@ class AppsRepositoryImpl(
     private val appLauncher: AppLauncher,
     private val appsRepository: InstalledAppsRepository,
     private val logger: GitHubStoreLogger,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
 ) : AppsRepository {
-    override suspend fun getApps(): Flow<List<InstalledApp>> {
-        return appsRepository.getAllInstalledApps()
-    }
+    override suspend fun getApps(): Flow<List<InstalledApp>> = appsRepository.getAllInstalledApps()
 
     override suspend fun openApp(
         installedApp: InstalledApp,
-        onCantLaunchApp: () -> Unit
+        onCantLaunchApp: () -> Unit,
     ) {
         val canLaunch = appLauncher.canLaunchApp(installedApp)
 
         if (canLaunch) {
-            appLauncher.launchApp(installedApp)
+            appLauncher
+                .launchApp(installedApp)
                 .onFailure { error ->
                     logger.error("Failed to launch app: ${error.message}")
                     onCantLaunchApp()
@@ -46,15 +45,17 @@ class AppsRepositoryImpl(
 
     override suspend fun getLatestRelease(
         owner: String,
-        repo: String
-    ): GithubRelease? {
-        return try {
-            val releases = httpClient.executeRequest<List<ReleaseNetwork>> {
-                get("/repos/$owner/$repo/releases") {
-                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                    parameter("per_page", 10)
-                }
-            }.getOrThrow()
+        repo: String,
+    ): GithubRelease? =
+        try {
+            val releases =
+                httpClient
+                    .executeRequest<List<ReleaseNetwork>> {
+                        get("/repos/$owner/$repo/releases") {
+                            header(HttpHeaders.Accept, "application/vnd.github+json")
+                            parameter("per_page", 10)
+                        }
+                    }.getOrThrow()
 
             releases
                 .asSequence()
@@ -67,6 +68,4 @@ class AppsRepositoryImpl(
             logger.error("Failed to fetch latest release for $owner/$repo: ${e.message}")
             null
         }
-    }
-
 }

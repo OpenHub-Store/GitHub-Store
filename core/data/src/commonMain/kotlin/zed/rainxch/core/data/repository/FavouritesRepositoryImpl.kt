@@ -13,14 +13,12 @@ class FavouritesRepositoryImpl(
     private val favoriteRepoDao: FavoriteRepoDao,
     private val installedAppsDao: InstalledAppDao,
 ) : FavouritesRepository {
-
-    override fun getAllFavorites(): Flow<List<FavoriteRepo>> {
-        return favoriteRepoDao
+    override fun getAllFavorites(): Flow<List<FavoriteRepo>> =
+        favoriteRepoDao
             .getAllFavorites()
             .map { favoriteRepos ->
                 favoriteRepos.map { favoriteRepo -> favoriteRepo.toDomain() }
             }
-    }
 
     override fun isFavorite(repoId: Long): Flow<Boolean> = favoriteRepoDao.isFavorite(repoId)
 
@@ -29,11 +27,12 @@ class FavouritesRepositoryImpl(
     suspend fun addFavorite(repo: FavoriteRepo) {
         val installedApp = installedAppsDao.getAppByRepoId(repo.repoId)
         favoriteRepoDao.insertFavorite(
-            repo.toEntity()
+            repo
+                .toEntity()
                 .copy(
                     isInstalled = installedApp != null,
-                    installedPackageName = installedApp?.packageName
-                )
+                    installedPackageName = installedApp?.packageName,
+                ),
         )
     }
 
@@ -48,9 +47,8 @@ class FavouritesRepositoryImpl(
     override suspend fun updateFavoriteInstallStatus(
         repoId: Long,
         installed: Boolean,
-        packageName: String?
+        packageName: String?,
     ) {
         favoriteRepoDao.updateInstallStatus(repoId, installed, packageName)
     }
-
 }

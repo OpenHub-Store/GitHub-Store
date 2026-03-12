@@ -14,11 +14,12 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 fun hasWeekNotPassed(isoInstant: String): Boolean {
-    val updated = try {
-        Instant.parse(isoInstant)
-    } catch (_: IllegalArgumentException) {
-        return false
-    }
+    val updated =
+        try {
+            Instant.parse(isoInstant)
+        } catch (_: IllegalArgumentException) {
+            return false
+        }
     val now = Clock.System.now()
     val diff = now - updated
 
@@ -36,10 +37,22 @@ fun formatReleasedAt(isoInstant: String): String {
     val daysDiff = diff.inWholeDays
 
     return when {
-        hoursDiff < 1 -> stringResource(Res.string.released_just_now)
-        hoursDiff < 24 -> stringResource(Res.string.released_hours_ago, hoursDiff)
-        daysDiff == 1L -> stringResource(Res.string.released_yesterday)
-        daysDiff < 7 -> stringResource(Res.string.released_days_ago, daysDiff)
+        hoursDiff < 1 -> {
+            stringResource(Res.string.released_just_now)
+        }
+
+        hoursDiff < 24 -> {
+            stringResource(Res.string.released_hours_ago, hoursDiff)
+        }
+
+        daysDiff == 1L -> {
+            stringResource(Res.string.released_yesterday)
+        }
+
+        daysDiff < 7 -> {
+            stringResource(Res.string.released_days_ago, daysDiff)
+        }
+
         else -> {
             val date = updated.toLocalDateTime(TimeZone.currentSystemDefault()).date
             stringResource(Res.string.released_on_date, date.toString())
@@ -57,22 +70,27 @@ suspend fun formatAddedAt(epochMillis: Long): String {
     val daysDiff = diff.inWholeDays
 
     return when {
-        hoursDiff < 1 ->
+        hoursDiff < 1 -> {
             getString(Res.string.added_just_now)
+        }
 
-        hoursDiff < 24 ->
+        hoursDiff < 24 -> {
             getString(Res.string.added_hours_ago, hoursDiff)
+        }
 
-        daysDiff == 1L ->
+        daysDiff == 1L -> {
             getString(Res.string.added_yesterday)
+        }
 
-        daysDiff < 7 ->
+        daysDiff < 7 -> {
             getString(Res.string.added_days_ago, daysDiff)
+        }
 
         else -> {
-            val date = updated
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .date
+            val date =
+                updated
+                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                    .date
             getString(Res.string.added_on_date, date.toString())
         }
     }

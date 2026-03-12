@@ -58,12 +58,15 @@ fun LiquidGlassCategoryChips(
     categories: List<HomeCategory>,
     selectedCategory: HomeCategory,
     onCategorySelected: (HomeCategory) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val liquidState = LocalHomeTopBarLiquid.current
     val density = LocalDensity.current
 
-    val isDarkTheme = !MaterialTheme.colorScheme.background.luminance().let { it > 0.5f }
+    val isDarkTheme =
+        !MaterialTheme.colorScheme.background
+            .luminance()
+            .let { it > 0.5f }
 
     val itemPositions = remember { mutableMapOf<Int, Pair<Float, Float>>() }
     var selectedItemPos by remember { mutableStateOf<Pair<Float, Float>?>(null) }
@@ -85,19 +88,21 @@ fun LiquidGlassCategoryChips(
         launch {
             indicatorX.animateTo(
                 targetValue = targetX,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
+                animationSpec =
+                    spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessLow,
+                    ),
             )
         }
         launch {
             indicatorWidth.animateTo(
                 targetValue = targetW,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
+                animationSpec =
+                    spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium,
+                    ),
             )
         }
     }
@@ -115,137 +120,155 @@ fun LiquidGlassCategoryChips(
     val containerShape = RoundedCornerShape(20.dp)
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(containerShape)
-            .background(
-                if (isDarkTheme) {
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = .30f)
-                } else {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = .45f)
-                }
-            )
-            .then(if(isLiquidFrostAvailable()) {
-                Modifier.liquid(liquidState) {
-                    this.shape = containerShape
-                    this.frost = if (isDarkTheme) 14.dp else 12.dp
-                    this.curve = if (isDarkTheme) .30f else .40f
-                    this.refraction = if (isDarkTheme) .06f else .10f
-                    this.dispersion = if (isDarkTheme) .15f else .22f
-                    this.saturation = if (isDarkTheme) .35f else .50f
-                    this.contrast = if (isDarkTheme) 1.7f else 1.5f
-                }
-            } else Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest))
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(containerShape)
+                .background(
+                    if (isDarkTheme) {
+                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = .30f)
+                    } else {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = .45f)
+                    },
+                ).then(
+                    if (isLiquidFrostAvailable()) {
+                        Modifier.liquid(liquidState) {
+                            this.shape = containerShape
+                            this.frost = if (isDarkTheme) 14.dp else 12.dp
+                            this.curve = if (isDarkTheme) .30f else .40f
+                            this.refraction = if (isDarkTheme) .06f else .10f
+                            this.dispersion = if (isDarkTheme) .15f else .22f
+                            this.saturation = if (isDarkTheme) .35f else .50f
+                            this.contrast = if (isDarkTheme) 1.7f else 1.5f
+                        }
+                    } else {
+                        Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    },
+                ),
     ) {
         Box(
-            modifier = Modifier
-                .matchParentSize()
-                .drawBehind {
-                    if (indicatorWidth.value > 0f) {
-                        val pillTop = 5.dp.toPx()
-                        val pillHeight = size.height - 10.dp.toPx()
-                        val pillCorner = 14.dp.toPx()
-                        val pillRadius = CornerRadius(pillCorner)
+            modifier =
+                Modifier
+                    .matchParentSize()
+                    .drawBehind {
+                        if (indicatorWidth.value > 0f) {
+                            val pillTop = 5.dp.toPx()
+                            val pillHeight = size.height - 10.dp.toPx()
+                            val pillCorner = 14.dp.toPx()
+                            val pillRadius = CornerRadius(pillCorner)
 
-                        if (isDarkTheme) {
+                            if (isDarkTheme) {
+                                drawRoundRect(
+                                    color = borderColor,
+                                    topLeft =
+                                        Offset(
+                                            indicatorX.value - .5.dp.toPx(),
+                                            pillTop - .5.dp.toPx(),
+                                        ),
+                                    size =
+                                        Size(
+                                            indicatorWidth.value + 1.dp.toPx(),
+                                            pillHeight + 1.dp.toPx(),
+                                        ),
+                                    cornerRadius = pillRadius,
+                                    style = Stroke(width = 1.dp.toPx()),
+                                )
+                            }
+
                             drawRoundRect(
-                                color = borderColor,
-                                topLeft = Offset(
-                                    indicatorX.value - .5.dp.toPx(),
-                                    pillTop - .5.dp.toPx()
-                                ),
-                                size = Size(
-                                    indicatorWidth.value + 1.dp.toPx(),
-                                    pillHeight + 1.dp.toPx()
-                                ),
+                                brush =
+                                    Brush.verticalGradient(
+                                        colors = listOf(glassHighColor, glassLowColor),
+                                        startY = pillTop,
+                                        endY = pillTop + pillHeight,
+                                    ),
+                                topLeft = Offset(indicatorX.value, pillTop),
+                                size = Size(indicatorWidth.value, pillHeight),
                                 cornerRadius = pillRadius,
-                                style = Stroke(width = 1.dp.toPx())
+                            )
+
+                            val specLeft = indicatorX.value + indicatorWidth.value * .12f
+                            val specWidth = indicatorWidth.value * .76f
+                            drawRoundRect(
+                                brush =
+                                    Brush.horizontalGradient(
+                                        colors =
+                                            listOf(
+                                                Color.Transparent,
+                                                specularColor,
+                                                specularColor.copy(alpha = specularColor.alpha * .6f),
+                                                Color.Transparent,
+                                            ),
+                                        startX = specLeft,
+                                        endX = specLeft + specWidth,
+                                    ),
+                                topLeft = Offset(specLeft, pillTop + 1.dp.toPx()),
+                                size = Size(specWidth, 1.5.dp.toPx()),
+                                cornerRadius = CornerRadius(1.dp.toPx()),
+                            )
+
+                            drawRoundRect(
+                                brush =
+                                    Brush.verticalGradient(
+                                        colors = listOf(Color.Transparent, innerGlowColor),
+                                        startY = pillTop + pillHeight - 6.dp.toPx(),
+                                        endY = pillTop + pillHeight,
+                                    ),
+                                topLeft =
+                                    Offset(
+                                        indicatorX.value + 6.dp.toPx(),
+                                        pillTop + pillHeight - 5.dp.toPx(),
+                                    ),
+                                size = Size(indicatorWidth.value - 12.dp.toPx(), 4.dp.toPx()),
+                                cornerRadius = CornerRadius(2.dp.toPx()),
+                            )
+
+                            val edgeAlpha = if (isDarkTheme) .06f else .12f
+                            drawRoundRect(
+                                brush =
+                                    Brush.horizontalGradient(
+                                        colors =
+                                            listOf(
+                                                Color.White.copy(alpha = edgeAlpha),
+                                                Color.Transparent,
+                                            ),
+                                        startX = indicatorX.value,
+                                        endX = indicatorX.value + 4.dp.toPx(),
+                                    ),
+                                topLeft = Offset(indicatorX.value, pillTop + 4.dp.toPx()),
+                                size = Size(3.dp.toPx(), pillHeight - 8.dp.toPx()),
+                                cornerRadius = CornerRadius(1.5.dp.toPx()),
+                            )
+                            drawRoundRect(
+                                brush =
+                                    Brush.horizontalGradient(
+                                        colors =
+                                            listOf(
+                                                Color.Transparent,
+                                                Color.White.copy(alpha = edgeAlpha),
+                                            ),
+                                        startX = indicatorX.value + indicatorWidth.value - 4.dp.toPx(),
+                                        endX = indicatorX.value + indicatorWidth.value,
+                                    ),
+                                topLeft =
+                                    Offset(
+                                        indicatorX.value + indicatorWidth.value - 3.dp.toPx(),
+                                        pillTop + 4.dp.toPx(),
+                                    ),
+                                size = Size(3.dp.toPx(), pillHeight - 8.dp.toPx()),
+                                cornerRadius = CornerRadius(1.5.dp.toPx()),
                             )
                         }
-
-                        drawRoundRect(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(glassHighColor, glassLowColor),
-                                startY = pillTop,
-                                endY = pillTop + pillHeight
-                            ),
-                            topLeft = Offset(indicatorX.value, pillTop),
-                            size = Size(indicatorWidth.value, pillHeight),
-                            cornerRadius = pillRadius
-                        )
-
-                        val specLeft = indicatorX.value + indicatorWidth.value * .12f
-                        val specWidth = indicatorWidth.value * .76f
-                        drawRoundRect(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    specularColor,
-                                    specularColor.copy(alpha = specularColor.alpha * .6f),
-                                    Color.Transparent,
-                                ),
-                                startX = specLeft,
-                                endX = specLeft + specWidth
-                            ),
-                            topLeft = Offset(specLeft, pillTop + 1.dp.toPx()),
-                            size = Size(specWidth, 1.5.dp.toPx()),
-                            cornerRadius = CornerRadius(1.dp.toPx())
-                        )
-
-                        drawRoundRect(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, innerGlowColor),
-                                startY = pillTop + pillHeight - 6.dp.toPx(),
-                                endY = pillTop + pillHeight
-                            ),
-                            topLeft = Offset(
-                                indicatorX.value + 6.dp.toPx(),
-                                pillTop + pillHeight - 5.dp.toPx()
-                            ),
-                            size = Size(indicatorWidth.value - 12.dp.toPx(), 4.dp.toPx()),
-                            cornerRadius = CornerRadius(2.dp.toPx())
-                        )
-
-                        val edgeAlpha = if (isDarkTheme) .06f else .12f
-                        drawRoundRect(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.White.copy(alpha = edgeAlpha),
-                                    Color.Transparent
-                                ),
-                                startX = indicatorX.value,
-                                endX = indicatorX.value + 4.dp.toPx()
-                            ),
-                            topLeft = Offset(indicatorX.value, pillTop + 4.dp.toPx()),
-                            size = Size(3.dp.toPx(), pillHeight - 8.dp.toPx()),
-                            cornerRadius = CornerRadius(1.5.dp.toPx())
-                        )
-                        drawRoundRect(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.White.copy(alpha = edgeAlpha)
-                                ),
-                                startX = indicatorX.value + indicatorWidth.value - 4.dp.toPx(),
-                                endX = indicatorX.value + indicatorWidth.value
-                            ),
-                            topLeft = Offset(
-                                indicatorX.value + indicatorWidth.value - 3.dp.toPx(),
-                                pillTop + 4.dp.toPx()
-                            ),
-                            size = Size(3.dp.toPx(), pillHeight - 8.dp.toPx()),
-                            cornerRadius = CornerRadius(1.5.dp.toPx())
-                        )
-                    }
-                }
+                    },
         )
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = rowPaddingDp, vertical = 3.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = rowPaddingDp, vertical = 3.dp),
             horizontalArrangement = Arrangement.spacedBy(0.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             categories.forEachIndexed { index, category ->
                 LiquidGlassCategoryChip(
@@ -262,13 +285,12 @@ fun LiquidGlassCategoryChips(
                             indicatorX.snapTo(x + rowPaddingPx - insetPx)
                             indicatorWidth.snapTo(width + insetPx * 2f)
                         }
-                    }
+                    },
                 )
             }
         }
     }
 }
-
 
 @Composable
 private fun LiquidGlassCategoryChip(
@@ -276,7 +298,7 @@ private fun LiquidGlassCategoryChip(
     isSelected: Boolean,
     onSelect: () -> Unit,
     modifier: Modifier = Modifier,
-    onPositioned: suspend (x: Float, width: Float) -> Unit
+    onPositioned: suspend (x: Float, width: Float) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
@@ -284,70 +306,73 @@ private fun LiquidGlassCategoryChip(
 
     val pressScale by animateFloatAsState(
         targetValue = if (isPressed) 0.90f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "chipPressScale"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "chipPressScale",
     )
 
     val selectedAlpha by animateFloatAsState(
         targetValue = if (isSelected) 1f else 0f,
         animationSpec = tween(200),
-        label = "selectedAlpha"
+        label = "selectedAlpha",
     )
 
     val textColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.onSurface
-        } else {
-            MaterialTheme.colorScheme.onSurface.copy(alpha = .65f)
-        },
+        targetValue =
+            if (isSelected) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = .65f)
+            },
         animationSpec = tween(250),
-        label = "chipTextColor"
+        label = "chipTextColor",
     )
 
     Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) { onSelect() }
-            .onGloballyPositioned { coordinates ->
-                val x = coordinates.positionInParent().x
-                val width = coordinates.size.width.toFloat()
-                scope.launch { onPositioned(x, width) }
-            }
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            }
-            .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                ) { onSelect() }
+                .onGloballyPositioned { coordinates ->
+                    val x = coordinates.positionInParent().x
+                    val width = coordinates.size.width.toFloat()
+                    scope.launch { onPositioned(x, width) }
+                }.graphicsLayer {
+                    scaleX = pressScale
+                    scaleY = pressScale
+                }.padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = category.displayText(),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Medium
-                ),
+                style =
+                    MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Medium,
+                    ),
                 color = textColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { alpha = 1f - selectedAlpha }
+                modifier = Modifier.graphicsLayer { alpha = 1f - selectedAlpha },
             )
             Text(
                 text = category.displayText(),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
+                style =
+                    MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                    ),
                 color = textColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { alpha = selectedAlpha }
+                modifier = Modifier.graphicsLayer { alpha = selectedAlpha },
             )
         }
     }

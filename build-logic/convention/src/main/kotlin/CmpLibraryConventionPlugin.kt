@@ -23,6 +23,4 @@ class CmpLibraryConventionPlugin : Plugin<Project> {
             }
         }
     }
-
-
 }

@@ -10,5 +10,5 @@ data class GithubDeviceStartDto(
     @SerialName("verification_uri") val verificationUri: String,
     @SerialName("verification_uri_complete") val verificationUriComplete: String? = null,
     @SerialName("interval") val intervalSec: Int = 5,
-    @SerialName("expires_in") val expiresInSec: Int
+    @SerialName("expires_in") val expiresInSec: Int,
 )

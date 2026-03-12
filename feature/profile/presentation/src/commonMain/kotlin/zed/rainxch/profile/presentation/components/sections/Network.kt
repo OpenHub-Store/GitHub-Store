@@ -55,7 +55,7 @@ fun LazyListScope.networkSection(
 ) {
     item {
         SectionHeader(
-            text = stringResource(Res.string.section_network)
+            text = stringResource(Res.string.section_network),
         )
 
         Spacer(Modifier.height(8.dp))
@@ -64,36 +64,37 @@ fun LazyListScope.networkSection(
             selectedType = state.proxyType,
             onTypeSelected = { type ->
                 onAction(ProfileAction.OnProxyTypeSelected(type))
-            }
+            },
         )
 
         AnimatedVisibility(
             visible = state.proxyType == ProxyType.NONE || state.proxyType == ProxyType.SYSTEM,
             enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            exit = shrinkVertically() + fadeOut(),
         ) {
             Text(
-                text = when (state.proxyType) {
-                    ProxyType.SYSTEM -> stringResource(Res.string.proxy_system_description)
-                    else -> stringResource(Res.string.proxy_none_description)
-                },
+                text =
+                    when (state.proxyType) {
+                        ProxyType.SYSTEM -> stringResource(Res.string.proxy_system_description)
+                        else -> stringResource(Res.string.proxy_none_description)
+                    },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 8.dp, top = 12.dp)
+                modifier = Modifier.padding(start = 8.dp, top = 12.dp),
             )
         }
 
         AnimatedVisibility(
             visible = state.proxyType == ProxyType.HTTP || state.proxyType == ProxyType.SOCKS,
             enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            exit = shrinkVertically() + fadeOut(),
         ) {
             Column {
                 Spacer(Modifier.height(16.dp))
 
                 ProxyDetailsCard(
                     state = state,
-                    onAction = onAction
+                    onAction = onAction,
                 )
             }
         }
@@ -104,30 +105,31 @@ fun LazyListScope.networkSection(
 @Composable
 private fun ProxyTypeCard(
     selectedType: ProxyType,
-    onTypeSelected: (ProxyType) -> Unit
+    onTypeSelected: (ProxyType) -> Unit,
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        shape = RoundedCornerShape(32.dp)
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ),
+        shape = RoundedCornerShape(32.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Text(
                 text = stringResource(Res.string.proxy_type),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
 
             Spacer(Modifier.height(8.dp))
 
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(ProxyType.entries) { type ->
                     FilterChip(
@@ -135,17 +137,18 @@ private fun ProxyTypeCard(
                         onClick = { onTypeSelected(type) },
                         label = {
                             Text(
-                                text = when (type) {
-                                    ProxyType.NONE -> stringResource(Res.string.proxy_none)
-                                    ProxyType.SYSTEM -> stringResource(Res.string.proxy_system)
-                                    ProxyType.HTTP -> stringResource(Res.string.proxy_http)
-                                    ProxyType.SOCKS -> stringResource(Res.string.proxy_socks)
-                                },
+                                text =
+                                    when (type) {
+                                        ProxyType.NONE -> stringResource(Res.string.proxy_none)
+                                        ProxyType.SYSTEM -> stringResource(Res.string.proxy_system)
+                                        ProxyType.HTTP -> stringResource(Res.string.proxy_http)
+                                        ProxyType.SOCKS -> stringResource(Res.string.proxy_socks)
+                                    },
                                 fontWeight = if (selectedType == type) FontWeight.Bold else FontWeight.Normal,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
                     )
@@ -159,29 +162,32 @@ private fun ProxyTypeCard(
 @Composable
 private fun ProxyDetailsCard(
     state: ProfileState,
-    onAction: (ProfileAction) -> Unit
+    onAction: (ProfileAction) -> Unit,
 ) {
     val portValue = state.proxyPort
-    val isPortInvalid = portValue.isNotEmpty() &&
+    val isPortInvalid =
+        portValue.isNotEmpty() &&
             (portValue.toIntOrNull()?.let { it !in 1..65535 } ?: true)
-    val isFormValid = state.proxyHost.isNotBlank() &&
+    val isFormValid =
+        state.proxyHost.isNotBlank() &&
             portValue.isNotEmpty() &&
             portValue.toIntOrNull()?.let { it in 1..65535 } == true
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        shape = RoundedCornerShape(32.dp)
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ),
+        shape = RoundedCornerShape(32.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedTextField(
                     value = state.proxyHost,
@@ -190,7 +196,7 @@ private fun ProxyDetailsCard(
                     placeholder = { Text("127.0.0.1") },
                     singleLine = true,
                     modifier = Modifier.weight(2f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
 
                 OutlinedTextField(
@@ -200,12 +206,15 @@ private fun ProxyDetailsCard(
                     placeholder = { Text("1080") },
                     singleLine = true,
                     isError = isPortInvalid,
-                    supportingText = if (isPortInvalid) {
-                        { Text(stringResource(Res.string.proxy_port_error)) }
-                    } else null,
+                    supportingText =
+                        if (isPortInvalid) {
+                            { Text(stringResource(Res.string.proxy_port_error)) }
+                        } else {
+                            null
+                        },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
             }
 
@@ -216,7 +225,7 @@ private fun ProxyDetailsCard(
                 label = { Text(stringResource(Res.string.proxy_username)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             )
 
             // Password with visibility toggle
@@ -225,46 +234,48 @@ private fun ProxyDetailsCard(
                 onValueChange = { onAction(ProfileAction.OnProxyPasswordChanged(it)) },
                 label = { Text(stringResource(Res.string.proxy_password)) },
                 singleLine = true,
-                visualTransformation = if (state.isProxyPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
+                visualTransformation =
+                    if (state.isProxyPasswordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                 trailingIcon = {
                     IconButton(
-                        onClick = { onAction(ProfileAction.OnProxyPasswordVisibilityToggle) }
+                        onClick = { onAction(ProfileAction.OnProxyPasswordVisibilityToggle) },
                     ) {
                         Icon(
-                            imageVector = if (state.isProxyPasswordVisible) {
-                                Icons.Default.VisibilityOff
-                            } else {
-                                Icons.Default.Visibility
-                            },
-                            contentDescription = if (state.isProxyPasswordVisible) {
-                                stringResource(Res.string.proxy_hide_password)
-                            } else {
-                                stringResource(Res.string.proxy_show_password)
-                            },
-
-                            modifier = Modifier.size(20.dp)
+                            imageVector =
+                                if (state.isProxyPasswordVisible) {
+                                    Icons.Default.VisibilityOff
+                                } else {
+                                    Icons.Default.Visibility
+                                },
+                            contentDescription =
+                                if (state.isProxyPasswordVisible) {
+                                    stringResource(Res.string.proxy_hide_password)
+                                } else {
+                                    stringResource(Res.string.proxy_show_password)
+                                },
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             )
 
             // Save button
             FilledTonalButton(
                 onClick = { onAction(ProfileAction.OnProxySave) },
                 enabled = isFormValid,
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier.align(Alignment.End),
             ) {
                 Icon(
                     imageVector = Icons.Default.Save,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.size(8.dp))
                 Text(stringResource(Res.string.proxy_save))

@@ -7,23 +7,20 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
-import java.io.File
 import androidx.core.net.toUri
 import co.touchlab.kermit.Logger
 import zed.rainxch.core.domain.model.AssetArchitectureMatcher
-import zed.rainxch.core.domain.model.SystemArchitecture
 import zed.rainxch.core.domain.model.GithubAsset
+import zed.rainxch.core.domain.model.SystemArchitecture
 import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.system.InstallerInfoExtractor
+import java.io.File
 
 class AndroidInstaller(
     private val context: Context,
-    private val installerInfoExtractor: InstallerInfoExtractor
+    private val installerInfoExtractor: InstallerInfoExtractor,
 ) : Installer {
-
-    override fun getApkInfoExtractor(): InstallerInfoExtractor {
-        return installerInfoExtractor
-    }
+    override fun getApkInfoExtractor(): InstallerInfoExtractor = installerInfoExtractor
 
     override fun detectSystemArchitecture(): SystemArchitecture {
         val arch = Build.SUPPORTED_ABIS.firstOrNull() ?: return SystemArchitecture.UNKNOWN
@@ -45,55 +42,73 @@ class AndroidInstaller(
 
     private fun isArchitectureCompatible(
         assetName: String,
-        systemArch: SystemArchitecture
-    ): Boolean {
-        return AssetArchitectureMatcher.isCompatible(assetName, systemArch)
-    }
+        systemArch: SystemArchitecture,
+    ): Boolean = AssetArchitectureMatcher.isCompatible(assetName, systemArch)
 
     override fun choosePrimaryAsset(assets: List<GithubAsset>): GithubAsset? {
         if (assets.isEmpty()) return null
         val systemArch = detectSystemArchitecture()
-        val compatibleAssets = assets.filter { asset ->
-            isArchitectureCompatible(asset.name.lowercase(), systemArch)
-        }
+        val compatibleAssets =
+            assets.filter { asset ->
+                isArchitectureCompatible(asset.name.lowercase(), systemArch)
+            }
         val assetsToConsider = compatibleAssets.ifEmpty { assets }
         return assetsToConsider.maxByOrNull { asset ->
             val name = asset.name.lowercase()
-            val archBoost = when (systemArch) {
-                SystemArchitecture.X86_64 -> {
-                    if (AssetArchitectureMatcher.isExactMatch(
-                            name,
-                            SystemArchitecture.X86_64
-                        )
-                    ) 10000 else 0
-                }
+            val archBoost =
+                when (systemArch) {
+                    SystemArchitecture.X86_64 -> {
+                        if (AssetArchitectureMatcher.isExactMatch(
+                                name,
+                                SystemArchitecture.X86_64,
+                            )
+                        ) {
+                            10000
+                        } else {
+                            0
+                        }
+                    }
 
-                SystemArchitecture.AARCH64 -> {
-                    if (AssetArchitectureMatcher.isExactMatch(
-                            name,
-                            SystemArchitecture.AARCH64
-                        )
-                    ) 10000 else 0
-                }
+                    SystemArchitecture.AARCH64 -> {
+                        if (AssetArchitectureMatcher.isExactMatch(
+                                name,
+                                SystemArchitecture.AARCH64,
+                            )
+                        ) {
+                            10000
+                        } else {
+                            0
+                        }
+                    }
 
-                SystemArchitecture.X86 -> {
-                    if (AssetArchitectureMatcher.isExactMatch(
-                            name,
-                            SystemArchitecture.X86
-                        )
-                    ) 10000 else 0
-                }
+                    SystemArchitecture.X86 -> {
+                        if (AssetArchitectureMatcher.isExactMatch(
+                                name,
+                                SystemArchitecture.X86,
+                            )
+                        ) {
+                            10000
+                        } else {
+                            0
+                        }
+                    }
 
-                SystemArchitecture.ARM -> {
-                    if (AssetArchitectureMatcher.isExactMatch(
-                            name,
-                            SystemArchitecture.ARM
-                        )
-                    ) 10000 else 0
-                }
+                    SystemArchitecture.ARM -> {
+                        if (AssetArchitectureMatcher.isExactMatch(
+                                name,
+                                SystemArchitecture.ARM,
+                            )
+                        ) {
+                            10000
+                        } else {
+                            0
+                        }
+                    }
 
-                SystemArchitecture.UNKNOWN -> 0
-            }
+                    SystemArchitecture.UNKNOWN -> {
+                        0
+                    }
+                }
             archBoost + asset.size
         }
     }
@@ -106,16 +121,20 @@ class AndroidInstaller(
     override suspend fun ensurePermissionsOrThrow(extOrMime: String) {
         val pm = context.packageManager
         if (!pm.canRequestPackageInstalls()) {
-            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                data = "package:${context.packageName}".toUri()
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            val intent =
+                Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = "package:${context.packageName}".toUri()
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
             context.startActivity(intent)
             throw IllegalStateException("Please enable 'Install unknown apps' for this app in Settings and try again.")
         }
     }
 
-    override suspend fun install(filePath: String, extOrMime: String) {
+    override suspend fun install(
+        filePath: String,
+        extOrMime: String,
+    ) {
         val file = File(filePath)
         if (!file.exists()) {
             throw IllegalStateException("APK file not found: $filePath")
@@ -126,11 +145,12 @@ class AndroidInstaller(
         val authority = "${context.packageName}.fileprovider"
         val fileUri: Uri = FileProvider.getUriForFile(context, authority, file)
 
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(fileUri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent =
+            Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(fileUri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
 
         if (intent.resolveActivity(context.packageManager) != null) {
             context.startActivity(intent)
@@ -142,20 +162,20 @@ class AndroidInstaller(
 
     override fun uninstall(packageName: String) {
         Logger.d { "Requesting uninstall for: $packageName" }
-        val intent = Intent(Intent.ACTION_DELETE).apply {
-            data = "package:$packageName".toUri()
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent =
+            Intent(Intent.ACTION_DELETE).apply {
+                data = "package:$packageName".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
         try {
             context.startActivity(intent)
         } catch (e: Exception) {
             Logger.w { "Failed to start uninstall for $packageName: ${e.message}" }
         }
-
     }
 
-    override fun isObtainiumInstalled(): Boolean {
-        return try {
+    override fun isObtainiumInstalled(): Boolean =
+        try {
             context.packageManager.getPackageInfo("dev.imranr.obtainium.fdroid", 0)
             true
         } catch (e: Exception) {
@@ -166,18 +186,18 @@ class AndroidInstaller(
                 false
             }
         }
-    }
 
     override fun openInObtainium(
         repoOwner: String,
         repoName: String,
-        onOpenInstaller: () -> Unit
+        onOpenInstaller: () -> Unit,
     ) {
         val obtainiumUrl = "obtainium://add/https://github.com/$repoOwner/$repoName"
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = obtainiumUrl.toUri()
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent =
+            Intent(Intent.ACTION_VIEW).apply {
+                data = obtainiumUrl.toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
         try {
             context.startActivity(intent)
         } catch (_: ActivityNotFoundException) {
@@ -185,14 +205,13 @@ class AndroidInstaller(
         }
     }
 
-    override fun isAppManagerInstalled(): Boolean {
-        return try {
+    override fun isAppManagerInstalled(): Boolean =
+        try {
             context.packageManager.getPackageInfo("io.github.muntashirakon.AppManager", 0)
             true
         } catch (e: Exception) {
             false
         }
-    }
 
     override fun openApp(packageName: String): Boolean {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
@@ -205,7 +224,6 @@ class AndroidInstaller(
                 Logger.w { "Failed to launch $packageName: ${e.message}" }
                 false
             }
-
         } else {
             Logger.w { "No launch intent found for $packageName" }
             false
@@ -223,21 +241,23 @@ class AndroidInstaller(
         val authority = "${context.packageName}.fileprovider"
         val fileUri: Uri = FileProvider.getUriForFile(context, authority, file)
 
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(fileUri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent =
+            Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(fileUri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
 
-        val chooser = Intent.createChooser(intent, null).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val chooser =
+            Intent.createChooser(intent, null).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
         context.startActivity(chooser)
     }
 
     override fun openInAppManager(
         filePath: String,
-        onOpenInstaller: () -> Unit
+        onOpenInstaller: () -> Unit,
     ) {
         val file = File(filePath)
         if (!file.exists()) {
@@ -249,12 +269,13 @@ class AndroidInstaller(
         val authority = "${context.packageName}.fileprovider"
         val fileUri: Uri = FileProvider.getUriForFile(context, authority, file)
 
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(fileUri, "application/vnd.android.package-archive")
-            setPackage("io.github.muntashirakon.AppManager")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent =
+            Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(fileUri, "application/vnd.android.package-archive")
+                setPackage("io.github.muntashirakon.AppManager")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
 
         try {
             context.startActivity(intent)

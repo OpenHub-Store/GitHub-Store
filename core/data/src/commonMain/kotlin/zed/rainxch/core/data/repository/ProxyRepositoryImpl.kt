@@ -12,19 +12,21 @@ import zed.rainxch.core.domain.model.ProxyConfig
 import zed.rainxch.core.domain.repository.ProxyRepository
 
 class ProxyRepositoryImpl(
-    private val preferences: DataStore<Preferences>
+    private val preferences: DataStore<Preferences>,
 ) : ProxyRepository {
-
     private val proxyTypeKey = stringPreferencesKey("proxy_type")
     private val proxyHostKey = stringPreferencesKey("proxy_host")
     private val proxyPortKey = intPreferencesKey("proxy_port")
     private val proxyUsernameKey = stringPreferencesKey("proxy_username")
     private val proxyPasswordKey = stringPreferencesKey("proxy_password")
 
-    override fun getProxyConfig(): Flow<ProxyConfig> {
-        return preferences.data.map { prefs ->
+    override fun getProxyConfig(): Flow<ProxyConfig> =
+        preferences.data.map { prefs ->
             when (prefs[proxyTypeKey]) {
-                "system" -> ProxyConfig.System
+                "system" -> {
+                    ProxyConfig.System
+                }
+
                 "http" -> {
                     val host = prefs[proxyHostKey]?.takeIf { it.isNotBlank() }
                     val port = prefs[proxyPortKey]?.takeIf { it in 1..65535 }
@@ -33,12 +35,13 @@ class ProxyRepositoryImpl(
                             host = host,
                             port = port,
                             username = prefs[proxyUsernameKey],
-                            password = prefs[proxyPasswordKey]
+                            password = prefs[proxyPasswordKey],
                         )
                     } else {
                         ProxyConfig.None
                     }
                 }
+
                 "socks" -> {
                     val host = prefs[proxyHostKey]?.takeIf { it.isNotBlank() }
                     val port = prefs[proxyPortKey]?.takeIf { it in 1..65535 }
@@ -47,16 +50,18 @@ class ProxyRepositoryImpl(
                             host = host,
                             port = port,
                             username = prefs[proxyUsernameKey],
-                            password = prefs[proxyPasswordKey]
+                            password = prefs[proxyPasswordKey],
                         )
                     } else {
                         ProxyConfig.None
                     }
                 }
-                else -> ProxyConfig.None
+
+                else -> {
+                    ProxyConfig.None
+                }
             }
         }
-    }
 
     override suspend fun setProxyConfig(config: ProxyConfig) {
         // Persist first so config survives crashes, then apply in-memory
@@ -69,6 +74,7 @@ class ProxyRepositoryImpl(
                     prefs.remove(proxyUsernameKey)
                     prefs.remove(proxyPasswordKey)
                 }
+
                 is ProxyConfig.System -> {
                     prefs[proxyTypeKey] = "system"
                     prefs.remove(proxyHostKey)
@@ -76,6 +82,7 @@ class ProxyRepositoryImpl(
                     prefs.remove(proxyUsernameKey)
                     prefs.remove(proxyPasswordKey)
                 }
+
                 is ProxyConfig.Http -> {
                     prefs[proxyTypeKey] = "http"
                     prefs[proxyHostKey] = config.host
@@ -91,6 +98,7 @@ class ProxyRepositoryImpl(
                         prefs.remove(proxyPasswordKey)
                     }
                 }
+
                 is ProxyConfig.Socks -> {
                     prefs[proxyTypeKey] = "socks"
                     prefs[proxyHostKey] = config.host
@@ -113,20 +121,31 @@ class ProxyRepositoryImpl(
 
     private fun applyToProxyManager(config: ProxyConfig) {
         when (config) {
-            is ProxyConfig.None -> ProxyManager.setNoProxy()
-            is ProxyConfig.System -> ProxyManager.setSystemProxy()
-            is ProxyConfig.Http -> ProxyManager.setHttpProxy(
-                host = config.host,
-                port = config.port,
-                username = config.username,
-                password = config.password
-            )
-            is ProxyConfig.Socks -> ProxyManager.setSocksProxy(
-                host = config.host,
-                port = config.port,
-                username = config.username,
-                password = config.password
-            )
+            is ProxyConfig.None -> {
+                ProxyManager.setNoProxy()
+            }
+
+            is ProxyConfig.System -> {
+                ProxyManager.setSystemProxy()
+            }
+
+            is ProxyConfig.Http -> {
+                ProxyManager.setHttpProxy(
+                    host = config.host,
+                    port = config.port,
+                    username = config.username,
+                    password = config.password,
+                )
+            }
+
+            is ProxyConfig.Socks -> {
+                ProxyManager.setSocksProxy(
+                    host = config.host,
+                    port = config.port,
+                    username = config.username,
+                    password = config.password,
+                )
+            }
         }
     }
 }

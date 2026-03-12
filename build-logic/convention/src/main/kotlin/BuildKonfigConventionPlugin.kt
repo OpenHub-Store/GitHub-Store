@@ -18,13 +18,17 @@ class BuildKonfigConventionPlugin : Plugin<Project> {
                 packageName = target.pathToPackageName()
 
                 defaultConfigs {
-                    val localProps = Properties().apply {
-                        val file = rootProject.file("local.properties")
-                        if (file.exists()) file.inputStream().use { this.load(it) }
-                    }
+                    val localProps =
+                        Properties().apply {
+                            val file = rootProject.file("local.properties")
+                            if (file.exists()) file.inputStream().use { this.load(it) }
+                        }
 
-                    val githubClientId = (localProps.getProperty("GITHUB_CLIENT_ID")
-                        ?: "Ov23linTY28VFpFjFiI9").trim()
+                    val githubClientId =
+                        (
+                            localProps.getProperty("GITHUB_CLIENT_ID")
+                                ?: "Ov23linTY28VFpFjFiI9"
+                        ).trim()
 
                     val versionName = libs.findVersion("projectVersionName").get().toString()
 

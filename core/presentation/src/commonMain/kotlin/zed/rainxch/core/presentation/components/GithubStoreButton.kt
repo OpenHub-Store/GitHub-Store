@@ -23,7 +23,7 @@ fun GithubStoreButton(
     modifier: Modifier = Modifier,
     icon: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
-    style: GithubButtonStyle = GithubButtonStyle.Filled
+    style: GithubButtonStyle = GithubButtonStyle.Filled,
 ) {
     Button(
         onClick = onClick,
@@ -31,17 +31,16 @@ fun GithubStoreButton(
         colors = style.colors(),
         enabled = enabled,
         shapes = ButtonDefaults.shapes(),
-        contentPadding = if (icon != null) {
-            PaddingValues(start = 16.dp, end = 24.dp, top = 10.dp, bottom = 10.dp)
-        } else {
-            PaddingValues(horizontal = 24.dp, vertical = 10.dp)
-        }
+        contentPadding =
+            if (icon != null) {
+                PaddingValues(start = 16.dp, end = 24.dp, top = 10.dp, bottom = 10.dp)
+            } else {
+                PaddingValues(horizontal = 24.dp, vertical = 10.dp)
+            },
     ) {
-
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             icon?.invoke()
             Text(
@@ -49,7 +48,7 @@ fun GithubStoreButton(
                 style = MaterialTheme.typography.labelLarge,
                 maxLines = 1,
                 softWrap = false,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -59,13 +58,15 @@ enum class GithubButtonStyle {
     Filled,
     Tonal,
     Outlined,
-    Text;
+    Text,
+    ;
 
     @Composable
-    fun colors() = when (this) {
-        Filled -> ButtonDefaults.buttonColors()
-        Tonal -> ButtonDefaults.filledTonalButtonColors()
-        Outlined -> ButtonDefaults.outlinedButtonColors()
-        Text -> ButtonDefaults.textButtonColors()
-    }
+    fun colors() =
+        when (this) {
+            Filled -> ButtonDefaults.buttonColors()
+            Tonal -> ButtonDefaults.filledTonalButtonColors()
+            Outlined -> ButtonDefaults.outlinedButtonColors()
+            Text -> ButtonDefaults.textButtonColors()
+        }
 }

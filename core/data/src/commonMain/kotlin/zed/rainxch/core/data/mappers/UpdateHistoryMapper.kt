@@ -3,8 +3,8 @@ package zed.rainxch.core.data.mappers
 import zed.rainxch.core.data.local.db.entities.UpdateHistoryEntity
 import zed.rainxch.core.domain.model.UpdateHistory
 
-fun UpdateHistory.toEntity(): UpdateHistoryEntity {
-    return UpdateHistoryEntity(
+fun UpdateHistory.toEntity(): UpdateHistoryEntity =
+    UpdateHistoryEntity(
         id = id,
         packageName = packageName,
         appName = appName,
@@ -15,11 +15,11 @@ fun UpdateHistory.toEntity(): UpdateHistoryEntity {
         updatedAt = updatedAt,
         updateSource = updateSource,
         success = success,
-        errorMessage = errorMessage
+        errorMessage = errorMessage,
     )
-}
-fun UpdateHistoryEntity.toDomain(): UpdateHistory {
-    return UpdateHistory(
+
+fun UpdateHistoryEntity.toDomain(): UpdateHistory =
+    UpdateHistory(
         id = id,
         packageName = packageName,
         appName = appName,
@@ -30,6 +30,5 @@ fun UpdateHistoryEntity.toDomain(): UpdateHistory {
         updatedAt = updatedAt,
         updateSource = updateSource,
         success = success,
-        errorMessage = errorMessage
+        errorMessage = errorMessage,
     )
-}

@@ -13,26 +13,28 @@ import androidx.compose.ui.unit.dp
 fun ExpressiveCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     if (onClick != null) {
         ElevatedCard(
             modifier = modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            ),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
             onClick = onClick,
             shape = RoundedCornerShape(32.dp),
-            content = { content() }
+            content = { content() },
         )
     } else {
         ElevatedCard(
             modifier = modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            ),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
             shape = RoundedCornerShape(32.dp),
-            content = { content() }
+            content = { content() },
         )
     }
 }

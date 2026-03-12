@@ -11,8 +11,8 @@ import zed.rainxch.core.data.di.networkModule
 import zed.rainxch.details.data.di.detailsModule
 import zed.rainxch.devprofile.data.di.devProfileModule
 import zed.rainxch.home.data.di.homeModule
-import zed.rainxch.search.data.di.searchModule
 import zed.rainxch.profile.data.di.settingsModule
+import zed.rainxch.search.data.di.searchModule
 
 fun initKoin(config: KoinAppDeclaration? = null) {
     startKoin {
@@ -24,14 +24,13 @@ fun initKoin(config: KoinAppDeclaration? = null) {
             networkModule,
             databaseModule,
             viewModelsModule,
-
             appsModule,
             authModule,
             detailsModule,
             devProfileModule,
             homeModule,
             searchModule,
-            settingsModule
+            settingsModule,
         )
     }
 }

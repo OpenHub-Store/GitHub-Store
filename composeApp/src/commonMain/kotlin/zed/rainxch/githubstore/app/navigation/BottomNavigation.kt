@@ -65,18 +65,19 @@ fun BottomNavigation(
     currentScreen: GithubStoreGraph,
     onNavigate: (GithubStoreGraph) -> Unit,
     isUpdateAvailable: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val liquidState = LocalBottomNavigationLiquid.current
 
     if (currentScreen !in BottomNavigationUtils.allowedScreens()) return
 
-    val visibleItems = remember {
-        BottomNavigationUtils.items().filterNot {
-            getPlatform() != Platform.ANDROID &&
+    val visibleItems =
+        remember {
+            BottomNavigationUtils.items().filterNot {
+                getPlatform() != Platform.ANDROID &&
                     it.screen == GithubStoreGraph.AppsScreen
+            }
         }
-    }
 
     val selectedIndex = visibleItems.indexOfFirst { it.screen == currentScreen }
 
@@ -100,138 +101,169 @@ fun BottomNavigation(
         launch {
             indicatorX.animateTo(
                 targetValue = targetX,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
+                animationSpec =
+                    spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessLow,
+                    ),
             )
         }
         launch {
             indicatorWidth.animateTo(
                 targetValue = targetW,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
+                animationSpec =
+                    spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium,
+                    ),
             )
         }
     }
 
-    val isDarkTheme = !MaterialTheme.colorScheme.background.luminance().let { it > 0.5f }
+    val isDarkTheme =
+        !MaterialTheme.colorScheme.background
+            .luminance()
+            .let { it > 0.5f }
 
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(
-                    if (isLiquidFrostAvailable()) {
-                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(
-                            alpha = if (isDarkTheme) .25f else .15f
-                        )
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHighest
-                    }
-                )
-                .then(
-                    if (isLiquidFrostAvailable()) {
-                        Modifier.liquid(liquidState) {
-                            this.shape = CircleShape
-                            this.frost = if (isDarkTheme) 12.dp else 10.dp
-                            this.curve = if (isDarkTheme) .35f else .45f
-                            this.refraction = if (isDarkTheme) .08f else .12f
-                            this.dispersion = if (isDarkTheme) .18f else .25f
-                            this.saturation = if (isDarkTheme) .40f else .55f
-                            this.contrast = if (isDarkTheme) 1.8f else 1.6f
-                        }
-                    } else Modifier)
-                .pointerInput(Unit) { }
+            modifier =
+                Modifier
+                    .clip(CircleShape)
+                    .background(
+                        if (isLiquidFrostAvailable()) {
+                            MaterialTheme.colorScheme.surfaceContainerHighest.copy(
+                                alpha = if (isDarkTheme) .25f else .15f,
+                            )
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHighest
+                        },
+                    ).then(
+                        if (isLiquidFrostAvailable()) {
+                            Modifier.liquid(liquidState) {
+                                this.shape = CircleShape
+                                this.frost = if (isDarkTheme) 12.dp else 10.dp
+                                this.curve = if (isDarkTheme) .35f else .45f
+                                this.refraction = if (isDarkTheme) .08f else .12f
+                                this.dispersion = if (isDarkTheme) .18f else .25f
+                                this.saturation = if (isDarkTheme) .40f else .55f
+                                this.contrast = if (isDarkTheme) 1.8f else 1.6f
+                            }
+                        } else {
+                            Modifier
+                        },
+                    ).pointerInput(Unit) { },
         ) {
-            val glassHighColor = if (isDarkTheme) {
-                Color.White.copy(alpha = .12f)
-            } else Color.White.copy(alpha = .30f)
-            val glassLowColor = if (isDarkTheme) {
-                Color.White.copy(alpha = .04f)
-            } else Color.White.copy(alpha = .10f)
-            val specularColor = if (isDarkTheme) {
-                Color.White.copy(alpha = .18f)
-            } else Color.White.copy(alpha = .45f)
-            val innerGlowColor = if (isDarkTheme) {
-                Color.White.copy(alpha = .03f)
-            } else Color.White.copy(alpha = .08f)
-            val borderColor = if (isDarkTheme) {
-                Color.White.copy(alpha = .08f)
-            } else Color.Transparent
+            val glassHighColor =
+                if (isDarkTheme) {
+                    Color.White.copy(alpha = .12f)
+                } else {
+                    Color.White.copy(alpha = .30f)
+                }
+            val glassLowColor =
+                if (isDarkTheme) {
+                    Color.White.copy(alpha = .04f)
+                } else {
+                    Color.White.copy(alpha = .10f)
+                }
+            val specularColor =
+                if (isDarkTheme) {
+                    Color.White.copy(alpha = .18f)
+                } else {
+                    Color.White.copy(alpha = .45f)
+                }
+            val innerGlowColor =
+                if (isDarkTheme) {
+                    Color.White.copy(alpha = .03f)
+                } else {
+                    Color.White.copy(alpha = .08f)
+                }
+            val borderColor =
+                if (isDarkTheme) {
+                    Color.White.copy(alpha = .08f)
+                } else {
+                    Color.Transparent
+                }
 
             Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .drawBehind {
-                        if (indicatorWidth.value > 0f) {
-                            if (isDarkTheme) {
+                modifier =
+                    Modifier
+                        .matchParentSize()
+                        .drawBehind {
+                            if (indicatorWidth.value > 0f) {
+                                if (isDarkTheme) {
+                                    drawRoundRect(
+                                        color = borderColor,
+                                        topLeft =
+                                            Offset(
+                                                indicatorX.value - .5.dp.toPx(),
+                                                1.5.dp.toPx(),
+                                            ),
+                                        size =
+                                            Size(
+                                                indicatorWidth.value + 1.dp.toPx(),
+                                                size.height - 3.dp.toPx(),
+                                            ),
+                                        cornerRadius = CornerRadius(size.height / 2f),
+                                        style = Stroke(width = 1.dp.toPx()),
+                                    )
+                                }
+
                                 drawRoundRect(
-                                    color = borderColor,
-                                    topLeft = Offset(
-                                        indicatorX.value - .5.dp.toPx(),
-                                        1.5.dp.toPx()
-                                    ),
-                                    size = Size(
-                                        indicatorWidth.value + 1.dp.toPx(),
-                                        size.height - 3.dp.toPx()
-                                    ),
+                                    brush =
+                                        Brush.verticalGradient(
+                                            colors = listOf(glassHighColor, glassLowColor),
+                                        ),
+                                    topLeft = Offset(indicatorX.value, 2.dp.toPx()),
+                                    size = Size(indicatorWidth.value, size.height - 4.dp.toPx()),
                                     cornerRadius = CornerRadius(size.height / 2f),
-                                    style = Stroke(width = 1.dp.toPx())
+                                )
+
+                                drawRoundRect(
+                                    brush =
+                                        Brush.horizontalGradient(
+                                            colors =
+                                                listOf(
+                                                    Color.Transparent,
+                                                    specularColor,
+                                                    Color.Transparent,
+                                                ),
+                                            startX = indicatorX.value + indicatorWidth.value * .15f,
+                                            endX = indicatorX.value + indicatorWidth.value * .85f,
+                                        ),
+                                    topLeft =
+                                        Offset(
+                                            indicatorX.value + indicatorWidth.value * .15f,
+                                            3.dp.toPx(),
+                                        ),
+                                    size = Size(indicatorWidth.value * .7f, 1.5.dp.toPx()),
+                                    cornerRadius = CornerRadius(1.dp.toPx()),
+                                )
+
+                                drawRoundRect(
+                                    brush =
+                                        Brush.verticalGradient(
+                                            colors = listOf(Color.Transparent, innerGlowColor),
+                                        ),
+                                    topLeft =
+                                        Offset(
+                                            indicatorX.value + 4.dp.toPx(),
+                                            size.height - 8.dp.toPx(),
+                                        ),
+                                    size = Size(indicatorWidth.value - 8.dp.toPx(), 4.dp.toPx()),
+                                    cornerRadius = CornerRadius(2.dp.toPx()),
                                 )
                             }
-
-                            drawRoundRect(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(glassHighColor, glassLowColor)
-                                ),
-                                topLeft = Offset(indicatorX.value, 2.dp.toPx()),
-                                size = Size(indicatorWidth.value, size.height - 4.dp.toPx()),
-                                cornerRadius = CornerRadius(size.height / 2f)
-                            )
-
-                            drawRoundRect(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        specularColor,
-                                        Color.Transparent,
-                                    ),
-                                    startX = indicatorX.value + indicatorWidth.value * .15f,
-                                    endX = indicatorX.value + indicatorWidth.value * .85f
-                                ),
-                                topLeft = Offset(
-                                    indicatorX.value + indicatorWidth.value * .15f,
-                                    3.dp.toPx()
-                                ),
-                                size = Size(indicatorWidth.value * .7f, 1.5.dp.toPx()),
-                                cornerRadius = CornerRadius(1.dp.toPx())
-                            )
-
-                            drawRoundRect(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, innerGlowColor)
-                                ),
-                                topLeft = Offset(
-                                    indicatorX.value + 4.dp.toPx(),
-                                    size.height - 8.dp.toPx()
-                                ),
-                                size = Size(indicatorWidth.value - 8.dp.toPx(), 4.dp.toPx()),
-                                cornerRadius = CornerRadius(2.dp.toPx())
-                            )
-                        }
-                    }
+                        },
             )
 
             Row(
                 modifier = Modifier.padding(horizontal = rowHorizontalPaddingDp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 visibleItems.forEachIndexed { index, item ->
                     LiquidGlassTabItem(
@@ -250,7 +282,7 @@ fun BottomNavigation(
                                 indicatorX.snapTo(snapX)
                                 indicatorWidth.snapTo(snapW)
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -258,14 +290,13 @@ fun BottomNavigation(
     }
 }
 
-
 @Composable
 private fun LiquidGlassTabItem(
     item: BottomNavigationItem,
     isSelected: Boolean,
     onSelect: () -> Unit,
     hasBadge: Boolean = false,
-    onPositioned: suspend (x: Float, width: Float) -> Unit
+    onPositioned: suspend (x: Float, width: Float) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -274,122 +305,132 @@ private fun LiquidGlassTabItem(
 
     val pressScale by animateFloatAsState(
         targetValue = if (isPressed) 0.85f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "pressScale"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "pressScale",
     )
 
     val iconScale by animateFloatAsState(
         targetValue = if (isSelected) 1.15f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "iconScale"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "iconScale",
     )
 
     val iconOffsetY by animateDpAsState(
         targetValue = if (isSelected) (-1).dp else 1.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "iconOffsetY"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "iconOffsetY",
     )
 
-    val iconTint = if (isSelected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = .7f)
-    }
+    val iconTint =
+        if (isSelected) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface.copy(alpha = .7f)
+        }
 
     val labelAlpha by animateFloatAsState(
         targetValue = if (isSelected) 1f else 0f,
-        animationSpec = tween(
-            durationMillis = if (isSelected) 250 else 150,
-            easing = FastOutSlowInEasing
-        ),
-        label = "labelAlpha"
+        animationSpec =
+            tween(
+                durationMillis = if (isSelected) 250 else 150,
+                easing = FastOutSlowInEasing,
+            ),
+        label = "labelAlpha",
     )
 
     val labelScale by animateFloatAsState(
         targetValue = if (isSelected) 1f else 0.6f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "labelScale"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "labelScale",
     )
 
     val horizontalPadding by animateDpAsState(
         targetValue = if (isSelected) 20.dp else 14.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "hPadding"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+        label = "hPadding",
     )
 
     Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) { onSelect() }
-            .onGloballyPositioned { coordinates ->
-                val x = coordinates.positionInParent().x
-                val width = coordinates.size.width.toFloat()
-                scope.launch { onPositioned(x, width) }
-            }
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            }
-            .padding(horizontal = horizontalPadding, vertical = 6.dp)
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                ) { onSelect() }
+                .onGloballyPositioned { coordinates ->
+                    val x = coordinates.positionInParent().x
+                    val width = coordinates.size.width.toFloat()
+                    scope.launch { onPositioned(x, width) }
+                }.graphicsLayer {
+                    scaleX = pressScale
+                    scaleY = pressScale
+                }.padding(horizontal = horizontalPadding, vertical = 6.dp),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(1.dp)
+            verticalArrangement = Arrangement.spacedBy(1.dp),
         ) {
             Icon(
                 imageVector = if (isSelected) item.iconFilled else item.iconOutlined,
                 contentDescription = stringResource(item.titleRes),
-                modifier = Modifier
-                    .size(22.dp)
-                    .graphicsLayer {
-                        scaleX = iconScale
-                        scaleY = iconScale
-                        translationY = with(density) { iconOffsetY.toPx() }
-                    },
-                tint = iconTint
+                modifier =
+                    Modifier
+                        .size(22.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale
+                            scaleY = iconScale
+                            translationY = with(density) { iconOffsetY.toPx() }
+                        },
+                tint = iconTint,
             )
 
             Box(
-                modifier = Modifier
-                    .height(if (isSelected) 16.dp else 0.dp)
-                    .graphicsLayer {
-                        alpha = labelAlpha
-                        scaleX = labelScale
-                        scaleY = labelScale
-                    },
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .height(if (isSelected) 16.dp else 0.dp)
+                        .graphicsLayer {
+                            alpha = labelAlpha
+                            scaleX = labelScale
+                            scaleY = labelScale
+                        },
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = stringResource(item.titleRes),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 10.sp,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        lineHeight = 12.sp
-                    ),
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = .7f)
-                    },
-                    maxLines = 1
+                    style =
+                        MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 10.sp,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            lineHeight = 12.sp,
+                        ),
+                    color =
+                        if (isSelected) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = .7f)
+                        },
+                    maxLines = 1,
                 )
             }
         }
@@ -400,7 +441,7 @@ private fun LiquidGlassTabItem(
                     .size(12.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.error)
-                    .align(Alignment.TopEnd)
+                    .align(Alignment.TopEnd),
             )
         }
     }
@@ -411,14 +452,13 @@ private fun LiquidGlassTabItem(
 fun BottomNavigationPreview() {
     GithubStoreTheme {
         CompositionLocalProvider(
-            LocalBottomNavigationLiquid provides rememberLiquidState()
+            LocalBottomNavigationLiquid provides rememberLiquidState(),
         ) {
             BottomNavigation(
                 currentScreen = GithubStoreGraph.HomeScreen,
                 onNavigate = {
-
                 },
-                isUpdateAvailable = true
+                isUpdateAvailable = true,
             )
         }
     }

@@ -14,7 +14,5 @@ class AndroidLocalizationManager : zed.rainxch.core.data.services.LocalizationMa
         }
     }
 
-    override fun getPrimaryLanguageCode(): String {
-        return Locale.getDefault().language
-    }
+    override fun getPrimaryLanguageCode(): String = Locale.getDefault().language
 }

@@ -71,7 +71,7 @@ fun SmartInstallButton(
     primaryAsset: GithubAsset?,
     onAction: (DetailsAction) -> Unit,
     modifier: Modifier = Modifier,
-    state: DetailsState
+    state: DetailsState,
 ) {
     val liquidState = LocalTopbarLiquidState.current
 
@@ -80,15 +80,18 @@ fun SmartInstallButton(
     val isUpdateAvailable =
         installedApp?.isUpdateAvailable == true && !installedApp.isPendingInstall
 
-    val isSameVersionInstalled = isInstalled &&
+    val isSameVersionInstalled =
+        isInstalled &&
             installedApp != null &&
-            normalizeVersion(installedApp.installedVersion) == normalizeVersion(
-        state.selectedRelease?.tagName ?: ""
-    )
+            normalizeVersion(installedApp.installedVersion) ==
+            normalizeVersion(
+                state.selectedRelease?.tagName ?: "",
+            )
 
-    val enabled = remember(primaryAsset, isDownloading, isInstalling) {
-        primaryAsset != null && !isDownloading && !isInstalling
-    }
+    val enabled =
+        remember(primaryAsset, isDownloading, isInstalling) {
+            primaryAsset != null && !isDownloading && !isInstalling
+        }
 
     val isActiveDownload = state.isDownloading || state.downloadStage != DownloadStage.IDLE
 
@@ -97,44 +100,47 @@ fun SmartInstallButton(
         Row(
             modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             // Uninstall button
             ElevatedCard(
                 onClick = { onAction(DetailsAction.UninstallApp) },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(52.dp)
-                    .liquefiable(liquidState),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                ),
-                shape = RoundedCornerShape(
-                    topStart = 24.dp,
-                    bottomStart = 24.dp,
-                    topEnd = 6.dp,
-                    bottomEnd = 6.dp
-                )
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .height(52.dp)
+                        .liquefiable(liquidState),
+                colors =
+                    CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                    ),
+                shape =
+                    RoundedCornerShape(
+                        topStart = 24.dp,
+                        bottomStart = 24.dp,
+                        topEnd = 6.dp,
+                        bottomEnd = 6.dp,
+                    ),
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onErrorContainer
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
                         )
                         Text(
                             text = stringResource(Res.string.uninstall),
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
@@ -142,42 +148,45 @@ fun SmartInstallButton(
 
             // Open button
             ElevatedCard(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(52.dp)
-                    .liquefiable(liquidState),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(
-                    topStart = 6.dp,
-                    bottomStart = 6.dp,
-                    topEnd = 24.dp,
-                    bottomEnd = 24.dp
-                ),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .height(52.dp)
+                        .liquefiable(liquidState),
+                colors =
+                    CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                shape =
+                    RoundedCornerShape(
+                        topStart = 6.dp,
+                        bottomStart = 6.dp,
+                        topEnd = 24.dp,
+                        bottomEnd = 24.dp,
+                    ),
                 onClick = {
                     onAction(DetailsAction.OpenApp)
-                }
+                },
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                         Text(
                             text = stringResource(Res.string.open_app),
                             color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
@@ -187,99 +196,119 @@ fun SmartInstallButton(
     }
 
     // Regular install/update button for all other cases
-    val buttonColor = when {
-        !enabled && !isActiveDownload -> MaterialTheme.colorScheme.surfaceContainer
-        isUpdateAvailable -> MaterialTheme.colorScheme.tertiary
-        isInstalled -> MaterialTheme.colorScheme.secondary
-        else -> MaterialTheme.colorScheme.primary
-    }
+    val buttonColor =
+        when {
+            !enabled && !isActiveDownload -> MaterialTheme.colorScheme.surfaceContainer
+            isUpdateAvailable -> MaterialTheme.colorScheme.tertiary
+            isInstalled -> MaterialTheme.colorScheme.secondary
+            else -> MaterialTheme.colorScheme.primary
+        }
 
-    val buttonText = when {
-        !enabled && primaryAsset == null -> stringResource(Res.string.not_available)
-        isUpdateAvailable -> stringResource(
-            Res.string.update_to_version,
-            installedApp.latestVersion.toString()
-        )
+    val buttonText =
+        when {
+            !enabled && primaryAsset == null -> {
+                stringResource(Res.string.not_available)
+            }
 
-        isInstalled && installedApp.installedVersion != state.selectedRelease?.tagName ->
-            stringResource(
-                Res.string.install_version,
-                state.selectedRelease?.tagName ?: ""
-            )
+            isUpdateAvailable -> {
+                stringResource(
+                    Res.string.update_to_version,
+                    installedApp.latestVersion.toString(),
+                )
+            }
 
-        else -> stringResource(Res.string.install_latest)
-    }
+            isInstalled && installedApp.installedVersion != state.selectedRelease?.tagName -> {
+                stringResource(
+                    Res.string.install_version,
+                    state.selectedRelease?.tagName ?: "",
+                )
+            }
+
+            else -> {
+                stringResource(Res.string.install_latest)
+            }
+        }
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         ElevatedCard(
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp)
-                .background(
-                    color = buttonColor,
-                    shape = CircleShape
-                )
-                .clickable(
-                    enabled = enabled,
-                    onClick = {
-                        if (!state.isDownloading && state.downloadStage == DownloadStage.IDLE) {
-                            if (isUpdateAvailable) {
-                                onAction(DetailsAction.UpdateApp)
-                            } else {
-                                onAction(DetailsAction.InstallPrimary)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .height(52.dp)
+                    .background(
+                        color = buttonColor,
+                        shape = CircleShape,
+                    ).clickable(
+                        enabled = enabled,
+                        onClick = {
+                            if (!state.isDownloading && state.downloadStage == DownloadStage.IDLE) {
+                                if (isUpdateAvailable) {
+                                    onAction(DetailsAction.UpdateApp)
+                                } else {
+                                    onAction(DetailsAction.InstallPrimary)
+                                }
                             }
-                        }
-                    }
-                )
-                .liquefiable(liquidState),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = buttonColor
-            ),
-            shape = if (state.isObtainiumEnabled || isActiveDownload) {
-                RoundedCornerShape(
-                    topStart = 24.dp,
-                    bottomStart = 24.dp,
-                    topEnd = 6.dp,
-                    bottomEnd = 6.dp
-                )
-            } else CircleShape
+                        },
+                    ).liquefiable(liquidState),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = buttonColor,
+                ),
+            shape =
+                if (state.isObtainiumEnabled || isActiveDownload) {
+                    RoundedCornerShape(
+                        topStart = 24.dp,
+                        bottomStart = 24.dp,
+                        topEnd = 6.dp,
+                        bottomEnd = 6.dp,
+                    )
+                } else {
+                    CircleShape
+                },
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 if (isActiveDownload) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         when (state.downloadStage) {
                             DownloadStage.DOWNLOADING -> {
                                 Text(
-                                    text = if (isUpdateAvailable) stringResource(Res.string.updating) else stringResource(
-                                        Res.string.downloading
-                                    ),
+                                    text =
+                                        if (isUpdateAvailable) {
+                                            stringResource(Res.string.updating)
+                                        } else {
+                                            stringResource(
+                                                Res.string.downloading,
+                                            )
+                                        },
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
                                 )
 
                                 val progressText =
                                     if (state.totalBytes != null && state.totalBytes > 0) {
                                         "${formatFileSize(state.downloadedBytes)} / ${
                                             formatFileSize(
-                                                state.totalBytes
+                                                state.totalBytes,
                                             )
                                         }"
-                                    } else "${progress ?: 0}%"
+                                    } else {
+                                        "${progress ?: 0}%"
+                                    }
                                 Text(
                                     text = progressText,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
                                 )
                             }
 
@@ -288,18 +317,23 @@ fun SmartInstallButton(
                                     text = stringResource(Res.string.verifying),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
 
                             DownloadStage.INSTALLING -> {
                                 Text(
-                                    text = if (isUpdateAvailable) stringResource(Res.string.updating) else stringResource(
-                                        Res.string.installing
-                                    ),
+                                    text =
+                                        if (isUpdateAvailable) {
+                                            stringResource(Res.string.updating)
+                                        } else {
+                                            stringResource(
+                                                Res.string.installing,
+                                            )
+                                        },
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
 
@@ -309,39 +343,42 @@ fun SmartInstallButton(
                 } else {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             if (isUpdateAvailable) {
                                 Icon(
                                     imageVector = Icons.Default.Update,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.onTertiary
+                                    tint = MaterialTheme.colorScheme.onTertiary,
                                 )
                             } else if (isInstalled) {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.onSecondary
+                                    tint = MaterialTheme.colorScheme.onSecondary,
                                 )
                             }
 
                             Text(
                                 text = buttonText,
-                                color = if (enabled) {
-                                    when {
-                                        isUpdateAvailable -> MaterialTheme.colorScheme.onTertiary
-                                        isInstalled -> MaterialTheme.colorScheme.onSecondary
-                                        else -> MaterialTheme.colorScheme.onPrimary
-                                    }
-                                } else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                color =
+                                    if (enabled) {
+                                        when {
+                                            isUpdateAvailable -> MaterialTheme.colorScheme.onTertiary
+                                            isInstalled -> MaterialTheme.colorScheme.onSecondary
+                                            else -> MaterialTheme.colorScheme.onPrimary
+                                        }
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                    },
                                 fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                         }
 
@@ -356,31 +393,39 @@ fun SmartInstallButton(
 
                             Row(
                                 horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
                                     text = subtitle,
-                                    color = if (enabled) {
-                                        when {
-                                            isUpdateAvailable -> MaterialTheme.colorScheme.onTertiary.copy(
-                                                alpha = 0.8f
-                                            )
+                                    color =
+                                        if (enabled) {
+                                            when {
+                                                isUpdateAvailable -> {
+                                                    MaterialTheme.colorScheme.onTertiary.copy(
+                                                        alpha = 0.8f,
+                                                    )
+                                                }
 
-                                            isInstalled -> MaterialTheme.colorScheme.onSecondary.copy(
-                                                alpha = 0.8f
-                                            )
+                                                isInstalled -> {
+                                                    MaterialTheme.colorScheme.onSecondary.copy(
+                                                        alpha = 0.8f,
+                                                    )
+                                                }
 
-                                            else -> MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                                        }
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                                    },
-                                    style = MaterialTheme.typography.bodySmall
+                                                else -> {
+                                                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                                }
+                                            }
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                        },
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
 
-                                if (assetArch != null && isExactArchitectureMatch(
+                                if (assetArch != null &&
+                                    isExactArchitectureMatch(
                                         assetName = primaryAsset.name.lowercase(),
-                                        systemArch = systemArch
+                                        systemArch = systemArch,
                                     )
                                 ) {
                                     Spacer(modifier = Modifier.width(4.dp))
@@ -388,24 +433,31 @@ fun SmartInstallButton(
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
                                         contentDescription = stringResource(Res.string.architecture_compatible),
-                                        tint = if (enabled) {
-                                            when {
-                                                isUpdateAvailable -> MaterialTheme.colorScheme.onTertiary.copy(
-                                                    alpha = 0.8f
-                                                )
+                                        tint =
+                                            if (enabled) {
+                                                when {
+                                                    isUpdateAvailable -> {
+                                                        MaterialTheme.colorScheme.onTertiary.copy(
+                                                            alpha = 0.8f,
+                                                        )
+                                                    }
 
-                                                isInstalled -> MaterialTheme.colorScheme.onSecondary.copy(
-                                                    alpha = 0.8f
-                                                )
+                                                    isInstalled -> {
+                                                        MaterialTheme.colorScheme.onSecondary.copy(
+                                                            alpha = 0.8f,
+                                                        )
+                                                    }
 
-                                                else -> MaterialTheme.colorScheme.onPrimary.copy(
-                                                    alpha = 0.8f
-                                                )
-                                            }
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                                        },
-                                        modifier = Modifier.size(14.dp)
+                                                    else -> {
+                                                        MaterialTheme.colorScheme.onPrimary.copy(
+                                                            alpha = 0.8f,
+                                                        )
+                                                    }
+                                                }
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                            },
+                                        modifier = Modifier.size(14.dp),
                                     )
                                 }
                             }
@@ -420,22 +472,24 @@ fun SmartInstallButton(
                 onClick = {
                     onAction(DetailsAction.CancelCurrentDownload)
                 },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                ),
+                colors =
+                    IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                    ),
                 modifier = Modifier.size(52.dp),
-                shape = RoundedCornerShape(
-                    topStart = 6.dp,
-                    bottomStart = 6.dp,
-                    topEnd = 24.dp,
-                    bottomEnd = 24.dp
-                )
+                shape =
+                    RoundedCornerShape(
+                        topStart = 6.dp,
+                        bottomStart = 6.dp,
+                        topEnd = 24.dp,
+                        bottomEnd = 24.dp,
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(Res.string.cancel_download),
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onErrorContainer
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
                 )
             }
         } else if (state.isObtainiumEnabled) {
@@ -443,48 +497,53 @@ fun SmartInstallButton(
                 onClick = {
                     onAction(DetailsAction.OnToggleInstallDropdown)
                 },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (enabled) {
-                        buttonColor
-                    } else MaterialTheme.colorScheme.surfaceContainer
-                ),
+                colors =
+                    IconButtonDefaults.iconButtonColors(
+                        containerColor =
+                            if (enabled) {
+                                buttonColor
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainer
+                            },
+                    ),
                 modifier = Modifier.size(52.dp),
-                shape = RoundedCornerShape(
-                    topStart = 6.dp,
-                    bottomStart = 6.dp,
-                    topEnd = 24.dp,
-                    bottomEnd = 24.dp
-                )
+                shape =
+                    RoundedCornerShape(
+                        topStart = 6.dp,
+                        bottomStart = 6.dp,
+                        topEnd = 24.dp,
+                        bottomEnd = 24.dp,
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = stringResource(Res.string.show_install_options),
                     modifier = Modifier.size(24.dp),
-                    tint = if (enabled) {
-                        when {
-                            isUpdateAvailable -> MaterialTheme.colorScheme.onTertiary
-                            isInstalled -> MaterialTheme.colorScheme.onSecondary
-                            else -> MaterialTheme.colorScheme.onPrimary
-                        }
-                    } else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    tint =
+                        if (enabled) {
+                            when {
+                                isUpdateAvailable -> MaterialTheme.colorScheme.onTertiary
+                                isInstalled -> MaterialTheme.colorScheme.onSecondary
+                                else -> MaterialTheme.colorScheme.onPrimary
+                            }
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        },
                 )
             }
         }
     }
 }
 
-private fun normalizeVersion(version: String): String {
-    return version.removePrefix("v").removePrefix("V").trim()
-}
+private fun normalizeVersion(version: String): String = version.removePrefix("v").removePrefix("V").trim()
 
-private fun formatFileSize(bytes: Long): String {
-    return when {
+private fun formatFileSize(bytes: Long): String =
+    when {
         bytes >= 1_073_741_824 -> "%.1f GB".format(bytes / 1_073_741_824.0)
         bytes >= 1_048_576 -> "%.1f MB".format(bytes / 1_048_576.0)
         bytes >= 1_024 -> "%.1f KB".format(bytes / 1_024.0)
         else -> "$bytes B"
     }
-}
 
 @Preview
 @Composable
@@ -495,25 +554,28 @@ fun SmartInstallButtonDownloadingPreview() {
             isDownloading = true,
             isInstalling = false,
             progress = 45,
-            primaryAsset = GithubAsset(
-                id = 1L,
-                name = "app-arm64-v8a.apk",
-                contentType = "application/vnd.android.package-archive",
-                size = 50_000_000L,
-                downloadUrl = "https://example.com/app.apk",
-                uploader = GithubUser(
+            primaryAsset =
+                GithubAsset(
                     id = 1L,
-                    login = "developer",
-                    avatarUrl = "",
-                    htmlUrl = ""
-                )
-            ),
+                    name = "app-arm64-v8a.apk",
+                    contentType = "application/vnd.android.package-archive",
+                    size = 50_000_000L,
+                    downloadUrl = "https://example.com/app.apk",
+                    uploader =
+                        GithubUser(
+                            id = 1L,
+                            login = "developer",
+                            avatarUrl = "",
+                            htmlUrl = "",
+                        ),
+                ),
             onAction = {},
-            state = DetailsState(
-                isDownloading = true,
-                downloadStage = DownloadStage.DOWNLOADING,
-                downloadProgressPercent = 45
-            )
+            state =
+                DetailsState(
+                    isDownloading = true,
+                    downloadStage = DownloadStage.DOWNLOADING,
+                    downloadProgressPercent = 45,
+                ),
         )
     }
 }

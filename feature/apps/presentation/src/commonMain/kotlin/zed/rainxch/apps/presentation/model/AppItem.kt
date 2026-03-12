@@ -6,5 +6,5 @@ data class AppItem(
     val installedApp: InstalledApp,
     val updateState: UpdateState = UpdateState.Idle,
     val downloadProgress: Int? = null,
-    val error: String? = null
+    val error: String? = null,
 )

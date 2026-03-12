@@ -1,11 +1,12 @@
 package zed.rainxch.core.domain.model
 
 enum class SystemArchitecture {
-    X86_64,     // Intel/AMD 64-bit
-    AARCH64,    // ARM 64-bit
-    X86,        // Intel/AMD 32-bit
-    ARM,        // ARM 32-bit
-    UNKNOWN;
+    X86_64, // Intel/AMD 64-bit
+    AARCH64, // ARM 64-bit
+    X86, // Intel/AMD 32-bit
+    ARM, // ARM 32-bit
+    UNKNOWN,
+    ;
 
     companion object {
         fun fromString(arch: String): SystemArchitecture {

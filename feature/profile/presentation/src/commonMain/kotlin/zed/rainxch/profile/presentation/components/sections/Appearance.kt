@@ -73,7 +73,7 @@ fun LazyListScope.appearanceSection(
 ) {
     item {
         SectionHeader(
-            text = stringResource(Res.string.section_appearance)
+            text = stringResource(Res.string.section_appearance),
         )
 
         VerticalSpacer(8.dp)
@@ -82,7 +82,7 @@ fun LazyListScope.appearanceSection(
             isDarkTheme = state.isDarkTheme,
             onDarkThemeChange = { isDarkTheme ->
                 onAction(ProfileAction.OnDarkThemeChange(isDarkTheme))
-            }
+            },
         )
 
         VerticalSpacer(12.dp)
@@ -91,7 +91,7 @@ fun LazyListScope.appearanceSection(
             selectedThemeColor = state.selectedThemeColor,
             onThemeColorSelected = { theme ->
                 onAction(ProfileAction.OnThemeColorSelected(theme))
-            }
+            },
         )
 
         VerticalSpacer(16.dp)
@@ -103,7 +103,7 @@ fun LazyListScope.appearanceSection(
                 checked = state.isAmoledThemeEnabled,
                 onCheckedChange = { enabled ->
                     onAction(ProfileAction.OnAmoledThemeToggled(enabled))
-                }
+                },
             )
 
             VerticalSpacer(8.dp)
@@ -118,10 +118,12 @@ fun LazyListScope.appearanceSection(
                     ProfileAction.OnFontThemeSelected(
                         if (enabled) {
                             FontTheme.SYSTEM
-                        } else FontTheme.CUSTOM
-                    )
+                        } else {
+                            FontTheme.CUSTOM
+                        },
+                    ),
                 )
-            }
+            },
         )
 
         VerticalSpacer(8.dp)
@@ -132,11 +134,10 @@ fun LazyListScope.appearanceSection(
             checked = state.autoDetectClipboardLinks,
             onCheckedChange = { enabled ->
                 onAction(ProfileAction.OnAutoDetectClipboardToggled(enabled))
-            }
+            },
         )
     }
 }
-
 
 @Composable
 private fun VerticalSpacer(height: Dp) {
@@ -147,22 +148,23 @@ private fun VerticalSpacer(height: Dp) {
 @Composable
 private fun ThemeSelectionCard(
     isDarkTheme: Boolean?,
-    onDarkThemeChange: (Boolean?) -> Unit
+    onDarkThemeChange: (Boolean?) -> Unit,
 ) {
     ExpressiveCard {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             ThemeModeOption(
                 icon = Icons.Default.LightMode,
                 label = stringResource(Res.string.theme_light),
                 isSelected = isDarkTheme != null && !isDarkTheme,
                 onClick = { onDarkThemeChange(false) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             ThemeModeOption(
@@ -170,7 +172,7 @@ private fun ThemeSelectionCard(
                 label = stringResource(Res.string.theme_dark),
                 isSelected = isDarkTheme == true,
                 onClick = { onDarkThemeChange(true) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             ThemeModeOption(
@@ -178,7 +180,7 @@ private fun ThemeSelectionCard(
                 label = stringResource(Res.string.theme_system),
                 isSelected = isDarkTheme == null,
                 onClick = { onDarkThemeChange(null) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -191,51 +193,54 @@ private fun ThemeModeOption(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.05f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        )
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
     )
 
     Column(
-        modifier = modifier
-            .scale(scale)
-            .clip(RoundedCornerShape(24.dp))
-            .background(
-                if (isSelected) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surface
-                }
-            )
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
+        modifier =
+            modifier
+                .scale(scale)
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+                ).clickable(onClick = onClick)
+                .padding(vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = if (isSelected) {
-                MaterialTheme.colorScheme.onPrimaryContainer
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            }
+            tint =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
         )
 
         Text(
             text = label,
             style = MaterialTheme.typography.titleMedium,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.onPrimaryContainer
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            }
+            color =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
         )
     }
 }
@@ -244,17 +249,17 @@ private fun ThemeModeOption(
 @Composable
 private fun ThemeColorCard(
     selectedThemeColor: AppTheme,
-    onThemeColorSelected: (AppTheme) -> Unit
+    onThemeColorSelected: (AppTheme) -> Unit,
 ) {
     ExpressiveCard {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Text(
                 text = stringResource(Res.string.theme_color),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
 
             VerticalSpacer(12.dp)
@@ -262,19 +267,20 @@ private fun ThemeColorCard(
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                val availableThemes = if (isDynamicColorAvailable()) {
-                    AppTheme.entries
-                } else {
-                    AppTheme.entries.filter { it != AppTheme.DYNAMIC }
-                }
+                val availableThemes =
+                    if (isDynamicColorAvailable()) {
+                        AppTheme.entries
+                    } else {
+                        AppTheme.entries.filter { it != AppTheme.DYNAMIC }
+                    }
 
                 items(availableThemes) { theme ->
                     ThemeColorOption(
                         theme = theme,
                         isSelected = selectedThemeColor == theme,
-                        onClick = { onThemeColorSelected(theme) }
+                        onClick = { onThemeColorSelected(theme) },
                     )
                 }
             }
@@ -287,63 +293,66 @@ private fun ThemeColorCard(
 private fun ThemeColorOption(
     theme: AppTheme,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.1f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        )
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
     )
 
     Column(
         modifier = Modifier.clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
-            modifier = Modifier
-                .size(56.dp)
-                .scale(scale)
-                .clip(
-                    if (isSelected) {
-                        MaterialShapes.Cookie9Sided.toShape()
-                    } else {
-                        CircleShape
-                    }
-                )
-                .background(
-                    color = theme.primaryColor ?: MaterialTheme.colorScheme.primary
-                )
-                .then(
-                    if (theme == AppTheme.DYNAMIC) {
-                        Modifier.border(
-                            2.dp,
-                            MaterialTheme.colorScheme.outline,
-                            if (isSelected) {
-                                MaterialShapes.Cookie9Sided.toShape()
-                            } else {
-                                CircleShape
-                            }
-                        )
-                    } else Modifier
-                ),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(56.dp)
+                    .scale(scale)
+                    .clip(
+                        if (isSelected) {
+                            MaterialShapes.Cookie9Sided.toShape()
+                        } else {
+                            CircleShape
+                        },
+                    ).background(
+                        color = theme.primaryColor ?: MaterialTheme.colorScheme.primary,
+                    ).then(
+                        if (theme == AppTheme.DYNAMIC) {
+                            Modifier.border(
+                                2.dp,
+                                MaterialTheme.colorScheme.outline,
+                                if (isSelected) {
+                                    MaterialShapes.Cookie9Sided.toShape()
+                                } else {
+                                    CircleShape
+                                },
+                            )
+                        } else {
+                            Modifier
+                        },
+                    ),
+            contentAlignment = Alignment.Center,
         ) {
             androidx.compose.animation.AnimatedVisibility(
                 visible = isSelected,
                 enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
-                exit = scaleOut() + fadeOut()
+                exit = scaleOut() + fadeOut(),
             ) {
                 Icon(
                     imageVector = Icons.Default.Done,
-                    contentDescription = stringResource(
-                        Res.string.selected_color,
-                        theme.displayName
-                    ),
+                    contentDescription =
+                        stringResource(
+                            Res.string.selected_color,
+                            theme.displayName,
+                        ),
                     modifier = Modifier.size(28.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }
@@ -351,12 +360,13 @@ private fun ThemeColorOption(
         Text(
             text = theme.displayName,
             style = MaterialTheme.typography.labelLarge,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            color =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
         )
     }
 }
@@ -366,33 +376,34 @@ private fun ToggleSettingCard(
     title: String,
     description: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     ExpressiveCard {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .toggleable(
-                    value = checked,
-                    onValueChange = onCheckedChange,
-                    role = Role.Switch,
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple()
-                )
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .toggleable(
+                        value = checked,
+                        onValueChange = onCheckedChange,
+                        role = Role.Switch,
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(),
+                    ).padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 16.dp)
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .padding(end = 16.dp),
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
 
                 VerticalSpacer(4.dp)
@@ -400,13 +411,13 @@ private fun ToggleSettingCard(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             Switch(
                 checked = checked,
-                onCheckedChange = null
+                onCheckedChange = null,
             )
         }
     }

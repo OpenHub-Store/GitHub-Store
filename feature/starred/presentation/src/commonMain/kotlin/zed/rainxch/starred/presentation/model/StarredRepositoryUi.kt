@@ -15,5 +15,5 @@ data class StarredRepositoryUi(
     val isFavorite: Boolean = false,
     val latestRelease: String?,
     val latestReleaseUrl: String?,
-    val starredAt: Long?
+    val starredAt: Long?,
 )

@@ -33,9 +33,8 @@ class DeveloperProfileRepositoryImpl(
     private val platform: Platform,
     private val installedAppsDao: InstalledAppDao,
     private val favouritesRepository: FavouritesRepository,
-    private val logger: GitHubStoreLogger
+    private val logger: GitHubStoreLogger,
 ) : DeveloperProfileRepository {
-
     override suspend fun getDeveloperProfile(username: String): Result<DeveloperProfile> {
         return withContext(Dispatchers.IO) {
             try {
@@ -43,7 +42,7 @@ class DeveloperProfileRepositoryImpl(
 
                 if (!response.status.isSuccess()) {
                     return@withContext Result.failure(
-                        Exception("Failed to fetch developer profile: ${response.status.description}")
+                        Exception("Failed to fetch developer profile: ${response.status.description}"),
                     )
                 }
 
@@ -68,17 +67,18 @@ class DeveloperProfileRepositoryImpl(
                 val perPage = 100
 
                 while (true) {
-                    val response = httpClient.get("/users/$username/repos") {
-                        parameter("per_page", perPage)
-                        parameter("page", page)
-                        parameter("type", "owner")
-                        parameter("sort", "updated")
-                        parameter("direction", "desc")
-                    }
+                    val response =
+                        httpClient.get("/users/$username/repos") {
+                            parameter("per_page", perPage)
+                            parameter("page", page)
+                            parameter("type", "owner")
+                            parameter("sort", "updated")
+                            parameter("direction", "desc")
+                        }
 
                     if (!response.status.isSuccess()) {
                         return@withContext Result.failure(
-                            Exception("Failed to fetch repositories: ${response.status.description}")
+                            Exception("Failed to fetch repositories: ${response.status.description}"),
                         )
                     }
 
@@ -95,20 +95,22 @@ class DeveloperProfileRepositoryImpl(
                 val allFavorites = favouritesRepository.getAllFavorites().first()
                 val favoriteIds = allFavorites.map { it.repoId }.toSet()
 
-                val processedRepos = coroutineScope {
-                    val semaphore = Semaphore(20)
-                    val deferredResults = allRepos.map { repo ->
-                        async {
-                            semaphore.withPermit {
-                                processRepository(repo, favoriteIds)
+                val processedRepos =
+                    coroutineScope {
+                        val semaphore = Semaphore(20)
+                        val deferredResults =
+                            allRepos.map { repo ->
+                                async {
+                                    semaphore.withPermit {
+                                        processRepository(repo, favoriteIds)
+                                    }
+                                }
                             }
-                        }
+                        deferredResults.awaitAll()
                     }
-                    deferredResults.awaitAll()
-                }
 
                 Result.success(processedRepos)
-            }  catch (e: RateLimitException) {
+            } catch (e: RateLimitException) {
                 throw e
             } catch (e: CancellationException) {
                 throw e
@@ -121,33 +123,35 @@ class DeveloperProfileRepositoryImpl(
 
     private suspend fun processRepository(
         repo: GitHubRepoResponse,
-        favoriteIds: Set<Long>
+        favoriteIds: Set<Long>,
     ): DeveloperRepository {
         val installedApp = installedAppsDao.getAppByRepoId(repo.id)
         val isFavorite = favoriteIds.contains(repo.id)
 
-        val (hasReleases, hasInstallableAssets, latestVersion) = checkReleaseInfo(
-            owner = repo.fullName.split("/")[0],
-            repoName = repo.name
-        )
+        val (hasReleases, hasInstallableAssets, latestVersion) =
+            checkReleaseInfo(
+                owner = repo.fullName.split("/")[0],
+                repoName = repo.name,
+            )
 
         return repo.toDomain(
             hasReleases = hasReleases,
             hasInstallableAssets = hasInstallableAssets,
             isInstalled = installedApp != null,
             isFavorite = isFavorite,
-            latestVersion = latestVersion
+            latestVersion = latestVersion,
         )
     }
 
     private suspend fun checkReleaseInfo(
         owner: String,
-        repoName: String
+        repoName: String,
     ): Triple<Boolean, Boolean, String?> {
         return try {
-            val response = httpClient.get("/repos/$owner/$repoName/releases") {
-                parameter("per_page", 10)
-            }
+            val response =
+                httpClient.get("/repos/$owner/$repoName/releases") {
+                    parameter("per_page", 10)
+                }
 
             if (!response.status.isSuccess()) {
                 return Triple(false, false, null)
@@ -155,31 +159,44 @@ class DeveloperProfileRepositoryImpl(
 
             val releases: List<ReleaseNetworkModel> = response.body()
 
-            val stableRelease = releases.firstOrNull {
-                it.draft != true && it.prerelease != true
-            }
+            val stableRelease =
+                releases.firstOrNull {
+                    it.draft != true && it.prerelease != true
+                }
 
             if (stableRelease == null) {
                 return Triple(releases.isNotEmpty(), false, null)
             }
 
-            val hasInstallableAssets = stableRelease.assets.any { asset ->
-                val name = asset.name.lowercase()
-                when (platform) {
-                    Platform.ANDROID -> name.endsWith(".apk")
-                    Platform.WINDOWS -> name.endsWith(".msi") || name.endsWith(".exe")
-                    Platform.MACOS -> name.endsWith(".dmg") || name.endsWith(".pkg")
-                    Platform.LINUX -> name.endsWith(".appimage") || name.endsWith(".deb")
-                            || name.endsWith(".rpm")
+            val hasInstallableAssets =
+                stableRelease.assets.any { asset ->
+                    val name = asset.name.lowercase()
+                    when (platform) {
+                        Platform.ANDROID -> {
+                            name.endsWith(".apk")
+                        }
+
+                        Platform.WINDOWS -> {
+                            name.endsWith(".msi") || name.endsWith(".exe")
+                        }
+
+                        Platform.MACOS -> {
+                            name.endsWith(".dmg") || name.endsWith(".pkg")
+                        }
+
+                        Platform.LINUX -> {
+                            name.endsWith(".appimage") || name.endsWith(".deb") ||
+                                name.endsWith(".rpm")
+                        }
+                    }
                 }
-            }
 
             Triple(
                 true,
                 hasInstallableAssets,
-                if (hasInstallableAssets) stableRelease.tagName else null
+                if (hasInstallableAssets) stableRelease.tagName else null,
             )
-        }  catch (e: RateLimitException) {
+        } catch (e: RateLimitException) {
             throw e
         } catch (e: CancellationException) {
             throw e
@@ -195,11 +212,11 @@ class DeveloperProfileRepositoryImpl(
         val draft: Boolean? = null,
         val prerelease: Boolean? = null,
         @SerialName("tag_name") val tagName: String,
-        @SerialName("published_at") val publishedAt: String? = null
+        @SerialName("published_at") val publishedAt: String? = null,
     )
 
     @Serializable
     private data class AssetNetworkModel(
-        val name: String
+        val name: String,
     )
 }

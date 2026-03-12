@@ -5,5 +5,5 @@ enum class SearchPlatform {
     Android,
     Windows,
     Macos,
-    Linux
+    Linux,
 }

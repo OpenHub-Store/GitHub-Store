@@ -19,25 +19,24 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 class FavouritesViewModel(
-    private val favouritesRepository: FavouritesRepository
+    private val favouritesRepository: FavouritesRepository,
 ) : ViewModel() {
-
     private var hasLoadedInitialData = false
 
     private val _state = MutableStateFlow(FavouritesState())
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                loadFavouriteRepos()
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    loadFavouriteRepos()
 
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = FavouritesState()
-        )
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = FavouritesState(),
+            )
 
     private fun loadFavouriteRepos() {
         viewModelScope.launch {
@@ -46,9 +45,11 @@ class FavouritesViewModel(
                 .map { it.map { it.toFavouriteRepositoryUi() } }
                 .flowOn(Dispatchers.Default)
                 .collect { favoriteRepos ->
-                    _state.update { it.copy(
-                        favouriteRepositories = favoriteRepos.toImmutableList()
-                    ) }
+                    _state.update {
+                        it.copy(
+                            favouriteRepositories = favoriteRepos.toImmutableList(),
+                        )
+                    }
                 }
         }
     }
@@ -72,24 +73,24 @@ class FavouritesViewModel(
                 viewModelScope.launch {
                     val repo = action.favouriteRepository
 
-                    val favoriteRepo = FavoriteRepo(
-                        repoId = repo.repoId,
-                        repoName = repo.repoName,
-                        repoOwner = repo.repoOwner,
-                        repoOwnerAvatarUrl = repo.repoOwnerAvatarUrl,
-                        repoDescription = repo.repoDescription,
-                        primaryLanguage = repo.primaryLanguage,
-                        repoUrl = repo.repoUrl,
-                        latestVersion = repo.latestRelease,
-                        latestReleaseUrl = repo.latestReleaseUrl,
-                        addedAt = Clock.System.now().toEpochMilliseconds(),
-                        lastSyncedAt = Clock.System.now().toEpochMilliseconds()
-                    )
+                    val favoriteRepo =
+                        FavoriteRepo(
+                            repoId = repo.repoId,
+                            repoName = repo.repoName,
+                            repoOwner = repo.repoOwner,
+                            repoOwnerAvatarUrl = repo.repoOwnerAvatarUrl,
+                            repoDescription = repo.repoDescription,
+                            primaryLanguage = repo.primaryLanguage,
+                            repoUrl = repo.repoUrl,
+                            latestVersion = repo.latestRelease,
+                            latestReleaseUrl = repo.latestReleaseUrl,
+                            addedAt = Clock.System.now().toEpochMilliseconds(),
+                            lastSyncedAt = Clock.System.now().toEpochMilliseconds(),
+                        )
 
                     favouritesRepository.toggleFavorite(favoriteRepo)
                 }
             }
         }
     }
-
 }

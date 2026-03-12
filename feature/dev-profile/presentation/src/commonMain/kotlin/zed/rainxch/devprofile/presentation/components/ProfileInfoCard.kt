@@ -39,26 +39,29 @@ import zed.rainxch.devprofile.presentation.DeveloperProfileAction
 @Composable
 fun ProfileInfoCard(
     profile: DeveloperProfile,
-    onAction: (DeveloperProfileAction) -> Unit
+    onAction: (DeveloperProfileAction) -> Unit,
 ) {
     ExpressiveCard {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 CoilImage(
                     imageModel = { profile.avatarUrl },
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape),
-                    imageOptions = ImageOptions(
-                        contentScale = ContentScale.Crop
-                    ),
+                    modifier =
+                        Modifier
+                            .size(80.dp)
+                            .clip(CircleShape),
+                    imageOptions =
+                        ImageOptions(
+                            contentScale = ContentScale.Crop,
+                        ),
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -85,7 +88,7 @@ fun ProfileInfoCard(
 
                         InfoChip(
                             icon = Icons.Default.LocationOn,
-                            text = location
+                            text = location,
                         )
                     }
 
@@ -107,12 +110,12 @@ fun ProfileInfoCard(
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                itemVerticalAlignment = Alignment.CenterVertically
+                itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 profile.company?.let { company ->
                     InfoChip(
                         icon = Icons.Default.Business,
-                        text = company
+                        text = company,
                     )
                 }
 
@@ -129,16 +132,15 @@ fun ProfileInfoCard(
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-
-                                )
+                            )
                         },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Link,
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(16.dp),
                             )
-                        }
+                        },
                     )
                 }
 
@@ -150,16 +152,16 @@ fun ProfileInfoCard(
                         label = {
                             Text(
                                 text = "@$twitter",
-                                style = MaterialTheme.typography.labelMedium
+                                style = MaterialTheme.typography.labelMedium,
                             )
                         },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Tag,
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(16.dp),
                             )
-                        }
+                        },
                     )
                 }
             }
@@ -170,17 +172,17 @@ fun ProfileInfoCard(
 @Composable
 private fun InfoChip(
     icon: ImageVector,
-    text: String
+    text: String,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Text(

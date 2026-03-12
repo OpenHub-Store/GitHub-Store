@@ -27,32 +27,31 @@ class ProfileViewModel(
     private val browserHelper: BrowserHelper,
     private val themesRepository: ThemesRepository,
     private val profileRepository: ProfileRepository,
-    private val proxyRepository: ProxyRepository
+    private val proxyRepository: ProxyRepository,
 ) : ViewModel() {
-
     private var userProfileJob: Job? = null
 
     private var hasLoadedInitialData = false
 
     private val _state = MutableStateFlow(ProfileState())
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                loadCurrentTheme()
-                collectIsUserLoggedIn()
-                loadUserProfile()
-                loadVersionName()
-                loadProxyConfig()
-                observeCacheSize()
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    loadCurrentTheme()
+                    collectIsUserLoggedIn()
+                    loadUserProfile()
+                    loadVersionName()
+                    loadProxyConfig()
+                    observeCacheSize()
 
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = ProfileState()
-        )
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = ProfileState(),
+            )
 
     private val _events = Channel<ProfileEvent>()
     val events = _events.receiveAsFlow()
@@ -87,7 +86,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    versionName = profileRepository.getVersionName()
+                    versionName = profileRepository.getVersionName(),
                 )
             }
         }
@@ -110,11 +109,12 @@ class ProfileViewModel(
     private fun loadUserProfile() {
         userProfileJob?.cancel()
 
-        userProfileJob = viewModelScope.launch {
-            profileRepository.getUser().collect { profile ->
-                _state.update { it.copy(userProfile = profile) }
+        userProfileJob =
+            viewModelScope.launch {
+                profileRepository.getUser().collect { profile ->
+                    _state.update { it.copy(userProfile = profile) }
+                }
             }
-        }
     }
 
     private fun loadCurrentTheme() {
@@ -165,26 +165,30 @@ class ProfileViewModel(
                 _state.update {
                     it.copy(
                         proxyType = ProxyType.fromConfig(config),
-                        proxyHost = when (config) {
-                            is ProxyConfig.Http -> config.host
-                            is ProxyConfig.Socks -> config.host
-                            else -> it.proxyHost
-                        },
-                        proxyPort = when (config) {
-                            is ProxyConfig.Http -> config.port.toString()
-                            is ProxyConfig.Socks -> config.port.toString()
-                            else -> it.proxyPort
-                        },
-                        proxyUsername = when (config) {
-                            is ProxyConfig.Http -> config.username ?: ""
-                            is ProxyConfig.Socks -> config.username ?: ""
-                            else -> it.proxyUsername
-                        },
-                        proxyPassword = when (config) {
-                            is ProxyConfig.Http -> config.password ?: ""
-                            is ProxyConfig.Socks -> config.password ?: ""
-                            else -> it.proxyPassword
-                        }
+                        proxyHost =
+                            when (config) {
+                                is ProxyConfig.Http -> config.host
+                                is ProxyConfig.Socks -> config.host
+                                else -> it.proxyHost
+                            },
+                        proxyPort =
+                            when (config) {
+                                is ProxyConfig.Http -> config.port.toString()
+                                is ProxyConfig.Socks -> config.port.toString()
+                                else -> it.proxyPort
+                            },
+                        proxyUsername =
+                            when (config) {
+                                is ProxyConfig.Http -> config.username ?: ""
+                                is ProxyConfig.Socks -> config.username ?: ""
+                                else -> it.proxyUsername
+                            },
+                        proxyPassword =
+                            when (config) {
+                                is ProxyConfig.Http -> config.password ?: ""
+                                is ProxyConfig.Socks -> config.password ?: ""
+                                else -> it.proxyPassword
+                            },
                     )
                 }
             }
@@ -195,7 +199,7 @@ class ProfileViewModel(
         when (action) {
             ProfileAction.OnHelpClick -> {
                 browserHelper.openUrl(
-                    url = "https://github.com/rainxchzed/Github-Store/issues"
+                    url = "https://github.com/rainxchzed/Github-Store/issues",
                 )
             }
 
@@ -209,8 +213,8 @@ class ProfileViewModel(
                     }.onFailure { error ->
                         _events.send(
                             ProfileEvent.OnCacheClearError(
-                                error.message ?: "Failed to clear cache"
-                            )
+                                error.message ?: "Failed to clear cache",
+                            ),
                         )
                     }
                 }
@@ -231,7 +235,7 @@ class ProfileViewModel(
             ProfileAction.OnLogoutClick -> {
                 _state.update {
                     it.copy(
-                        isLogoutDialogVisible = true
+                        isLogoutDialogVisible = true,
                     )
                 }
             }
@@ -255,34 +259,33 @@ class ProfileViewModel(
             ProfileAction.OnLogoutDismiss -> {
                 _state.update {
                     it.copy(
-                        isLogoutDialogVisible = false
+                        isLogoutDialogVisible = false,
                     )
                 }
             }
 
             ProfileAction.OnNavigateBackClick -> {
-                /* Handed in composable */
+                // Handed in composable
             }
 
             ProfileAction.OnLoginClick -> {
-                /* Handed in composable */
+                // Handed in composable
             }
 
             ProfileAction.OnFavouriteReposClick -> {
-                /* Handed in composable */
+                // Handed in composable
             }
 
             ProfileAction.OnStarredReposClick -> {
-                /* Handed in composable */
+                // Handed in composable
             }
 
-
             is ProfileAction.OnRepositoriesClick -> {
-                /* Handed in composable */
+                // Handed in composable
             }
 
             ProfileAction.OnSponsorClick -> {
-                /* Handed in composable */
+                // Handed in composable
             }
 
             is ProfileAction.OnFontThemeSelected -> {
@@ -300,11 +303,12 @@ class ProfileViewModel(
             is ProfileAction.OnProxyTypeSelected -> {
                 _state.update { it.copy(proxyType = action.type) }
                 if (action.type == ProxyType.NONE || action.type == ProxyType.SYSTEM) {
-                    val config = when (action.type) {
-                        ProxyType.NONE -> ProxyConfig.None
-                        ProxyType.SYSTEM -> ProxyConfig.System
-                        else -> return
-                    }
+                    val config =
+                        when (action.type) {
+                            ProxyType.NONE -> ProxyConfig.None
+                            ProxyType.SYSTEM -> ProxyConfig.System
+                            else -> return
+                        }
                     viewModelScope.launch {
                         runCatching {
                             proxyRepository.setProxyConfig(config)
@@ -313,11 +317,10 @@ class ProfileViewModel(
                         }.onFailure { error ->
                             _events.send(
                                 ProfileEvent.OnProxySaveError(
-                                    error.message ?: getString(Res.string.failed_to_save_proxy_settings)
-                                )
+                                    error.message ?: getString(Res.string.failed_to_save_proxy_settings),
+                                ),
                             )
                         }
-
                     }
                 }
             }
@@ -350,30 +353,34 @@ class ProfileViewModel(
 
             ProfileAction.OnProxySave -> {
                 val currentState = _state.value
-                val port = currentState.proxyPort.toIntOrNull()
-                    ?.takeIf { it in 1..65535 }
-                    ?: run {
+                val port =
+                    currentState.proxyPort
+                        .toIntOrNull()
+                        ?.takeIf { it in 1..65535 }
+                        ?: run {
+                            viewModelScope.launch {
+                                _events.send(ProfileEvent.OnProxySaveError(getString(Res.string.invalid_proxy_port)))
+                            }
+                            return
+                        }
+                val host =
+                    currentState.proxyHost.trim().takeIf { it.isNotBlank() } ?: run {
                         viewModelScope.launch {
-                            _events.send(ProfileEvent.OnProxySaveError(getString(Res.string.invalid_proxy_port)))
+                            _events.send(ProfileEvent.OnProxySaveError(getString(Res.string.proxy_host_required)))
                         }
                         return
                     }
-                val host = currentState.proxyHost.trim().takeIf { it.isNotBlank() } ?: run {
-                    viewModelScope.launch {
-                        _events.send(ProfileEvent.OnProxySaveError(getString(Res.string.proxy_host_required)))
-                    }
-                    return
-                }
 
                 val username = currentState.proxyUsername.takeIf { it.isNotBlank() }
                 val password = currentState.proxyPassword.takeIf { it.isNotBlank() }
 
-                val config = when (currentState.proxyType) {
-                    ProxyType.HTTP -> ProxyConfig.Http(host, port, username, password)
-                    ProxyType.SOCKS -> ProxyConfig.Socks(host, port, username, password)
-                    ProxyType.NONE -> ProxyConfig.None
-                    ProxyType.SYSTEM -> ProxyConfig.System
-                }
+                val config =
+                    when (currentState.proxyType) {
+                        ProxyType.HTTP -> ProxyConfig.Http(host, port, username, password)
+                        ProxyType.SOCKS -> ProxyConfig.Socks(host, port, username, password)
+                        ProxyType.NONE -> ProxyConfig.None
+                        ProxyType.SYSTEM -> ProxyConfig.System
+                    }
 
                 viewModelScope.launch {
                     runCatching {
@@ -383,13 +390,12 @@ class ProfileViewModel(
                     }.onFailure { error ->
                         _events.send(
                             ProfileEvent.OnProxySaveError(
-                                error.message ?: getString(Res.string.failed_to_save_proxy_settings)
-                            )
+                                error.message ?: getString(Res.string.failed_to_save_proxy_settings),
+                            ),
                         )
                     }
                 }
             }
         }
     }
-
 }

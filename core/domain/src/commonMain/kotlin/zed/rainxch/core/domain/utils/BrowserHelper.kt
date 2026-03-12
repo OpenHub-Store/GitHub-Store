@@ -6,4 +6,3 @@ interface BrowserHelper {
         onFailure: (error: String) -> Unit = { },
     )
 }
-

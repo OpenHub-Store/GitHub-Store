@@ -16,5 +16,5 @@ data class DeveloperProfile(
     val following: Int,
     val createdAt: String,
     val updatedAt: String,
-    val htmlUrl: String
+    val htmlUrl: String,
 )

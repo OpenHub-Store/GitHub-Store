@@ -3,8 +3,8 @@ package zed.rainxch.profile.data.mappers
 import zed.rainxch.core.data.dto.UserProfileNetwork
 import zed.rainxch.profile.domain.model.UserProfile
 
-fun UserProfileNetwork.toUserProfile(): UserProfile {
-    return UserProfile(
+fun UserProfileNetwork.toUserProfile(): UserProfile =
+    UserProfile(
         id = id.toInt(),
         imageUrl = avatarUrl,
         name = name ?: login,
@@ -12,6 +12,5 @@ fun UserProfileNetwork.toUserProfile(): UserProfile {
         bio = bio,
         repositoryCount = publicRepos,
         followers = followers,
-        following = following
+        following = following,
     )
-}

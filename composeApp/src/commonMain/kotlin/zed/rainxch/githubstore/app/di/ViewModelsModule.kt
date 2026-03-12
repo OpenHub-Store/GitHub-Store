@@ -12,14 +12,15 @@ import zed.rainxch.profile.presentation.ProfileViewModel
 import zed.rainxch.search.presentation.SearchViewModel
 import zed.rainxch.starred.presentation.StarredReposViewModel
 
-val viewModelsModule = module {
-    viewModelOf(::AppsViewModel)
-    viewModelOf(::AuthenticationViewModel)
-    viewModelOf(::DetailsViewModel)
-    viewModelOf(::DeveloperProfileViewModel)
-    viewModelOf(::FavouritesViewModel)
-    viewModelOf(::HomeViewModel)
-    viewModelOf(::SearchViewModel)
-    viewModelOf(::ProfileViewModel)
-    viewModelOf(::StarredReposViewModel)
-}
+val viewModelsModule =
+    module {
+        viewModelOf(::AppsViewModel)
+        viewModelOf(::AuthenticationViewModel)
+        viewModelOf(::DetailsViewModel)
+        viewModelOf(::DeveloperProfileViewModel)
+        viewModelOf(::FavouritesViewModel)
+        viewModelOf(::HomeViewModel)
+        viewModelOf(::SearchViewModel)
+        viewModelOf(::ProfileViewModel)
+        viewModelOf(::StarredReposViewModel)
+    }

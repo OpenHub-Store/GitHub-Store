@@ -37,18 +37,16 @@ class StarredRepositoryImpl(
     private val starredRepoDao: StarredRepoDao,
     private val installedAppsDao: InstalledAppDao,
     private val platform: Platform,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
 ) : StarredRepository {
-
     companion object {
         private const val SYNC_THRESHOLD_MS = 24 * 60 * 60 * 1000L // 24 hours
     }
 
-    override fun getAllStarred(): Flow<List<zed.rainxch.core.domain.model.StarredRepository>> {
-        return starredRepoDao
+    override fun getAllStarred(): Flow<List<zed.rainxch.core.domain.model.StarredRepository>> =
+        starredRepoDao
             .getAllStarred()
             .map { it.map { entity -> entity.toDomain() } }
-    }
 
     override suspend fun isStarred(repoId: Long): Boolean = starredRepoDao.isStarred(repoId)
 
@@ -72,19 +70,20 @@ class StarredRepositoryImpl(
                 val perPage = 100
 
                 while (true) {
-                    val response = httpClient.get("/user/starred") {
-                        parameter("per_page", perPage)
-                        parameter("page", page)
-                    }
+                    val response =
+                        httpClient.get("/user/starred") {
+                            parameter("per_page", perPage)
+                            parameter("page", page)
+                        }
 
                     if (!response.status.isSuccess()) {
                         if (response.status.value == 401) {
                             return@withContext Result.failure(
-                                Exception("Authentication required. Please sign in with GitHub.")
+                                Exception("Authentication required. Please sign in with GitHub."),
                             )
                         }
                         return@withContext Result.failure(
-                            Exception("Failed to fetch starred repos: ${response.status.description}")
+                            Exception("Failed to fetch starred repos: ${response.status.description}"),
                         )
                     }
 
@@ -103,40 +102,42 @@ class StarredRepositoryImpl(
 
                 coroutineScope {
                     val semaphore = Semaphore(25)
-                    val deferredResults = allRepos.map { repo ->
-                        async {
-                            semaphore.withPermit {
-                                val hasValidAssets =
-                                    checkForValidAssets(repo.owner.login, repo.name)
-                                if (hasValidAssets) {
-                                    val installedApp = installedAppsDao.getAppByRepoId(repo.id)
-                                    zed.rainxch.core.domain.model.StarredRepository(
-                                        repoId = repo.id,
-                                        repoName = repo.name,
-                                        repoOwner = repo.owner.login,
-                                        repoOwnerAvatarUrl = repo.owner.avatarUrl,
-                                        repoDescription = repo.description,
-                                        primaryLanguage = repo.language,
-                                        repoUrl = repo.htmlUrl,
-                                        stargazersCount = repo.stargazersCount,
-                                        forksCount = repo.forksCount,
-                                        openIssuesCount = repo.openIssuesCount,
-                                        isInstalled = installedApp != null,
-                                        installedPackageName = installedApp?.packageName,
-                                        latestVersion = null,
-                                        latestReleaseUrl = null,
-                                        starredAt = repo.starredAt?.let {
-                                            Instant.parse(it).toEpochMilliseconds()
-                                        },
-                                        addedAt = now,
-                                        lastSyncedAt = now
-                                    )
-                                } else {
-                                    null
+                    val deferredResults =
+                        allRepos.map { repo ->
+                            async {
+                                semaphore.withPermit {
+                                    val hasValidAssets =
+                                        checkForValidAssets(repo.owner.login, repo.name)
+                                    if (hasValidAssets) {
+                                        val installedApp = installedAppsDao.getAppByRepoId(repo.id)
+                                        zed.rainxch.core.domain.model.StarredRepository(
+                                            repoId = repo.id,
+                                            repoName = repo.name,
+                                            repoOwner = repo.owner.login,
+                                            repoOwnerAvatarUrl = repo.owner.avatarUrl,
+                                            repoDescription = repo.description,
+                                            primaryLanguage = repo.language,
+                                            repoUrl = repo.htmlUrl,
+                                            stargazersCount = repo.stargazersCount,
+                                            forksCount = repo.forksCount,
+                                            openIssuesCount = repo.openIssuesCount,
+                                            isInstalled = installedApp != null,
+                                            installedPackageName = installedApp?.packageName,
+                                            latestVersion = null,
+                                            latestReleaseUrl = null,
+                                            starredAt =
+                                                repo.starredAt?.let {
+                                                    Instant.parse(it).toEpochMilliseconds()
+                                                },
+                                            addedAt = now,
+                                            lastSyncedAt = now,
+                                        )
+                                    } else {
+                                        null
+                                    }
                                 }
                             }
                         }
-                    }
 
                     deferredResults.awaitAll().filterNotNull().let { validRepos ->
                         starredRepos.addAll(validRepos)
@@ -156,12 +157,16 @@ class StarredRepositoryImpl(
             }
         }
 
-    private suspend fun checkForValidAssets(owner: String, repo: String): Boolean {
+    private suspend fun checkForValidAssets(
+        owner: String,
+        repo: String,
+    ): Boolean {
         return try {
-            val releasesResponse = httpClient.get("/repos/$owner/$repo/releases") {
-                header("Accept", "application/vnd.github.v3+json")
-                parameter("per_page", 10)
-            }
+            val releasesResponse =
+                httpClient.get("/repos/$owner/$repo/releases") {
+                    header("Accept", "application/vnd.github.v3+json")
+                    parameter("per_page", 10)
+                }
 
             if (!releasesResponse.status.isSuccess()) {
                 return false
@@ -169,25 +174,39 @@ class StarredRepositoryImpl(
 
             val allReleases: List<GithubReleaseNetworkModel> = releasesResponse.body()
 
-            val stableRelease = allReleases.firstOrNull {
-                it.draft != true && it.prerelease != true
-            } ?: return false
+            val stableRelease =
+                allReleases.firstOrNull {
+                    it.draft != true && it.prerelease != true
+                } ?: return false
 
             if (stableRelease.assets.isEmpty()) {
                 return false
             }
 
-            val relevantAssets = stableRelease.assets.filter { asset ->
-                val name = asset.name.lowercase()
-                when (platform) {
-                    Platform.ANDROID -> name.endsWith(".apk")
-                    Platform.WINDOWS -> name.endsWith(".msi") || name.endsWith(".exe")
-                    Platform.MACOS -> name.endsWith(".dmg") || name.endsWith(".pkg")
-                    Platform.LINUX -> name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(
-                        ".rpm"
-                    )
+            val relevantAssets =
+                stableRelease.assets.filter { asset ->
+                    val name = asset.name.lowercase()
+                    when (platform) {
+                        Platform.ANDROID -> {
+                            name.endsWith(".apk")
+                        }
+
+                        Platform.WINDOWS -> {
+                            name.endsWith(".msi") || name.endsWith(".exe")
+                        }
+
+                        Platform.MACOS -> {
+                            name.endsWith(".dmg") || name.endsWith(".pkg")
+                        }
+
+                        Platform.LINUX -> {
+                            name.endsWith(".appimage") || name.endsWith(".deb") ||
+                                name.endsWith(
+                                    ".rpm",
+                                )
+                        }
+                    }
                 }
-            }
 
             relevantAssets.isNotEmpty()
         } catch (e: RateLimitException) {
@@ -205,11 +224,11 @@ class StarredRepositoryImpl(
         val assets: List<AssetNetworkModel>,
         val draft: Boolean? = null,
         val prerelease: Boolean? = null,
-        @SerialName("published_at") val publishedAt: String? = null
+        @SerialName("published_at") val publishedAt: String? = null,
     )
 
     @Serializable
     private data class AssetNetworkModel(
-        val name: String
+        val name: String,
     )
 }

@@ -5,5 +5,5 @@ data class InstallLogItem(
     val assetName: String,
     val assetSizeBytes: Long,
     val releaseTag: String,
-    val result: LogResult
+    val result: LogResult,
 )

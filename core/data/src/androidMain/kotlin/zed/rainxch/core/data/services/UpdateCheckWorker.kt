@@ -29,14 +29,14 @@ import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
  */
 class UpdateCheckWorker(
     context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params), KoinComponent {
-
+    params: WorkerParameters,
+) : CoroutineWorker(context, params),
+    KoinComponent {
     private val installedAppsRepository: InstalledAppsRepository by inject()
     private val syncInstalledAppsUseCase: SyncInstalledAppsUseCase by inject()
 
-    override suspend fun doWork(): Result {
-        return try {
+    override suspend fun doWork(): Result =
+        try {
             Logger.i { "UpdateCheckWorker: Starting periodic update check" }
 
             // First sync installed apps state with system
@@ -61,7 +61,6 @@ class UpdateCheckWorker(
                 Result.failure()
             }
         }
-    }
 
     @SuppressLint("MissingPermission") // Permission checked at runtime before notify()
     private suspend fun showUpdateNotificationIfNeeded() {
@@ -73,52 +72,59 @@ class UpdateCheckWorker(
 
         // Check notification permission for API 33+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
+            val granted =
+                ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    Manifest.permission.POST_NOTIFICATIONS,
+                ) == PackageManager.PERMISSION_GRANTED
             if (!granted) {
                 Logger.w { "UpdateCheckWorker: POST_NOTIFICATIONS permission not granted, skipping notification" }
                 return
             }
         }
 
-        val title = if (appsWithUpdates.size == 1) {
-            "${appsWithUpdates.first().appName} update available"
-        } else {
-            "${appsWithUpdates.size} app updates available"
-        }
-
-        val text = if (appsWithUpdates.size == 1) {
-            val app = appsWithUpdates.first()
-            "${app.installedVersion} → ${app.latestVersion}"
-        } else {
-            appsWithUpdates.joinToString(", ") { it.appName }
-        }
-
-        val launchIntent = applicationContext.packageManager
-            .getLaunchIntentForPackage(applicationContext.packageName)
-            ?.apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        val title =
+            if (appsWithUpdates.size == 1) {
+                "${appsWithUpdates.first().appName} update available"
+            } else {
+                "${appsWithUpdates.size} app updates available"
             }
 
-        val pendingIntent = launchIntent?.let {
-            PendingIntent.getActivity(
-                applicationContext,
-                0,
-                it,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-        }
+        val text =
+            if (appsWithUpdates.size == 1) {
+                val app = appsWithUpdates.first()
+                "${app.installedVersion} → ${app.latestVersion}"
+            } else {
+                appsWithUpdates.joinToString(", ") { it.appName }
+            }
 
-        val notification = NotificationCompat.Builder(applicationContext, UPDATES_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
+        val launchIntent =
+            applicationContext.packageManager
+                .getLaunchIntentForPackage(applicationContext.packageName)
+                ?.apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+
+        val pendingIntent =
+            launchIntent?.let {
+                PendingIntent.getActivity(
+                    applicationContext,
+                    0,
+                    it,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+            }
+
+        val notification =
+            NotificationCompat
+                .Builder(applicationContext, UPDATES_CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
 
         NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, notification)
         Logger.i { "UpdateCheckWorker: Showed notification for ${appsWithUpdates.size} updates" }

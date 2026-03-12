@@ -8,7 +8,8 @@ import zed.rainxch.githubstore.core.presentation.res.Res
 import zed.rainxch.githubstore.core.presentation.res.sort_order_ascending
 import zed.rainxch.githubstore.core.presentation.res.sort_order_descending
 
-fun SortOrder.label(): StringResource = when (this) {
-    Descending -> Res.string.sort_order_descending
-    Ascending -> Res.string.sort_order_ascending
-}
+fun SortOrder.label(): StringResource =
+    when (this) {
+        Descending -> Res.string.sort_order_descending
+        Ascending -> Res.string.sort_order_ascending
+    }

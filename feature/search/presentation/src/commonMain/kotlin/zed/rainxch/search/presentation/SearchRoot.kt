@@ -76,13 +76,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.fletchmckee.liquid.liquefiable
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.domain.model.GithubRepoSummary
 import zed.rainxch.core.presentation.components.GithubStoreButton
@@ -93,10 +93,11 @@ import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
 import zed.rainxch.domain.model.ProgrammingLanguage
 import zed.rainxch.domain.model.SearchPlatform
+import zed.rainxch.domain.model.SortBy
 import zed.rainxch.githubstore.core.presentation.res.Res
 import zed.rainxch.githubstore.core.presentation.res.clipboard_link_detected
-import zed.rainxch.githubstore.core.presentation.res.dismiss
 import zed.rainxch.githubstore.core.presentation.res.detected_links
+import zed.rainxch.githubstore.core.presentation.res.dismiss
 import zed.rainxch.githubstore.core.presentation.res.language_label
 import zed.rainxch.githubstore.core.presentation.res.open_github_link
 import zed.rainxch.githubstore.core.presentation.res.open_in_app
@@ -104,7 +105,6 @@ import zed.rainxch.githubstore.core.presentation.res.results_found
 import zed.rainxch.githubstore.core.presentation.res.retry
 import zed.rainxch.githubstore.core.presentation.res.search_repositories_hint
 import zed.rainxch.githubstore.core.presentation.res.sort_label
-import zed.rainxch.domain.model.SortBy
 import zed.rainxch.search.presentation.components.LanguageFilterBottomSheet
 import zed.rainxch.search.presentation.components.SortByBottomSheet
 import zed.rainxch.search.presentation.utils.ParsedGithubLink
@@ -117,7 +117,7 @@ fun SearchRoot(
     onNavigateToDetails: (GithubRepoSummary) -> Unit,
     onNavigateToDetailsFromLink: (owner: String, repo: String) -> Unit,
     onNavigateToDeveloperProfile: (username: String) -> Unit,
-    viewModel: SearchViewModel = koinViewModel()
+    viewModel: SearchViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -158,7 +158,7 @@ fun SearchRoot(
                     viewModel.onAction(action)
                 }
             }
-        }
+        },
     )
 
     if (state.isLanguageSheetVisible) {
@@ -169,7 +169,7 @@ fun SearchRoot(
             },
             onDismissRequest = {
                 viewModel.onAction(SearchAction.OnToggleLanguageSheetVisibility)
-            }
+            },
         )
     }
 
@@ -186,7 +186,7 @@ fun SearchRoot(
             },
             onDismissRequest = {
                 viewModel.onAction(SearchAction.OnToggleSortByDialogVisibility)
-            }
+            },
         )
     }
 }
@@ -220,7 +220,8 @@ fun SearchScreen(
             val lastVisibleItem = visibleItems.lastOrNull() ?: return@derivedStateOf false
             val viewportEndOffset = layoutInfo.viewportEndOffset
 
-            val hasEmptySpaceAtBottom = lastVisibleItem.index == totalItems - 1 &&
+            val hasEmptySpaceAtBottom =
+                lastVisibleItem.index == totalItems - 1 &&
                     lastVisibleItem.offset.y + lastVisibleItem.size.height < viewportEndOffset
 
             val threshold = (totalItems * 0.8f).toInt()
@@ -249,8 +250,8 @@ fun SearchScreen(
             !state.isLoading &&
             state.hasMorePages
         ) {
-
-            val hasEmptySpace = lastVisible.index == layoutInfo.totalItemsCount - 1 &&
+            val hasEmptySpace =
+                lastVisible.index == layoutInfo.totalItemsCount - 1 &&
                     lastVisible.offset.y + lastVisible.size.height < layoutInfo.viewportEndOffset
 
             if (hasEmptySpace) {
@@ -271,13 +272,13 @@ fun SearchScreen(
             SearchTopbar(
                 onAction = onAction,
                 state = state,
-                focusRequester = focusRequester
+                focusRequester = focusRequester,
             )
         },
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHost,
-                modifier = Modifier.padding(bottom = bottomNavHeight + 16.dp)
+                modifier = Modifier.padding(bottom = bottomNavHeight + 16.dp),
             )
         },
         floatingActionButton = {
@@ -285,41 +286,42 @@ fun SearchScreen(
                 onClick = {
                     onAction(SearchAction.OnFabClick)
                 },
-                modifier = Modifier.padding(bottom = bottomNavHeight + 16.dp)
+                modifier = Modifier.padding(bottom = bottomNavHeight + 16.dp),
             ) {
-                Row (
+                Row(
                     modifier = Modifier.padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Link,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
 
                     Text(
                         text = stringResource(Res.string.open_github_link),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
         },
         containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier.liquefiable(liquidState)
+        modifier = Modifier.liquefiable(liquidState),
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp),
         ) {
             // Clipboard banner
             AnimatedVisibility(
                 visible = state.isClipboardBannerVisible && state.clipboardLinks.isNotEmpty(),
                 enter = slideInVertically() + fadeIn(),
-                exit = slideOutVertically() + fadeOut()
+                exit = slideOutVertically() + fadeOut(),
             ) {
                 ClipboardBanner(
                     links = state.clipboardLinks,
@@ -328,7 +330,7 @@ fun SearchScreen(
                     },
                     onDismiss = {
                         onAction(SearchAction.DismissClipboardBanner)
-                    }
+                    },
                 )
             }
 
@@ -336,20 +338,20 @@ fun SearchScreen(
             AnimatedVisibility(
                 visible = state.detectedLinks.isNotEmpty(),
                 enter = slideInVertically() + fadeIn(),
-                exit = slideOutVertically() + fadeOut()
+                exit = slideOutVertically() + fadeOut(),
             ) {
                 DetectedLinksSection(
                     links = state.detectedLinks,
                     onOpenLink = { link ->
                         onAction(SearchAction.OpenGithubLink(link.owner, link.repo))
-                    }
+                    },
                 )
             }
 
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 items(SearchPlatform.entries) { sortBy ->
                     FilterChip(
@@ -359,32 +361,33 @@ fun SearchScreen(
                                 text = sortBy.name.lowercase().replaceFirstChar { it.uppercase() },
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = MaterialTheme.colorScheme.onBackground,
                             )
                         },
                         onClick = {
                             onAction(SearchAction.OnPlatformTypeSelected(sortBy))
-                        }
+                        },
                     )
                 }
             }
 
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = stringResource(Res.string.language_label),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     )
 
                     FilterChip(
@@ -395,20 +398,20 @@ fun SearchScreen(
                         label = {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
                                 Text(
                                     text = stringResource(state.selectedLanguage.label()),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
                                 )
                                 Icon(
                                     imageVector = Icons.Outlined.KeyboardArrowDown,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(18.dp),
                                 )
                             }
-                        }
+                        },
                     )
 
                     if (state.selectedLanguage != ProgrammingLanguage.All) {
@@ -416,13 +419,13 @@ fun SearchScreen(
                             onClick = {
                                 onAction(SearchAction.OnLanguageSelected(ProgrammingLanguage.All))
                             },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(32.dp),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -430,13 +433,13 @@ fun SearchScreen(
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = stringResource(Res.string.sort_label),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     )
 
                     FilterChip(
@@ -447,25 +450,25 @@ fun SearchScreen(
                         label = {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.Sort,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(18.dp),
                                 )
                                 Text(
                                     text = stringResource(state.selectedSortBy.label()),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
                                 )
                                 Icon(
                                     imageVector = Icons.Outlined.KeyboardArrowDown,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(18.dp),
                                 )
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -474,15 +477,17 @@ fun SearchScreen(
 
             if (state.totalCount != null) {
                 Text(
-                    text = stringResource(
-                        Res.string.results_found,
-                        state.totalCount
-                    ),
+                    text =
+                        stringResource(
+                            Res.string.results_found,
+                            state.totalCount,
+                        ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
                 )
             }
 
@@ -490,7 +495,7 @@ fun SearchScreen(
                 if (state.isLoading && state.repositories.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize().imePadding(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         CircularWavyProgressIndicator()
                     }
@@ -499,11 +504,11 @@ fun SearchScreen(
                 if (state.errorMessage != null && state.repositories.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = state.errorMessage
+                                text = state.errorMessage,
                             )
 
                             Spacer(Modifier.height(8.dp))
@@ -512,7 +517,7 @@ fun SearchScreen(
                                 text = stringResource(Res.string.retry),
                                 onClick = {
                                     onAction(SearchAction.Retry)
-                                }
+                                },
                             )
                         }
                     }
@@ -525,9 +530,10 @@ fun SearchScreen(
                         verticalItemSpacing = 12.dp,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .liquefiable(liquidState)
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .liquefiable(liquidState),
                     ) {
                         items(
                             items = state.repositories,
@@ -544,22 +550,24 @@ fun SearchScreen(
                                 onShareClick = {
                                     onAction(SearchAction.OnShareClick(discoveryRepository.repository))
                                 },
-                                modifier = Modifier
-                                    .animateItem()
-                                    .liquefiable(liquidState)
+                                modifier =
+                                    Modifier
+                                        .animateItem()
+                                        .liquefiable(liquidState),
                             )
                         }
 
                         item {
                             if (state.isLoadingMore) {
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                    contentAlignment = Alignment.Center,
                                 ) {
                                     CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                             }
@@ -578,40 +586,43 @@ private fun ClipboardBanner(
     onDismiss: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
-        shape = RoundedCornerShape(12.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
+        shape = RoundedCornerShape(12.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = stringResource(Res.string.clipboard_link_detected),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
                 )
 
                 IconButton(
                     onClick = onDismiss,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(Res.string.dismiss),
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                 }
             }
@@ -620,32 +631,33 @@ private fun ClipboardBanner(
 
             links.forEach { link ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onOpenLink(link) }
-                        .padding(vertical = 6.dp, horizontal = 4.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onOpenLink(link) }
+                            .padding(vertical = 6.dp, horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Link,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                     Text(
                         text = "${link.owner}/${link.repo}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = stringResource(Res.string.open_in_app),
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -659,48 +671,52 @@ private fun DetectedLinksSection(
     onOpenLink: (ParsedGithubLink) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
     ) {
         Text(
             text = stringResource(Res.string.detected_links),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(bottom = 4.dp)
+            modifier = Modifier.padding(bottom = 4.dp),
         )
 
         links.forEach { link ->
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 2.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
                 onClick = { onOpenLink(link) },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                shape = RoundedCornerShape(8.dp)
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    ),
+                shape = RoundedCornerShape(8.dp),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Link,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                     Text(
                         text = "${link.owner}/${link.repo}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     Text(
                         text = stringResource(Res.string.open_in_app),
@@ -718,15 +734,16 @@ private fun DetectedLinksSection(
 private fun SearchTopbar(
     onAction: (SearchAction) -> Unit,
     state: SearchState,
-    focusRequester: FocusRequester
+    focusRequester: FocusRequester,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         TextField(
             value = state.query,
@@ -737,7 +754,7 @@ private fun SearchTopbar(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             },
             trailingIcon = {
@@ -745,13 +762,14 @@ private fun SearchTopbar(
                     onClick = {
                         onAction(SearchAction.OnClearClick)
                     },
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
+                    modifier =
+                        Modifier
+                            .size(24.dp)
+                            .clip(CircleShape),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Clear,
-                        contentDescription = null
+                        contentDescription = null,
                     )
                 }
             },
@@ -762,30 +780,35 @@ private fun SearchTopbar(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     softWrap = false,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                color = MaterialTheme.colorScheme.onSurface
-            ),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = { onAction(SearchAction.OnSearchImeClick) }
-            ),
+            textStyle =
+                MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search,
+                ),
+            keyboardActions =
+                KeyboardActions(
+                    onSearch = { onAction(SearchAction.OnSearchImeClick) },
+                ),
             singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
-            ),
+            colors =
+                TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
             shape = CircleShape,
-            modifier = Modifier
-                .weight(1f)
-                .focusRequester(focusRequester)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .focusRequester(focusRequester),
         )
     }
 }

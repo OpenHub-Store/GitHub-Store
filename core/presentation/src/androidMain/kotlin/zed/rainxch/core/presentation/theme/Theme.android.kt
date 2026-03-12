@@ -9,9 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
-actual fun isDynamicColorAvailable(): Boolean {
-    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-}
+actual fun isDynamicColorAvailable(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
 @Composable
 actual fun getDynamicColorScheme(darkTheme: Boolean): ColorScheme? {

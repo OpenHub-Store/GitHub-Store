@@ -1,6 +1,8 @@
-package zed.rainxch.domain.model;
+package zed.rainxch.domain.model
 
-enum class ProgrammingLanguage(val queryValue: String?) {
+enum class ProgrammingLanguage(
+    val queryValue: String?,
+) {
     All(null),
     Kotlin("kotlin"),
     Java("java"),
@@ -15,7 +17,8 @@ enum class ProgrammingLanguage(val queryValue: String?) {
     C("c"),
     Dart("dart"),
     Ruby("ruby"),
-    PHP("php");
+    PHP("php"),
+    ;
 
     companion object {
         fun fromLanguageString(lang: String?): ProgrammingLanguage {

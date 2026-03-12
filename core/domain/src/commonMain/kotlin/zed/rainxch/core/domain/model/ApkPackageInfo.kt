@@ -4,5 +4,5 @@ data class ApkPackageInfo(
     val packageName: String,
     val versionName: String,
     val versionCode: Long,
-    val appName: String
+    val appName: String,
 )

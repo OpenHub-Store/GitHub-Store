@@ -36,11 +36,12 @@ fun RateLimitDialog(
     rateLimitInfo: RateLimitInfo,
     isAuthenticated: Boolean,
     onDismiss: () -> Unit,
-    onSignIn: () -> Unit
+    onSignIn: () -> Unit,
 ) {
-    val timeUntilReset = remember(rateLimitInfo) {
-        rateLimitInfo.timeUntilReset().inWholeMinutes.toInt()
-    }
+    val timeUntilReset =
+        remember(rateLimitInfo) {
+            rateLimitInfo.timeUntilReset().inWholeMinutes.toInt()
+        }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -48,7 +49,7 @@ fun RateLimitDialog(
             Icon(
                 imageVector = Icons.Default.Warning,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
+                tint = MaterialTheme.colorScheme.error,
             )
         },
         title = {
@@ -56,37 +57,39 @@ fun RateLimitDialog(
                 text = stringResource(Res.string.rate_limit_exceeded),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = if (isAuthenticated) {
-                        stringResource(
-                            Res.string.rate_limit_used_all,
-                            rateLimitInfo.limit
-                        )
-                    } else {
-                        stringResource(
-                            Res.string.rate_limit_used_all_free,
-                            60
-                        )
-                    },
+                    text =
+                        if (isAuthenticated) {
+                            stringResource(
+                                Res.string.rate_limit_used_all,
+                                rateLimitInfo.limit,
+                            )
+                        } else {
+                            stringResource(
+                                Res.string.rate_limit_used_all_free,
+                                60,
+                            )
+                        },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.outline,
                 )
 
                 Text(
-                    text = stringResource(
-                        Res.string.rate_limit_resets_in_minutes,
-                        timeUntilReset
-                    ),
+                    text =
+                        stringResource(
+                            Res.string.rate_limit_resets_in_minutes,
+                            timeUntilReset,
+                        ),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 if (!isAuthenticated) {
@@ -95,7 +98,7 @@ fun RateLimitDialog(
                     Text(
                         text = stringResource(Res.string.rate_limit_tip_sign_in),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -106,7 +109,7 @@ fun RateLimitDialog(
                     Text(
                         text = stringResource(Res.string.rate_limit_sign_in),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
             } else {
@@ -114,7 +117,7 @@ fun RateLimitDialog(
                     Text(
                         text = stringResource(Res.string.rate_limit_ok),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -124,10 +127,10 @@ fun RateLimitDialog(
                 Text(
                     text = stringResource(Res.string.rate_limit_close),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-        }
+        },
     )
 }
 
@@ -136,18 +139,17 @@ fun RateLimitDialog(
 fun RateLimitDialogPreview() {
     GithubStoreTheme {
         RateLimitDialog(
-            rateLimitInfo = RateLimitInfo(
-                limit = 1000,
-                remaining = 2000,
-                resetTimestamp = 0L,
-            ),
+            rateLimitInfo =
+                RateLimitInfo(
+                    limit = 1000,
+                    remaining = 2000,
+                    resetTimestamp = 0L,
+                ),
             isAuthenticated = false,
             onDismiss = {
-
             },
             onSignIn = {
-
-            }
+            },
         )
     }
 }

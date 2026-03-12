@@ -16,5 +16,5 @@ data class GithubUserProfile(
     val location: String?,
     val company: String?,
     val blog: String?,
-    val twitterUsername: String?
+    val twitterUsername: String?,
 )

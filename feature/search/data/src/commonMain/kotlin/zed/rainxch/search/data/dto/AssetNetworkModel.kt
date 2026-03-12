@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AssetNetworkModel(
-    @SerialName("name") val name: String
+    @SerialName("name") val name: String,
 )

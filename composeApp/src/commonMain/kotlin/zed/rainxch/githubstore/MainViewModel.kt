@@ -18,9 +18,8 @@ class MainViewModel(
     private val installedAppsRepository: InstalledAppsRepository,
     private val authenticationState: AuthenticationState,
     private val rateLimitRepository: RateLimitRepository,
-    private val syncUseCase: SyncInstalledAppsUseCase
+    private val syncUseCase: SyncInstalledAppsUseCase,
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(MainState())
     val state = _state.asStateFlow()
 
@@ -107,6 +106,7 @@ class MainViewModel(
             MainAction.DismissRateLimitDialog -> {
                 _state.update { it.copy(showRateLimitDialog = false) }
             }
+
             MainAction.DismissSessionExpiredDialog -> {
                 _state.update { it.copy(showSessionExpiredDialog = false) }
             }

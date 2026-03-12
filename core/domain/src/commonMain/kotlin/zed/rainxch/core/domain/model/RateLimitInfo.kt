@@ -9,7 +9,7 @@ data class RateLimitInfo(
     val limit: Int,
     val remaining: Int,
     val resetTimestamp: Long,
-    val resource: String = "core"
+    val resource: String = "core",
 ) {
     val isExhausted: Boolean
         get() = remaining == 0
@@ -19,7 +19,5 @@ data class RateLimitInfo(
         return (reset - Clock.System.now()).coerceAtLeast(Duration.ZERO)
     }
 
-    fun isCurrentlyLimited(): Boolean {
-        return isExhausted && timeUntilReset() > Duration.ZERO
-    }
+    fun isCurrentlyLimited(): Boolean = isExhausted && timeUntilReset() > Duration.ZERO
 }

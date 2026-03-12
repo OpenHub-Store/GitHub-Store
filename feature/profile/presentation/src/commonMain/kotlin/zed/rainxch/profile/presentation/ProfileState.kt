@@ -22,5 +22,5 @@ data class ProfileState(
     val proxyPassword: String = "",
     val isProxyPasswordVisible: Boolean = false,
     val autoDetectClipboardLinks: Boolean = true,
-    val cacheSize: String = ""
+    val cacheSize: String = "",
 )

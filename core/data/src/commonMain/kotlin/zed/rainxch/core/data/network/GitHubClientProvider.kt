@@ -21,19 +21,20 @@ class GitHubClientProvider(
     private val tokenStore: TokenStore,
     private val rateLimitRepository: RateLimitRepository,
     private val authenticationState: AuthenticationState,
-    proxyConfigFlow: StateFlow<ProxyConfig>
+    proxyConfigFlow: StateFlow<ProxyConfig>,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mutex = Mutex()
 
     @Volatile
-    private var currentClient: HttpClient = createGitHubHttpClient(
-        tokenStore = tokenStore,
-        rateLimitRepository = rateLimitRepository,
-        authenticationState = authenticationState,
-        scope = scope,
-        proxyConfig = proxyConfigFlow.value
-    )
+    private var currentClient: HttpClient =
+        createGitHubHttpClient(
+            tokenStore = tokenStore,
+            rateLimitRepository = rateLimitRepository,
+            authenticationState = authenticationState,
+            scope = scope,
+            proxyConfig = proxyConfigFlow.value,
+        )
 
     init {
         proxyConfigFlow
@@ -42,16 +43,16 @@ class GitHubClientProvider(
             .onEach { proxyConfig ->
                 mutex.withLock {
                     currentClient.close()
-                    currentClient = createGitHubHttpClient(
-                        tokenStore = tokenStore,
-                        rateLimitRepository = rateLimitRepository,
-                        authenticationState = authenticationState,
-                        scope = scope,
-                        proxyConfig = proxyConfig
-                    )
+                    currentClient =
+                        createGitHubHttpClient(
+                            tokenStore = tokenStore,
+                            rateLimitRepository = rateLimitRepository,
+                            authenticationState = authenticationState,
+                            scope = scope,
+                            proxyConfig = proxyConfig,
+                        )
                 }
-            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     val client: HttpClient get() = currentClient

@@ -75,9 +75,8 @@ val surfaceContainerDark = Color(0xFF1C2024)
 val surfaceContainerHighDark = Color(0xFF272A2E)
 val surfaceContainerHighestDark = Color(0xFF313539)
 
-
-fun ColorScheme.toAmoled(): ColorScheme {
-    return this.copy(
+fun ColorScheme.toAmoled(): ColorScheme =
+    this.copy(
         background = Color.Black,
         surface = Color.Black,
         surfaceContainer = Color(0xFF0A0A0A),
@@ -87,6 +86,5 @@ fun ColorScheme.toAmoled(): ColorScheme {
         surfaceContainerHighest = Color(0xFF1A1A1A),
         surfaceDim = Color(0xFF0D0D0D),
         surfaceBright = Color(0xFF1F1F1F),
-        surfaceVariant = Color(0xFF121212)
+        surfaceVariant = Color(0xFF121212),
     )
-}

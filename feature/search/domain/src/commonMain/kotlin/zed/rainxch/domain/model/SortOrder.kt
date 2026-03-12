@@ -2,10 +2,12 @@ package zed.rainxch.domain.model
 
 enum class SortOrder {
     Descending,
-    Ascending;
+    Ascending,
+    ;
 
-    fun toGithubParam(): String = when (this) {
-        Descending -> "desc"
-        Ascending -> "asc"
-    }
+    fun toGithubParam(): String =
+        when (this) {
+            Descending -> "desc"
+            Ascending -> "asc"
+        }
 }

@@ -1,15 +1,14 @@
 package zed.rainxch.auth.data.repository
 
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import zed.rainxch.auth.data.network.GitHubAuthApi
 import zed.rainxch.auth.domain.repository.AuthenticationRepository
 import zed.rainxch.core.data.data_source.TokenStore
@@ -23,9 +22,8 @@ import java.util.concurrent.TimeoutException
 
 class AuthenticationRepositoryImpl(
     private val tokenStore: TokenStore,
-    private val logger: GitHubStoreLogger
+    private val logger: GitHubStoreLogger,
 ) : AuthenticationRepository {
-
     override val accessTokenFlow: Flow<String?>
         get() = tokenStore.tokenFlow().map { it?.accessToken }
 
@@ -44,8 +42,8 @@ class AuthenticationRepositoryImpl(
                 logger.debug("❌ Failed to start device flow: ${e.message}")
                 throw Exception(
                     "Failed to start GitHub authentication. " +
-                            "Please check your internet connection and try again.",
-                    e
+                        "Please check your internet connection and try again.",
+                    e,
                 )
             }
         }
@@ -69,7 +67,7 @@ class AuthenticationRepositoryImpl(
             while (isActive) {
                 if (System.currentTimeMillis() - startTime >= timeoutMs) {
                     throw TimeoutException(
-                        "Authentication timed out after ${start.expiresInSec} seconds. Please try again."
+                        "Authentication timed out after ${start.expiresInSec} seconds. Please try again.",
                     )
                 }
 
@@ -109,7 +107,7 @@ class AuthenticationRepositoryImpl(
 
                             if (slowDownCount > 10) {
                                 throw Exception(
-                                    "GitHub is experiencing high traffic. Please wait a few minutes and try again."
+                                    "GitHub is experiencing high traffic. Please wait a few minutes and try again.",
                                 )
                             }
 
@@ -118,22 +116,22 @@ class AuthenticationRepositoryImpl(
 
                         "access_denied" in errorMsg -> {
                             throw Exception(
-                                "Authentication was denied. Please try again if this was a mistake."
+                                "Authentication was denied. Please try again if this was a mistake.",
                             )
                         }
 
                         "expired_token" in errorMsg ||
-                                "expired_device_code" in errorMsg ||
-                                "token_expired" in errorMsg -> {
+                            "expired_device_code" in errorMsg ||
+                            "token_expired" in errorMsg -> {
                             throw Exception(
-                                "Authorization code expired. Please try again."
+                                "Authorization code expired. Please try again.",
                             )
                         }
 
                         "bad_verification_code" in errorMsg ||
-                                "incorrect_device_code" in errorMsg -> {
+                            "incorrect_device_code" in errorMsg -> {
                             throw Exception(
-                                "Invalid verification code. Please restart authentication."
+                                "Invalid verification code. Please restart authentication.",
                             )
                         }
 
@@ -145,14 +143,15 @@ class AuthenticationRepositoryImpl(
 
                             if (consecutiveNetworkErrors >= 8) {
                                 throw Exception(
-                                    "Network connection is unstable. Please check your connection and try again."
+                                    "Network connection is unstable. Please check your connection and try again.",
                                 )
                             }
 
-                            val backoff = minOf(
-                                pollingInterval * (1 + consecutiveNetworkErrors),
-                                30_000L
-                            )
+                            val backoff =
+                                minOf(
+                                    pollingInterval * (1 + consecutiveNetworkErrors),
+                                    30_000L,
+                                )
                             delay(backoff)
                         }
 
@@ -162,18 +161,18 @@ class AuthenticationRepositoryImpl(
 
                             if (consecutiveUnknownErrors >= 5) {
                                 throw Exception(
-                                    "Authentication failed: ${error?.message ?: "Unknown error"}"
+                                    "Authentication failed: ${error?.message ?: "Unknown error"}",
                                 )
                             }
 
-                            val backoff = minOf(
-                                pollingInterval * (1 + consecutiveUnknownErrors / 2),
-                                20_000L
-                            )
+                            val backoff =
+                                minOf(
+                                    pollingInterval * (1 + consecutiveUnknownErrors / 2),
+                                    20_000L,
+                                )
                             delay(backoff)
                         }
                     }
-
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: TimeoutException) {
@@ -185,7 +184,7 @@ class AuthenticationRepositoryImpl(
                     if (consecutiveUnknownErrors >= 5) {
                         throw Exception(
                             "Authentication failed after multiple errors: ${e.message}",
-                            e
+                            e,
                         )
                     }
 
@@ -224,17 +223,16 @@ class AuthenticationRepositoryImpl(
         }
     }
 
-    private fun isNetworkError(errorMsg: String): Boolean {
-        return errorMsg.contains("unable to resolve") ||
-                errorMsg.contains("no address") ||
-                errorMsg.contains("failed to connect") ||
-                errorMsg.contains("connection refused") ||
-                errorMsg.contains("network is unreachable") ||
-                errorMsg.contains("timeout") ||
-                errorMsg.contains("timed out") ||
-                errorMsg.contains("connection reset") ||
-                errorMsg.contains("broken pipe") ||
-                errorMsg.contains("host unreachable") ||
-                errorMsg.contains("network error")
-    }
+    private fun isNetworkError(errorMsg: String): Boolean =
+        errorMsg.contains("unable to resolve") ||
+            errorMsg.contains("no address") ||
+            errorMsg.contains("failed to connect") ||
+            errorMsg.contains("connection refused") ||
+            errorMsg.contains("network is unreachable") ||
+            errorMsg.contains("timeout") ||
+            errorMsg.contains("timed out") ||
+            errorMsg.contains("connection reset") ||
+            errorMsg.contains("broken pipe") ||
+            errorMsg.contains("host unreachable") ||
+            errorMsg.contains("network error")
 }

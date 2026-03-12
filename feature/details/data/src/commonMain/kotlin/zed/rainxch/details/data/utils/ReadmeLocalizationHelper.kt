@@ -3,15 +3,15 @@ package zed.rainxch.details.data.utils
 import zed.rainxch.details.data.model.ReadmeAttempt
 
 class ReadmeLocalizationHelper(
-    private val localizationManager: zed.rainxch.core.data.services.LocalizationManager
+    private val localizationManager: zed.rainxch.core.data.services.LocalizationManager,
 ) {
-
-    private val searchPaths = listOf(
-        ".github",
-        "",
-        "docs",
-        "doc"
-    )
+    private val searchPaths =
+        listOf(
+            ".github",
+            "",
+            "docs",
+            "doc",
+        )
 
     fun generateReadmeAttempts(): List<ReadmeAttempt> {
         val attempts = mutableListOf<ReadmeAttempt>()
@@ -26,82 +26,108 @@ class ReadmeLocalizationHelper(
             var localPriority = 0
 
             if (currentLang.contains("-")) {
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README.${currentLang}.md",
-                    filename = "README.${currentLang}.md",
-                    priority = globalPriority + localPriority++
-                ))
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README.${currentLang.replace("-", "_")}.md",
-                    filename = "README.${currentLang.replace("-", "_")}.md",
-                    priority = globalPriority + localPriority++
-                ))
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README.$currentLang.md",
+                        filename = "README.$currentLang.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README.${currentLang.replace("-", "_")}.md",
+                        filename = "README.${currentLang.replace("-", "_")}.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
             }
 
-            attempts.add(ReadmeAttempt(
-                path = "${pathPrefix}README.${primaryLang}.md",
-                filename = "README.${primaryLang}.md",
-                priority = globalPriority + localPriority++
-            ))
+            attempts.add(
+                ReadmeAttempt(
+                    path = "${pathPrefix}README.$primaryLang.md",
+                    filename = "README.$primaryLang.md",
+                    priority = globalPriority + localPriority++,
+                ),
+            )
 
             if (currentLang.contains("-")) {
                 val parts = currentLang.split("-")
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README.${parts[0].uppercase()}.md",
-                    filename = "README.${parts[0].uppercase()}.md",
-                    priority = globalPriority + localPriority++
-                ))
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README-${parts[0].uppercase()}.md",
-                    filename = "README-${parts[0].uppercase()}.md",
-                    priority = globalPriority + localPriority++
-                ))
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README.${parts[0].uppercase()}.md",
+                        filename = "README.${parts[0].uppercase()}.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README-${parts[0].uppercase()}.md",
+                        filename = "README-${parts[0].uppercase()}.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
             } else {
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README.${primaryLang.uppercase()}.md",
-                    filename = "README.${primaryLang.uppercase()}.md",
-                    priority = globalPriority + localPriority++
-                ))
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README-${primaryLang.uppercase()}.md",
-                    filename = "README-${primaryLang.uppercase()}.md",
-                    priority = globalPriority + localPriority++
-                ))
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README.${primaryLang.uppercase()}.md",
+                        filename = "README.${primaryLang.uppercase()}.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README-${primaryLang.uppercase()}.md",
+                        filename = "README-${primaryLang.uppercase()}.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
             }
 
-            attempts.add(ReadmeAttempt(
-                path = "${pathPrefix}README_${primaryLang}.md",
-                filename = "README_${primaryLang}.md",
-                priority = globalPriority + localPriority++
-            ))
-            attempts.add(ReadmeAttempt(
-                path = "${pathPrefix}readme.${primaryLang}.md",
-                filename = "readme.${primaryLang}.md",
-                priority = globalPriority + localPriority++
-            ))
+            attempts.add(
+                ReadmeAttempt(
+                    path = "${pathPrefix}README_$primaryLang.md",
+                    filename = "README_$primaryLang.md",
+                    priority = globalPriority + localPriority++,
+                ),
+            )
+            attempts.add(
+                ReadmeAttempt(
+                    path = "${pathPrefix}readme.$primaryLang.md",
+                    filename = "readme.$primaryLang.md",
+                    priority = globalPriority + localPriority++,
+                ),
+            )
 
-            attempts.add(ReadmeAttempt(
-                path = "${pathPrefix}README.md",
-                filename = "README.md",
-                priority = globalPriority + localPriority++
-            ))
+            attempts.add(
+                ReadmeAttempt(
+                    path = "${pathPrefix}README.md",
+                    filename = "README.md",
+                    priority = globalPriority + localPriority++,
+                ),
+            )
 
             if (primaryLang != "en") {
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README.en.md",
-                    filename = "README.en.md",
-                    priority = globalPriority + localPriority++
-                ))
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README.EN.md",
-                    filename = "README.EN.md",
-                    priority = globalPriority + localPriority++
-                ))
-                attempts.add(ReadmeAttempt(
-                    path = "${pathPrefix}README-EN.md",
-                    filename = "README-EN.md",
-                    priority = globalPriority + localPriority++
-                ))
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README.en.md",
+                        filename = "README.en.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README.EN.md",
+                        filename = "README.EN.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
+                attempts.add(
+                    ReadmeAttempt(
+                        path = "${pathPrefix}README-EN.md",
+                        filename = "README-EN.md",
+                        priority = globalPriority + localPriority++,
+                    ),
+                )
             }
 
             globalPriority += 100 * (pathIndex + 1)
@@ -125,27 +151,51 @@ class ReadmeLocalizationHelper(
         val threshold = 0.15
 
         return when {
-            chineseChars > totalChars * threshold -> "zh"
+            chineseChars > totalChars * threshold -> {
+                "zh"
+            }
 
-            (japaneseHiragana + japaneseKatakana) > totalChars * threshold -> "ja"
+            (japaneseHiragana + japaneseKatakana) > totalChars * threshold -> {
+                "ja"
+            }
 
-            koreanChars > totalChars * threshold -> "ko"
+            koreanChars > totalChars * threshold -> {
+                "ko"
+            }
 
-            arabicChars > totalChars * threshold -> "ar"
+            arabicChars > totalChars * threshold -> {
+                "ar"
+            }
 
-            cyrillicChars > totalChars * threshold -> "ru"
+            cyrillicChars > totalChars * threshold -> {
+                "ru"
+            }
 
             else -> {
-                val englishIndicators = listOf(
-                    "\\bthe\\b", "\\band\\b", "\\bfor\\b", "\\bwith\\b",
-                    "\\bthis\\b", "\\bthat\\b", "\\bfrom\\b", "\\bare\\b",
-                    "\\bwas\\b", "\\bhave\\b", "\\bhas\\b", "\\bwill\\b",
-                    "\\byou\\b", "\\bcan\\b", "\\buse\\b", "\\binstall\\b"
-                )
+                val englishIndicators =
+                    listOf(
+                        "\\bthe\\b",
+                        "\\band\\b",
+                        "\\bfor\\b",
+                        "\\bwith\\b",
+                        "\\bthis\\b",
+                        "\\bthat\\b",
+                        "\\bfrom\\b",
+                        "\\bare\\b",
+                        "\\bwas\\b",
+                        "\\bhave\\b",
+                        "\\bhas\\b",
+                        "\\bwill\\b",
+                        "\\byou\\b",
+                        "\\bcan\\b",
+                        "\\buse\\b",
+                        "\\binstall\\b",
+                    )
 
-                val matchCount = englishIndicators.count { pattern ->
-                    Regex(pattern, RegexOption.IGNORE_CASE).containsMatchIn(sampleLower)
-                }
+                val matchCount =
+                    englishIndicators.count { pattern ->
+                        Regex(pattern, RegexOption.IGNORE_CASE).containsMatchIn(sampleLower)
+                    }
 
                 if (matchCount >= 4) {
                     "en"

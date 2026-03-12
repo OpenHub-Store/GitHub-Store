@@ -10,8 +10,7 @@ fun initDatabase(): AppDatabase {
     return Room
         .databaseBuilder<AppDatabase>(
             name = dbFile.absolutePath,
-        )
-        .setDriver(BundledSQLiteDriver())
+        ).setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
         .fallbackToDestructiveMigration(true)
         .build()

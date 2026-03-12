@@ -36,23 +36,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.auth.presentation.model.AuthLoginState
 import zed.rainxch.core.domain.model.GithubDeviceStart
 import zed.rainxch.core.presentation.components.GithubStoreButton
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @Composable
 fun AuthenticationRoot(
     onNavigateToHome: () -> Unit,
-    viewModel: AuthenticationViewModel = koinViewModel()
+    viewModel: AuthenticationViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -66,7 +66,7 @@ fun AuthenticationRoot(
 
     AuthenticationScreen(
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
     )
 }
 
@@ -78,22 +78,24 @@ fun AuthenticationScreen(
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(vertical = 32.dp, horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(vertical = 32.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
                 painter = painterResource(Res.drawable.app_icon),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(150.dp)
-                    .clip(RoundedCornerShape(32.dp)),
-                contentScale = ContentScale.Crop
+                modifier =
+                    Modifier
+                        .size(150.dp)
+                        .clip(RoundedCornerShape(32.dp)),
+                contentScale = ContentScale.Crop,
             )
 
             Spacer(Modifier.height(16.dp))
@@ -101,7 +103,7 @@ fun AuthenticationScreen(
             when (val authState = state.loginState) {
                 is AuthLoginState.LoggedOut -> {
                     StateLoggedOut(
-                        onAction = onAction
+                        onAction = onAction,
                     )
                 }
 
@@ -109,7 +111,7 @@ fun AuthenticationScreen(
                     StateDevicePrompt(
                         state = state,
                         authState = authState,
-                        onAction = onAction
+                        onAction = onAction,
                     )
                 }
 
@@ -119,32 +121,33 @@ fun AuthenticationScreen(
                     Spacer(Modifier.height(12.dp))
 
                     Text(
-                        text = stringResource(Res.string.waiting_for_authorization)
+                        text = stringResource(Res.string.waiting_for_authorization),
                     )
                 }
 
                 is AuthLoginState.LoggedIn -> {
                     Text(
                         text = stringResource(Res.string.signed_in),
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
                     )
 
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = stringResource(Res.string.redirecting_message)
+                        text = stringResource(Res.string.redirecting_message),
                     )
                 }
 
                 is AuthLoginState.Error -> {
                     Spacer(Modifier.weight(1f))
                     Text(
-                        text = stringResource(
-                            Res.string.auth_error_with_message,
-                            authState.message
-                        ),
+                        text =
+                            stringResource(
+                                Res.string.auth_error_with_message,
+                                authState.message,
+                            ),
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
 
                     authState.recoveryHint?.let { hint ->
@@ -153,7 +156,7 @@ fun AuthenticationScreen(
                             text = hint,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                     }
 
@@ -164,18 +167,18 @@ fun AuthenticationScreen(
                         onClick = {
                             onAction(AuthenticationAction.StartLogin)
                         },
-                        modifier = Modifier.fillMaxWidth(.7f)
+                        modifier = Modifier.fillMaxWidth(.7f),
                     )
 
                     Spacer(Modifier.height(8.dp))
 
                     TextButton(
-                        onClick = { onAction(AuthenticationAction.SkipLogin) }
+                        onClick = { onAction(AuthenticationAction.SkipLogin) },
                     ) {
                         Text(
                             text = stringResource(Res.string.continue_as_guest),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
+                            color = MaterialTheme.colorScheme.outline,
                         )
                     }
 
@@ -191,11 +194,11 @@ fun AuthenticationScreen(
 fun StateDevicePrompt(
     state: AuthenticationState,
     authState: AuthLoginState.DevicePrompt,
-    onAction: (AuthenticationAction) -> Unit
+    onAction: (AuthenticationAction) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.weight(1f))
 
@@ -209,7 +212,7 @@ fun StateDevicePrompt(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
                 text = authState.start.userCode,
@@ -222,16 +225,20 @@ fun StateDevicePrompt(
                 onClick = {
                     onAction(AuthenticationAction.CopyCode(authState.start))
                 },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
+                colors =
+                    IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
             ) {
                 Icon(
-                    imageVector = if (state.copied) {
-                        Icons.Default.DoneAll
-                    } else Icons.Default.ContentCopy,
-                    contentDescription = stringResource(Res.string.copy_code)
+                    imageVector =
+                        if (state.copied) {
+                            Icons.Default.DoneAll
+                        } else {
+                            Icons.Default.ContentCopy
+                        },
+                    contentDescription = stringResource(Res.string.copy_code),
                 )
             }
         }
@@ -243,7 +250,7 @@ fun StateDevicePrompt(
                 text = info,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         }
 
@@ -252,17 +259,19 @@ fun StateDevicePrompt(
         if (authState.remainingSeconds > 0) {
             val minutes = authState.remainingSeconds / 60
             val seconds = authState.remainingSeconds % 60
-            val formatted = remember(minutes, seconds) {
-                "%02d:%02d".format(minutes, seconds)
-            }
+            val formatted =
+                remember(minutes, seconds) {
+                    "%02d:%02d".format(minutes, seconds)
+                }
             Text(
                 text = stringResource(Res.string.auth_code_expires_in, formatted),
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (authState.remainingSeconds < 60) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.outline
-                }
+                color =
+                    if (authState.remainingSeconds < 60) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    },
             )
 
             Spacer(Modifier.height(16.dp))
@@ -277,29 +286,25 @@ fun StateDevicePrompt(
                 Icon(
                     painter = painterResource(Res.drawable.ic_github),
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             },
         )
 
         Spacer(Modifier.weight(2f))
-
     }
 }
 
 @Composable
-fun StateLoggedOut(
-    onAction: (AuthenticationAction) -> Unit
-) {
+fun StateLoggedOut(onAction: (AuthenticationAction) -> Unit) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-
         Text(
             text = stringResource(Res.string.unlock_full_experience),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(Modifier.height(32.dp))
@@ -307,17 +312,17 @@ fun StateLoggedOut(
         Card(
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary),
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(24.dp),
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.OpenWith,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -326,13 +331,13 @@ fun StateLoggedOut(
                     text = stringResource(Res.string.more_requests),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Text(
                     text = stringResource(Res.string.more_requests_description),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -348,21 +353,21 @@ fun StateLoggedOut(
                 Icon(
                     painter = painterResource(Res.drawable.ic_github),
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(Modifier.height(8.dp))
 
         TextButton(
-            onClick = { onAction(AuthenticationAction.SkipLogin) }
+            onClick = { onAction(AuthenticationAction.SkipLogin) },
         ) {
             Text(
                 text = stringResource(Res.string.continue_as_guest),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline
+                color = MaterialTheme.colorScheme.outline,
             )
         }
     }
@@ -373,12 +378,14 @@ fun StateLoggedOut(
 private fun Preview() {
     GithubStoreTheme {
         AuthenticationScreen(
-            state = AuthenticationState(
-                loginState = AuthLoginState.Error(
-                    message = "Halo"
-                )
-            ),
-            onAction = {}
+            state =
+                AuthenticationState(
+                    loginState =
+                        AuthLoginState.Error(
+                            message = "Halo",
+                        ),
+                ),
+            onAction = {},
         )
     }
 }
@@ -388,10 +395,11 @@ private fun Preview() {
 private fun Preview1() {
     GithubStoreTheme {
         AuthenticationScreen(
-            state = AuthenticationState(
-                loginState = AuthLoginState.LoggedOut
-            ),
-            onAction = {}
+            state =
+                AuthenticationState(
+                    loginState = AuthLoginState.LoggedOut,
+                ),
+            onAction = {},
         )
     }
 }
@@ -401,18 +409,19 @@ private fun Preview1() {
 private fun Preview2() {
     GithubStoreTheme {
         AuthenticationScreen(
-            state = AuthenticationState(
-                loginState = AuthLoginState.DevicePrompt(
-                    GithubDeviceStart(
-                        deviceCode = "",
-                        userCode = "2102-UHHUF",
-                        verificationUri = "",
-                        expiresInSec = 10
-
-                    )
-                )
-            ),
-            onAction = {}
+            state =
+                AuthenticationState(
+                    loginState =
+                        AuthLoginState.DevicePrompt(
+                            GithubDeviceStart(
+                                deviceCode = "",
+                                userCode = "2102-UHHUF",
+                                verificationUri = "",
+                                expiresInSec = 10,
+                            ),
+                        ),
+                ),
+            onAction = {},
         )
     }
 }

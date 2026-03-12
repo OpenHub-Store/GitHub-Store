@@ -6,10 +6,10 @@ enum class AppTheme {
     PURPLE,
     FOREST,
     SLATE,
-    AMBER;
+    AMBER,
+    ;
 
     companion object {
-        fun fromName(name: String?): AppTheme =
-            entries.find { it.name == name } ?: OCEAN
+        fun fromName(name: String?): AppTheme = entries.find { it.name == name } ?: OCEAN
     }
 }

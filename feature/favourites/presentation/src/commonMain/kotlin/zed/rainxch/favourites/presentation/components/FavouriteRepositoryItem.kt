@@ -61,34 +61,38 @@ fun FavouriteRepositoryItem(
         onClick = onItemClick,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .clickable(onClick = onDevProfileClick),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .clickable(onClick = onDevProfileClick),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 CoilImage(
                     imageModel = { favouriteRepository.repoOwnerAvatarUrl },
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape),
+                    modifier =
+                        Modifier
+                            .size(32.dp)
+                            .clip(CircleShape),
                     loading = {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularWavyProgressIndicator()
                         }
                     },
-                    component = rememberImageComponent {
-                        CrossfadePlugin()
-                    }
+                    component =
+                        rememberImageComponent {
+                            CrossfadePlugin()
+                        },
                 )
 
                 Text(
@@ -97,7 +101,7 @@ fun FavouriteRepositoryItem(
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -106,10 +110,10 @@ fun FavouriteRepositoryItem(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Column(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(
                         text = favouriteRepository.repoName,
@@ -117,7 +121,7 @@ fun FavouriteRepositoryItem(
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     favouriteRepository.repoDescription?.let {
@@ -129,7 +133,7 @@ fun FavouriteRepositoryItem(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
@@ -138,11 +142,11 @@ fun FavouriteRepositoryItem(
                     onClick = onToggleFavouriteClick,
                     colors = IconButtonDefaults.filledTonalIconButtonColors(),
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    shape = MaterialShapes.Cookie6Sided.toShape()
+                    shape = MaterialShapes.Cookie6Sided.toShape(),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
-                        contentDescription = stringResource(Res.string.remove_from_favourites)
+                        contentDescription = stringResource(Res.string.remove_from_favourites),
                     )
                 }
             }
@@ -150,10 +154,11 @@ fun FavouriteRepositoryItem(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 favouriteRepository.primaryLanguage?.let { language ->
                     AssistChip(
@@ -163,21 +168,22 @@ fun FavouriteRepositoryItem(
                                 text = language,
                                 style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Code,
                                 contentDescription = null,
-                                modifier = Modifier.size(AssistChipDefaults.IconSize)
+                                modifier = Modifier.size(AssistChipDefaults.IconSize),
                             )
                         },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        colors =
+                            AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
                     )
                 }
 
@@ -189,16 +195,16 @@ fun FavouriteRepositoryItem(
                                 text = release,
                                 style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.NewReleases,
                                 contentDescription = null,
-                                modifier = Modifier.size(AssistChipDefaults.IconSize)
+                                modifier = Modifier.size(AssistChipDefaults.IconSize),
                             )
-                        }
+                        },
                     )
                 }
 
@@ -209,16 +215,16 @@ fun FavouriteRepositoryItem(
                             text = favouriteRepository.addedAtFormatter,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.CalendarToday,
                             contentDescription = null,
-                            modifier = Modifier.size(AssistChipDefaults.IconSize)
+                            modifier = Modifier.size(AssistChipDefaults.IconSize),
                         )
-                    }
+                    },
                 )
             }
         }

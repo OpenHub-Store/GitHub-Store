@@ -39,7 +39,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.presentation.components.GithubStoreButton
@@ -48,12 +47,13 @@ import zed.rainxch.devprofile.presentation.components.DeveloperRepoItem
 import zed.rainxch.devprofile.presentation.components.FilterSortControls
 import zed.rainxch.devprofile.presentation.components.ProfileInfoCard
 import zed.rainxch.devprofile.presentation.components.StatsRow
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @Composable
 fun DeveloperProfileRoot(
     onNavigateBack: () -> Unit,
     onNavigateToDetails: (repoId: Long) -> Unit,
-    viewModel: DeveloperProfileViewModel = koinViewModel()
+    viewModel: DeveloperProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
@@ -62,17 +62,25 @@ fun DeveloperProfileRoot(
         state = state,
         onAction = { action ->
             when (action) {
-                DeveloperProfileAction.OnNavigateBackClick -> onNavigateBack()
-                is DeveloperProfileAction.OnRepositoryClick -> onNavigateToDetails(action.repoId)
+                DeveloperProfileAction.OnNavigateBackClick -> {
+                    onNavigateBack()
+                }
+
+                is DeveloperProfileAction.OnRepositoryClick -> {
+                    onNavigateToDetails(action.repoId)
+                }
+
                 is DeveloperProfileAction.OnOpenLink -> {
                     val url = action.url.trim()
                     val allowed = url.startsWith("https://") || url.startsWith("http://")
                     if (allowed) uriHandler.openUri(url)
                 }
 
-                else -> viewModel.onAction(action)
+                else -> {
+                    viewModel.onAction(action)
+                }
             }
-        }
+        },
     )
 }
 
@@ -86,20 +94,21 @@ fun DeveloperProfileScreen(
         topBar = {
             DevProfileTopbar(
                 state = state,
-                onAction = onAction
+                onAction = onAction,
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             when {
                 state.isLoading -> {
                     CircularWavyProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
 
@@ -107,7 +116,7 @@ fun DeveloperProfileScreen(
                     ErrorContent(
                         message = state.errorMessage,
                         onRetry = { onAction(DeveloperProfileAction.OnRetry) },
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
 
@@ -115,12 +124,12 @@ fun DeveloperProfileScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         item {
                             ProfileInfoCard(
                                 profile = state.profile,
-                                onAction = onAction
+                                onAction = onAction,
                             )
                         }
 
@@ -135,17 +144,18 @@ fun DeveloperProfileScreen(
                                 searchQuery = state.searchQuery,
                                 repoCount = state.filteredRepositories.size,
                                 totalCount = state.repositories.size,
-                                onAction = onAction
+                                onAction = onAction,
                             )
                         }
 
                         if (state.isLoadingRepos) {
                             item {
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(32.dp),
-                                    contentAlignment = Alignment.Center
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                    contentAlignment = Alignment.Center,
                                 ) {
                                     CircularWavyProgressIndicator()
                                 }
@@ -154,15 +164,16 @@ fun DeveloperProfileScreen(
                             item {
                                 EmptyReposContent(
                                     filter = state.currentFilter,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(32.dp)
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
                                 )
                             }
                         } else {
                             items(
                                 items = state.filteredRepositories,
-                                key = { it.id }
+                                key = { it.id },
                             ) { repo ->
                                 DeveloperRepoItem(
                                     repository = repo,
@@ -172,7 +183,7 @@ fun DeveloperProfileScreen(
                                     onToggleFavorite = {
                                         onAction(DeveloperProfileAction.OnToggleFavorite(repo))
                                     },
-                                    modifier = Modifier.animateItem()
+                                    modifier = Modifier.animateItem(),
                                 )
                             }
                         }
@@ -182,17 +193,18 @@ fun DeveloperProfileScreen(
 
             if (state.errorMessage != null && state.profile != null) {
                 Snackbar(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp),
                     action = {
                         TextButton(
                             onClick = {
                                 onAction(DeveloperProfileAction.OnRetry)
-                            }
+                            },
                         ) {
                             Text(
-                                text = stringResource(Res.string.retry)
+                                text = stringResource(Res.string.retry),
                             )
                         }
                     },
@@ -200,17 +212,17 @@ fun DeveloperProfileScreen(
                         IconButton(
                             onClick = {
                                 onAction(DeveloperProfileAction.OnDismissError)
-                            }
+                            },
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(Res.string.dismiss)
+                                contentDescription = stringResource(Res.string.dismiss),
                             )
                         }
-                    }
+                    },
                 ) {
                     Text(
-                        text = state.errorMessage
+                        text = state.errorMessage,
                     )
                 }
             }
@@ -221,24 +233,25 @@ fun DeveloperProfileScreen(
 @Composable
 private fun EmptyReposContent(
     filter: RepoFilterType,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val message = when (filter) {
-        RepoFilterType.WITH_RELEASES -> stringResource(Res.string.no_repos_with_releases)
-        RepoFilterType.INSTALLED -> stringResource(Res.string.no_installed_repos)
-        RepoFilterType.FAVORITES -> stringResource(Res.string.no_favorite_repos)
-    }
+    val message =
+        when (filter) {
+            RepoFilterType.WITH_RELEASES -> stringResource(Res.string.no_repos_with_releases)
+            RepoFilterType.INSTALLED -> stringResource(Res.string.no_installed_repos)
+            RepoFilterType.FAVORITES -> stringResource(Res.string.no_favorite_repos)
+        }
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = Icons.Default.FolderOff,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -248,7 +261,7 @@ private fun EmptyReposContent(
             maxLines = 2,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -257,18 +270,18 @@ private fun EmptyReposContent(
 @Composable
 fun DevProfileTopbar(
     state: DeveloperProfileState,
-    onAction: (DeveloperProfileAction) -> Unit
+    onAction: (DeveloperProfileAction) -> Unit,
 ) {
     TopAppBar(
         navigationIcon = {
             IconButton(
                 shapes = IconButtonDefaults.shapes(),
-                onClick = { onAction(DeveloperProfileAction.OnNavigateBackClick) }
+                onClick = { onAction(DeveloperProfileAction.OnNavigateBackClick) },
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(Res.string.navigate_back),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             }
         },
@@ -277,7 +290,7 @@ fun DevProfileTopbar(
                 text = state.username,
                 style = MaterialTheme.typography.titleMediumEmphasized,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         },
         actions = {
@@ -287,18 +300,19 @@ fun DevProfileTopbar(
                     onClick = {
                         onAction(DeveloperProfileAction.OnOpenLink(it))
                     },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
+                    colors =
+                        IconButtonDefaults.iconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                        ),
                 ) {
                     Icon(
                         imageVector = Icons.Default.OpenInBrowser,
                         contentDescription = stringResource(Res.string.open_repository),
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
-        }
+        },
     )
 }
 
@@ -306,18 +320,18 @@ fun DevProfileTopbar(
 private fun ErrorContent(
     message: String,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = Icons.Default.Error,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.error
+            tint = MaterialTheme.colorScheme.error,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -327,7 +341,7 @@ private fun ErrorContent(
             maxLines = 3,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -336,7 +350,7 @@ private fun ErrorContent(
             text = stringResource(Res.string.retry),
             onClick = {
                 onRetry()
-            }
+            },
         )
     }
 }

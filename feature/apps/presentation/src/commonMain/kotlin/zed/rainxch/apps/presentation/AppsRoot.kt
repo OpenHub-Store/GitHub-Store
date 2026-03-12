@@ -60,14 +60,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.landscapist.coil3.CoilImage
 import io.github.fletchmckee.liquid.liquefiable
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.apps.presentation.model.AppItem
 import zed.rainxch.apps.presentation.model.UpdateAllProgress
@@ -77,6 +76,7 @@ import zed.rainxch.core.presentation.locals.LocalBottomNavigationHeight
 import zed.rainxch.core.presentation.locals.LocalBottomNavigationLiquid
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @Composable
 fun AppsRoot(
@@ -121,7 +121,7 @@ fun AppsRoot(
                 }
             }
         },
-        snackbarHostState = snackbarHostState
+        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -129,7 +129,7 @@ fun AppsRoot(
 fun AppsScreen(
     state: AppsState,
     onAction: (AppsAction) -> Unit,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
 ) {
     val liquidState = LocalBottomNavigationLiquid.current
     val bottomNavHeight = LocalBottomNavigationHeight.current
@@ -142,38 +142,39 @@ fun AppsScreen(
                         text = stringResource(Res.string.installed_apps),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 },
                 actions = {
                     IconButton(
-                        onClick = { onAction(AppsAction.OnCheckAllForUpdates) }
+                        onClick = { onAction(AppsAction.OnCheckAllForUpdates) },
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(Res.string.check_for_updates)
+                            contentDescription = stringResource(Res.string.check_for_updates),
                         )
                     }
-                }
+                },
             )
         },
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.padding(bottomNavHeight + 16.dp)
+                modifier = Modifier.padding(bottomNavHeight + 16.dp),
             )
         },
-        modifier = Modifier.liquefiable(liquidState)
+        modifier = Modifier.liquefiable(liquidState),
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = { onAction(AppsAction.OnRefresh) },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 TextField(
                     value = state.searchQuery,
@@ -182,43 +183,47 @@ fun AppsScreen(
                         Icon(Icons.Default.Search, contentDescription = null)
                     },
                     placeholder = { Text(stringResource(Res.string.search_your_apps)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                     shape = CircleShape,
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
+                    colors =
+                        TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        ),
                 )
 
                 if (state.isCheckingForUpdates) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(14.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
                         )
                         Text(
                             text = stringResource(Res.string.checking_for_updates),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 } else if (state.lastCheckedTimestamp != null) {
                     Text(
-                        text = stringResource(
-                            Res.string.last_checked,
-                            formatLastChecked(state.lastCheckedTimestamp)
-                        ),
+                        text =
+                            stringResource(
+                                Res.string.last_checked,
+                                formatLastChecked(state.lastCheckedTimestamp),
+                            ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     )
                 }
 
@@ -226,20 +231,21 @@ fun AppsScreen(
                 if (hasUpdates && !state.isUpdatingAll) {
                     Button(
                         onClick = { onAction(AppsAction.OnUpdateAll) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        enabled = state.updateAllButtonEnabled
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        enabled = state.updateAllButtonEnabled,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Update,
-                            contentDescription = null
+                            contentDescription = null,
                         )
 
                         Spacer(Modifier.width(8.dp))
 
                         Text(
-                            text = stringResource(Res.string.update_all)
+                            text = stringResource(Res.string.update_all),
                         )
                     }
                 }
@@ -249,7 +255,7 @@ fun AppsScreen(
                         progress = state.updateAllProgress,
                         onCancel = {
                             onAction(AppsAction.OnCancelUpdateAll)
-                        }
+                        },
                     )
                 }
 
@@ -257,7 +263,7 @@ fun AppsScreen(
                     state.isLoading -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularProgressIndicator()
                         }
@@ -266,12 +272,12 @@ fun AppsScreen(
                     state.filteredApps.isEmpty() -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 text = stringResource(Res.string.no_apps_found),
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = MaterialTheme.colorScheme.onBackground,
                             )
                         }
                     }
@@ -280,11 +286,11 @@ fun AppsScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(
                                 items = state.filteredApps,
-                                key = { it.installedApp.packageName }
+                                key = { it.installedApp.packageName },
                             ) { appItem ->
                                 AppItemCard(
                                     appItem = appItem,
@@ -293,7 +299,7 @@ fun AppsScreen(
                                     onCancelClick = { onAction(AppsAction.OnCancelUpdate(appItem.installedApp.packageName)) },
                                     onUninstallClick = { onAction(AppsAction.OnUninstallApp(appItem.installedApp)) },
                                     onRepoClick = { onAction(AppsAction.OnNavigateToRepo(appItem.installedApp.repoId)) },
-                                    modifier = Modifier.liquefiable(liquidState)
+                                    modifier = Modifier.liquefiable(liquidState),
                                 )
                             }
 
@@ -311,33 +317,35 @@ fun AppsScreen(
 @Composable
 fun UpdateAllProgressCard(
     progress: UpdateAllProgress,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = stringResource(
-                        Res.string.updating_x_of_y,
-                        progress.current,
-                        progress.total
-                    ),
-                    style = MaterialTheme.typography.titleMedium
+                    text =
+                        stringResource(
+                            Res.string.updating_x_of_y,
+                            progress.current,
+                            progress.total,
+                        ),
+                    style = MaterialTheme.typography.titleMedium,
                 )
                 IconButton(onClick = onCancel) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = stringResource(Res.string.cancel)
+                        contentDescription = stringResource(Res.string.cancel),
                     )
                 }
             }
@@ -345,19 +353,20 @@ fun UpdateAllProgressCard(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = stringResource(
-                    Res.string.currently_updating,
-                    progress.currentAppName
-                ),
+                text =
+                    stringResource(
+                        Res.string.currently_updating,
+                        progress.currentAppName,
+                    ),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Spacer(Modifier.height(12.dp))
 
             LinearWavyProgressIndicator(
                 progress = { progress.current.toFloat() / progress.total },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -371,36 +380,38 @@ fun AppItemCard(
     onCancelClick: () -> Unit,
     onUninstallClick: () -> Unit,
     onRepoClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val app = appItem.installedApp
 
     ExpressiveCard(
         onClick = onRepoClick,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(32.dp))
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(32.dp))
+                    .padding(16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 CoilImage(
                     imageModel = { app.repoOwnerAvatarUrl },
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape),
+                    modifier =
+                        Modifier
+                            .size(64.dp)
+                            .clip(CircleShape),
                     loading = {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularWavyProgressIndicator()
                         }
-                    }
+                    },
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -408,13 +419,13 @@ fun AppItemCard(
                         text = app.appName,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
 
                     Text(
                         text = app.repoOwner,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     when {
@@ -422,7 +433,7 @@ fun AppItemCard(
                             Text(
                                 text = stringResource(Res.string.pending_install),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.tertiary
+                                color = MaterialTheme.colorScheme.tertiary,
                             )
                         }
 
@@ -430,7 +441,7 @@ fun AppItemCard(
                             Text(
                                 text = "${app.installedVersion} → ${app.latestVersion}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
 
@@ -438,7 +449,7 @@ fun AppItemCard(
                             Text(
                                 text = app.installedVersion,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -452,7 +463,7 @@ fun AppItemCard(
                     text = app.repoDescription!!,
                     style = MaterialTheme.typography.bodyMediumEmphasized,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
@@ -463,23 +474,23 @@ fun AppItemCard(
                     Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
                                 text = stringResource(Res.string.downloading),
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.bodySmall,
                             )
                             if (appItem.downloadProgress != null) {
                                 Text(
                                     text = "${appItem.downloadProgress}%",
-                                    style = MaterialTheme.typography.bodySmall
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
                             }
                         }
                         Spacer(Modifier.height(4.dp))
                         LinearWavyProgressIndicator(
                             progress = { (appItem.downloadProgress ?: 0) / 100f },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -487,15 +498,15 @@ fun AppItemCard(
                 is UpdateState.Installing -> {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
                         )
                         Text(
                             text = stringResource(Res.string.installing),
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
@@ -503,15 +514,15 @@ fun AppItemCard(
                 is UpdateState.CheckingUpdate -> {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
                         )
                         Text(
                             text = stringResource(Res.string.checking),
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
@@ -519,18 +530,18 @@ fun AppItemCard(
                 is UpdateState.Success -> {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(16.dp),
                         )
                         Text(
                             text = stringResource(Res.string.updated_successfully),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
@@ -539,7 +550,7 @@ fun AppItemCard(
                     Text(
                         text = stringResource(Res.string.error_with_message, state.message),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
 
@@ -551,7 +562,7 @@ fun AppItemCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (!app.isPendingInstall &&
                     appItem.updateState !is UpdateState.Downloading &&
@@ -559,12 +570,12 @@ fun AppItemCard(
                     appItem.updateState !is UpdateState.CheckingUpdate
                 ) {
                     IconButton(
-                        onClick = onUninstallClick
+                        onClick = onUninstallClick,
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.DeleteOutline,
                             contentDescription = stringResource(Res.string.uninstall),
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MaterialTheme.colorScheme.error,
                         )
                     }
                 }
@@ -573,18 +584,19 @@ fun AppItemCard(
                     shapes = ButtonDefaults.shapes(),
                     onClick = onOpenClick,
                     modifier = Modifier.weight(1f),
-                    enabled = !app.isPendingInstall &&
+                    enabled =
+                        !app.isPendingInstall &&
                             appItem.updateState !is UpdateState.Downloading &&
-                            appItem.updateState !is UpdateState.Installing
+                            appItem.updateState !is UpdateState.Installing,
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = stringResource(Res.string.open)
+                        text = stringResource(Res.string.open),
                     )
                 }
 
@@ -593,21 +605,22 @@ fun AppItemCard(
                         Button(
                             onClick = onCancelClick,
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer
-                            )
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                ),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Cancel,
                                 contentDescription = stringResource(Res.string.cancel),
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.dp),
                             )
 
                             Spacer(Modifier.width(4.dp))
 
                             Text(
-                                text = stringResource(Res.string.cancel)
+                                text = stringResource(Res.string.cancel),
                             )
                         }
                     }
@@ -616,16 +629,16 @@ fun AppItemCard(
                         if (app.isUpdateAvailable && !app.isPendingInstall) {
                             Button(
                                 onClick = onUpdateClick,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Update,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = stringResource(Res.string.update)
+                                    text = stringResource(Res.string.update),
                                 )
                             }
                         }
@@ -657,7 +670,7 @@ private fun Preview() {
         AppsScreen(
             state = AppsState(),
             onAction = {},
-            snackbarHostState = SnackbarHostState()
+            snackbarHostState = SnackbarHostState(),
         )
     }
 }

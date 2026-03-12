@@ -66,12 +66,12 @@ fun AppHeader(
     installedApp: InstalledApp?,
     modifier: Modifier = Modifier,
     downloadStage: DownloadStage = DownloadStage.IDLE,
-    downloadProgress: Int? = null
+    downloadProgress: Int? = null,
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = (downloadProgress ?: 0) / 100f,
         animationSpec = tween(durationMillis = 500),
-        label = "avatar_progress_animation"
+        label = "avatar_progress_animation",
     )
 
     val supportedPlatforms by remember(release?.assets) {
@@ -81,39 +81,40 @@ fun AppHeader(
     }
 
     Column(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
     ) {
         Row(
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.Top,
         ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(100.dp),
             ) {
                 CoilImage(
                     imageModel = { author?.avatarUrl },
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = CircleShape
-                        ),
+                    modifier =
+                        Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                shape = CircleShape,
+                            ),
                     loading = {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularWavyProgressIndicator()
                         }
-                    }
+                    },
                 )
 
                 if (downloadStage != DownloadStage.IDLE) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(100.dp)
+                        modifier = Modifier.size(100.dp),
                     ) {
                         when (downloadStage) {
                             DownloadStage.DOWNLOADING -> {
@@ -129,7 +130,7 @@ fun AppHeader(
                                     modifier = Modifier.fillMaxSize(),
                                     color = MaterialTheme.colorScheme.primary,
                                     strokeWidth = 4.dp,
-                                    strokeCap = StrokeCap.Round
+                                    strokeCap = StrokeCap.Round,
                                 )
                             }
 
@@ -138,7 +139,7 @@ fun AppHeader(
                                     modifier = Modifier.fillMaxSize(),
                                     color = MaterialTheme.colorScheme.primary,
                                     strokeWidth = 4.dp,
-                                    strokeCap = StrokeCap.Round
+                                    strokeCap = StrokeCap.Round,
                                 )
                             }
 
@@ -151,40 +152,45 @@ fun AppHeader(
             Spacer(Modifier.width(16.dp))
 
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
                         text = repository.name,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false),
                     )
 
-					if (repository.isFork) {
-						ForkBadge()
-					}
-				}
-				author?.login?.let{ author ->
-					Text(
-						text = stringResource(Res.string.by_author, author),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.primary,
-					)
-				}
+                    if (repository.isFork) {
+                        ForkBadge()
+                    }
+                }
+                author?.login?.let { author ->
+                    Text(
+                        text = stringResource(Res.string.by_author, author),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
 
                 Spacer(Modifier.height(8.dp))
 
                 if (installedApp != null) {
                     when {
-                        installedApp.isPendingInstall -> PendingInstallBadge()
-                        else -> InstallStatusBadge(
-                            isUpdateAvailable = installedApp.isUpdateAvailable,
-                        )
+                        installedApp.isPendingInstall -> {
+                            PendingInstallBadge()
+                        }
+
+                        else -> {
+                            InstallStatusBadge(
+                                isUpdateAvailable = installedApp.isUpdateAvailable,
+                            )
+                        }
                     }
                 }
 
@@ -192,7 +198,7 @@ fun AppHeader(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     release?.tagName?.let {
                         Text(
@@ -228,7 +234,7 @@ fun AppHeader(
 
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 supportedPlatforms.forEach { platform ->
                     PlatformChip(platform = platform)
@@ -241,7 +247,7 @@ fun AppHeader(
         Text(
             text = repository.description ?: stringResource(Res.string.no_description),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -252,12 +258,15 @@ private fun derivePlatformsFromAssets(release: GithubRelease?): List<String> {
     return buildList {
         when {
             names.any { it.endsWith(".apk") } -> add("Android")
+
             names.any { it.endsWith(".exe") || it.endsWith(".msi") } -> add("Windows")
+
             names.any { it.endsWith(".dmg") || it.endsWith(".pkg") } -> add("macOS")
+
             names.any {
                 it.endsWith(".appimage") ||
-                        it.endsWith(".deb") ||
-                        it.endsWith(".rpm")
+                    it.endsWith(".deb") ||
+                    it.endsWith(".rpm")
             } -> add("Linux")
         }
     }
@@ -266,83 +275,85 @@ private fun derivePlatformsFromAssets(release: GithubRelease?): List<String> {
 @Composable
 fun InstallStatusBadge(
     isUpdateAvailable: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val backgroundColor = if (isUpdateAvailable) {
-        MaterialTheme.colorScheme.tertiaryContainer
-    } else {
-        MaterialTheme.colorScheme.primaryContainer
-    }
+    val backgroundColor =
+        if (isUpdateAvailable) {
+            MaterialTheme.colorScheme.tertiaryContainer
+        } else {
+            MaterialTheme.colorScheme.primaryContainer
+        }
 
-    val textColor = if (isUpdateAvailable) {
-        MaterialTheme.colorScheme.onTertiaryContainer
-    } else {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    }
+    val textColor =
+        if (isUpdateAvailable) {
+            MaterialTheme.colorScheme.onTertiaryContainer
+        } else {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        }
 
-    val icon = if (isUpdateAvailable) {
-        Icons.Default.Update
-    } else {
-        Icons.Default.CheckCircle
-    }
+    val icon =
+        if (isUpdateAvailable) {
+            Icons.Default.Update
+        } else {
+            Icons.Default.CheckCircle
+        }
 
-    val text = if (isUpdateAvailable) {
-        stringResource(Res.string.update_available)
-    } else {
-        stringResource(Res.string.installed)
-    }
+    val text =
+        if (isUpdateAvailable) {
+            stringResource(Res.string.update_available)
+        } else {
+            stringResource(Res.string.installed)
+        }
 
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = backgroundColor
+        color = backgroundColor,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = textColor
+                tint = textColor,
             )
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
                 color = textColor,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }
 }
 
 @Composable
-fun PendingInstallBadge(
-    modifier: Modifier = Modifier
-) {
+fun PendingInstallBadge(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer
+        color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = Icons.Default.Schedule,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Text(
                 text = stringResource(Res.string.pending_install),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }

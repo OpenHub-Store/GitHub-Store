@@ -18,5 +18,5 @@ data class GitHubRepoResponse(
     @SerialName("pushed_at") val pushedAt: String? = null,
     @SerialName("has_downloads") val hasDownloads: Boolean = false,
     val archived: Boolean = false,
-    val fork: Boolean = false
+    val fork: Boolean = false,
 )

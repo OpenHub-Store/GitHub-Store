@@ -23,7 +23,7 @@ import com.skydoves.landscapist.crossfade.CrossfadePlugin
 @Composable
 fun GitHubStoreImage(
     imageModel: () -> Any?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     CoilImage(
         imageModel = imageModel,
@@ -31,7 +31,7 @@ fun GitHubStoreImage(
         loading = {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularWavyProgressIndicator()
             }
@@ -39,18 +39,19 @@ fun GitHubStoreImage(
         failure = {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.fillMaxSize(.5f)
+                    modifier = Modifier.fillMaxSize(.5f),
                 )
             }
         },
-        component = rememberImageComponent {
-            CrossfadePlugin()
-        }
+        component =
+            rememberImageComponent {
+                CrossfadePlugin()
+            },
     )
 }

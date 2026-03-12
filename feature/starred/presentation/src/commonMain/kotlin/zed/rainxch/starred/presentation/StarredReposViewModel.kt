@@ -4,7 +4,6 @@ package zed.rainxch.starred.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,11 +19,12 @@ import zed.rainxch.core.domain.model.FavoriteRepo
 import zed.rainxch.core.domain.repository.AuthenticationState
 import zed.rainxch.core.domain.repository.FavouritesRepository
 import zed.rainxch.core.domain.repository.StarredRepository
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.starred.presentation.mappers.toStarredRepositoryUi
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
-class StarredReposViewModel (
+class StarredReposViewModel(
     private val authenticationState: AuthenticationState,
     private val starredRepository: StarredRepository,
     private val favouritesRepository: FavouritesRepository,
@@ -32,18 +32,18 @@ class StarredReposViewModel (
     private var hasLoadedInitialData = false
 
     private val _state = MutableStateFlow(StarredReposState())
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                checkAuthAndLoad()
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = StarredReposState()
-        )
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    checkAuthAndLoad()
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = StarredReposState(),
+            )
 
     private fun checkAuthAndLoad() {
         viewModelScope.launch {
@@ -62,22 +62,21 @@ class StarredReposViewModel (
         viewModelScope.launch {
             combine(
                 starredRepository.getAllStarred(),
-                favouritesRepository.getAllFavorites()
+                favouritesRepository.getAllFavorites(),
             ) { starred, favorites ->
                 val favoriteIds = favorites.map { it.repoId }.toSet()
 
                 starred.map {
                     it.toStarredRepositoryUi(
-                        isFavorite = favoriteIds.contains(it.repoId)
+                        isFavorite = favoriteIds.contains(it.repoId),
                     )
                 }
-            }
-                .flowOn(Dispatchers.Default)
+            }.flowOn(Dispatchers.Default)
                 .collect { starredRepos ->
                     _state.update {
                         it.copy(
                             starredRepositories = starredRepos.toImmutableList(),
-                            isLoading = false
+                            isLoading = false,
                         )
                     }
                 }
@@ -107,15 +106,14 @@ class StarredReposViewModel (
                     _state.update {
                         it.copy(
                             isSyncing = false,
-                            lastSyncTime = lastSync
+                            lastSyncTime = lastSync,
                         )
                     }
-                }
-                .onFailure { error ->
+                }.onFailure { error ->
                     _state.update {
                         it.copy(
                             isSyncing = false,
-                            errorMessage = error.message ?: getString(Res.string.sync_starred_failed)
+                            errorMessage = error.message ?: getString(Res.string.sync_starred_failed),
                         )
                     }
                 }
@@ -156,19 +154,20 @@ class StarredReposViewModel (
                 viewModelScope.launch {
                     val repo = action.repository
 
-                    val favoriteRepo = FavoriteRepo(
-                        repoId = repo.repoId,
-                        repoName = repo.repoName,
-                        repoOwner = repo.repoOwner,
-                        repoOwnerAvatarUrl = repo.repoOwnerAvatarUrl,
-                        repoDescription = repo.repoDescription,
-                        primaryLanguage = repo.primaryLanguage,
-                        repoUrl = repo.repoUrl,
-                        latestVersion = repo.latestRelease,
-                        latestReleaseUrl = repo.latestReleaseUrl,
-                        addedAt = Clock.System.now().toEpochMilliseconds(),
-                        lastSyncedAt = Clock.System.now().toEpochMilliseconds()
-                    )
+                    val favoriteRepo =
+                        FavoriteRepo(
+                            repoId = repo.repoId,
+                            repoName = repo.repoName,
+                            repoOwner = repo.repoOwner,
+                            repoOwnerAvatarUrl = repo.repoOwnerAvatarUrl,
+                            repoDescription = repo.repoDescription,
+                            primaryLanguage = repo.primaryLanguage,
+                            repoUrl = repo.repoUrl,
+                            latestVersion = repo.latestRelease,
+                            latestReleaseUrl = repo.latestReleaseUrl,
+                            addedAt = Clock.System.now().toEpochMilliseconds(),
+                            lastSyncedAt = Clock.System.now().toEpochMilliseconds(),
+                        )
 
                     favouritesRepository.toggleFavorite(favoriteRepo)
                 }

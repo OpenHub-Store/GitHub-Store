@@ -7,48 +7,54 @@ import zed.rainxch.core.domain.model.GithubDeviceStart
 import zed.rainxch.core.domain.model.GithubDeviceTokenError
 import zed.rainxch.core.domain.model.GithubDeviceTokenSuccess
 
-fun GithubDeviceStartDto.toDomain() = GithubDeviceStart(
-    deviceCode = deviceCode,
-    userCode = userCode,
-    verificationUri = verificationUri,
-    verificationUriComplete = verificationUriComplete,
-    intervalSec = intervalSec,
-    expiresInSec = expiresInSec
-)
+fun GithubDeviceStartDto.toDomain() =
+    GithubDeviceStart(
+        deviceCode = deviceCode,
+        userCode = userCode,
+        verificationUri = verificationUri,
+        verificationUriComplete = verificationUriComplete,
+        intervalSec = intervalSec,
+        expiresInSec = expiresInSec,
+    )
 
-fun GithubDeviceTokenSuccessDto.toDomain() = GithubDeviceTokenSuccess(
-    accessToken = accessToken,
-    tokenType = tokenType,
-    expiresIn = expiresIn,
-    scope = scope,
-    refreshToken = refreshToken,
-    refreshTokenExpiresIn = refreshTokenExpiresIn
-)
+fun GithubDeviceTokenSuccessDto.toDomain() =
+    GithubDeviceTokenSuccess(
+        accessToken = accessToken,
+        tokenType = tokenType,
+        expiresIn = expiresIn,
+        scope = scope,
+        refreshToken = refreshToken,
+        refreshTokenExpiresIn = refreshTokenExpiresIn,
+    )
 
-fun GithubDeviceTokenErrorDto.toDomain() = GithubDeviceTokenError(
-    error = error,
-    errorDescription = errorDescription
-)
+fun GithubDeviceTokenErrorDto.toDomain() =
+    GithubDeviceTokenError(
+        error = error,
+        errorDescription = errorDescription,
+    )
 
-fun GithubDeviceStart.toData() = GithubDeviceStartDto(
-    deviceCode = deviceCode,
-    userCode = userCode,
-    verificationUri = verificationUri,
-    verificationUriComplete = verificationUriComplete,
-    intervalSec = intervalSec,
-    expiresInSec = expiresInSec
-)
+fun GithubDeviceStart.toData() =
+    GithubDeviceStartDto(
+        deviceCode = deviceCode,
+        userCode = userCode,
+        verificationUri = verificationUri,
+        verificationUriComplete = verificationUriComplete,
+        intervalSec = intervalSec,
+        expiresInSec = expiresInSec,
+    )
 
-fun GithubDeviceTokenSuccess.toData() = GithubDeviceTokenSuccessDto(
-    accessToken = accessToken,
-    tokenType = tokenType,
-    expiresIn = expiresIn,
-    scope = scope,
-    refreshToken = refreshToken,
-    refreshTokenExpiresIn = refreshTokenExpiresIn
-)
+fun GithubDeviceTokenSuccess.toData() =
+    GithubDeviceTokenSuccessDto(
+        accessToken = accessToken,
+        tokenType = tokenType,
+        expiresIn = expiresIn,
+        scope = scope,
+        refreshToken = refreshToken,
+        refreshTokenExpiresIn = refreshTokenExpiresIn,
+    )
 
-fun GithubDeviceTokenError.toData() = GithubDeviceTokenErrorDto(
-    error = error,
-    errorDescription = errorDescription
-)
+fun GithubDeviceTokenError.toData() =
+    GithubDeviceTokenErrorDto(
+        error = error,
+        errorDescription = errorDescription,
+    )

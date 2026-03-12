@@ -19,7 +19,7 @@ import zed.rainxch.githubstore.core.presentation.res.*
 @Composable
 fun SessionExpiredDialog(
     onDismiss: () -> Unit,
-    onSignIn: () -> Unit
+    onSignIn: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -27,7 +27,7 @@ fun SessionExpiredDialog(
             Icon(
                 imageVector = Icons.Default.LockOpen,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
+                tint = MaterialTheme.colorScheme.error,
             )
         },
         title = {
@@ -35,23 +35,23 @@ fun SessionExpiredDialog(
                 text = stringResource(Res.string.session_expired_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.session_expired_message),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.outline,
                 )
 
                 Text(
                     text = stringResource(Res.string.session_expired_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         },
@@ -60,7 +60,7 @@ fun SessionExpiredDialog(
                 Text(
                     text = stringResource(Res.string.sign_in_again),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         },
@@ -69,9 +69,9 @@ fun SessionExpiredDialog(
                 Text(
                     text = stringResource(Res.string.continue_as_guest),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-        }
+        },
     )
 }

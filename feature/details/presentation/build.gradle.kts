@@ -19,7 +19,6 @@ kotlin {
                 implementation(libs.liquid)
                 implementation(libs.kotlinx.datetime)
 
-                
                 implementation(libs.androidx.compose.ui.tooling.preview)
                 implementation(libs.bundles.landscapist)
             }
@@ -27,15 +26,12 @@ kotlin {
 
         androidMain {
             dependencies {
-
             }
         }
 
         jvmMain {
             dependencies {
-
             }
         }
     }
-
 }

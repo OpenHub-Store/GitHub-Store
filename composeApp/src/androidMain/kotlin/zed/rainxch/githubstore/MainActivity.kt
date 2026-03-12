@@ -16,7 +16,6 @@ import androidx.core.util.Consumer
 import zed.rainxch.githubstore.app.deeplink.DeepLinkParser
 
 class MainActivity : ComponentActivity() {
-
     private var deepLinkUri by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,9 +28,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DisposableEffect(Unit) {
-                val listener = Consumer<Intent> { newIntent ->
-                    handleIncomingIntent(newIntent)
-                }
+                val listener =
+                    Consumer<Intent> { newIntent ->
+                        handleIncomingIntent(newIntent)
+                    }
                 addOnNewIntentListener(listener)
                 onDispose {
                     removeOnNewIntentListener(listener)
@@ -45,16 +45,21 @@ class MainActivity : ComponentActivity() {
     private fun handleIncomingIntent(intent: Intent?) {
         if (intent == null) return
 
-        val uriString = when (intent.action) {
-            Intent.ACTION_VIEW -> intent.data?.toString()
+        val uriString =
+            when (intent.action) {
+                Intent.ACTION_VIEW -> {
+                    intent.data?.toString()
+                }
 
-            Intent.ACTION_SEND -> {
-                val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
-                sharedText?.let { DeepLinkParser.extractSupportedUrl(it) }
+                Intent.ACTION_SEND -> {
+                    val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+                    sharedText?.let { DeepLinkParser.extractSupportedUrl(it) }
+                }
+
+                else -> {
+                    null
+                }
             }
-
-            else -> null
-        }
 
         uriString?.let { deepLinkUri = it }
     }

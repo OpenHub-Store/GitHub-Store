@@ -2,7 +2,6 @@ package zed.rainxch.search.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -28,6 +27,7 @@ import zed.rainxch.core.domain.utils.ClipboardHelper
 import zed.rainxch.core.domain.utils.ShareManager
 import zed.rainxch.core.presentation.model.DiscoveryRepository
 import zed.rainxch.domain.repository.SearchRepository
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.search.presentation.utils.isEntirelyGithubUrls
 import zed.rainxch.search.presentation.utils.parseGithubUrls
 
@@ -43,7 +43,6 @@ class SearchViewModel(
     private val clipboardHelper: ClipboardHelper,
     private val themesRepository: ThemesRepository,
 ) : ViewModel() {
-
     private var hasLoadedInitialData = false
     private var currentSearchJob: Job? = null
     private var currentPage = 1
@@ -55,25 +54,25 @@ class SearchViewModel(
     }
 
     private val _state = MutableStateFlow(SearchState())
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                syncSystemState()
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    syncSystemState()
 
-                observeInstalledApps()
-                observeFavouriteApps()
-                observeStarredRepos()
-                observeClipboardSetting()
-                checkClipboardForLinks()
+                    observeInstalledApps()
+                    observeFavouriteApps()
+                    observeStarredRepos()
+                    observeClipboardSetting()
+                    checkClipboardForLinks()
 
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = SearchState()
-        )
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = SearchState(),
+            )
 
     private val _events = Channel<SearchEvent>()
     val events = _events.receiveAsFlow()
@@ -98,11 +97,10 @@ class SearchViewModel(
                     current.copy(
                         autoDetectClipboardEnabled = enabled,
                         clipboardLinks = if (enabled) current.clipboardLinks else emptyList(),
-                        isClipboardBannerVisible = if (enabled) current.isClipboardBannerVisible else false
+                        isClipboardBannerVisible = if (enabled) current.isClipboardBannerVisible else false,
                     )
                 }
                 if (enabled) checkClipboardForLinks()
-
             }
         }
     }
@@ -119,7 +117,7 @@ class SearchViewModel(
                     _state.update {
                         it.copy(
                             clipboardLinks = links,
-                            isClipboardBannerVisible = true
+                            isClipboardBannerVisible = true,
                         )
                     }
                 }
@@ -135,13 +133,14 @@ class SearchViewModel(
                 val installedMap = installedApps.associateBy { it.repoId }
                 _state.update { current ->
                     current.copy(
-                        repositories = current.repositories.map { searchRepo ->
-                            val app = installedMap[searchRepo.repository.id]
-                            searchRepo.copy(
-                                isInstalled = app != null,
-                                isUpdateAvailable = app?.isUpdateAvailable ?: false
-                            )
-                        }
+                        repositories =
+                            current.repositories.map { searchRepo ->
+                                val app = installedMap[searchRepo.repository.id]
+                                searchRepo.copy(
+                                    isInstalled = app != null,
+                                    isUpdateAvailable = app?.isUpdateAvailable ?: false,
+                                )
+                            },
                     )
                 }
             }
@@ -154,12 +153,13 @@ class SearchViewModel(
                 val installedMap = favoriteRepos.associateBy { it.repoId }
                 _state.update { current ->
                     current.copy(
-                        repositories = current.repositories.map { searchRepo ->
-                            val app = installedMap[searchRepo.repository.id]
-                            searchRepo.copy(
-                                isFavourite = app != null
-                            )
-                        }
+                        repositories =
+                            current.repositories.map { searchRepo ->
+                                val app = installedMap[searchRepo.repository.id]
+                                searchRepo.copy(
+                                    isFavourite = app != null,
+                                )
+                            },
                     )
                 }
             }
@@ -172,10 +172,11 @@ class SearchViewModel(
                 val installedMap = starredRepos.associateBy { it.repoId }
                 _state.update { current ->
                     current.copy(
-                        repositories = current.repositories.map { searchRepo ->
-                            val app = installedMap[searchRepo.repository.id]
-                            searchRepo.copy(isStarred = app != null)
-                        }
+                        repositories =
+                            current.repositories.map { searchRepo ->
+                                val app = installedMap[searchRepo.repository.id]
+                                searchRepo.copy(isStarred = app != null)
+                            },
                     )
                 }
             }
@@ -192,7 +193,7 @@ class SearchViewModel(
                         isLoadingMore = false,
                         repositories = emptyList(),
                         errorMessage = null,
-                        totalCount = null
+                        totalCount = null,
                     )
                 }
             }
@@ -204,118 +205,125 @@ class SearchViewModel(
             currentPage = 1
         }
 
-        currentSearchJob = viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoading = isInitial,
-                    isLoadingMore = !isInitial,
-                    errorMessage = null,
-                    repositories = if (isInitial) emptyList() else it.repositories,
-                    totalCount = if (isInitial) null else it.totalCount
-                )
-            }
-
-            try {
-                val installedMap = installedAppsRepository
-                    .getAllInstalledApps()
-                    .first()
-                    .associateBy { it.repoId }
-                val favoritesMap = favouritesRepository
-                    .getAllFavorites()
-                    .first()
-                    .associateBy { it.repoId }
-                val starredReposMap = starredRepository
-                    .getAllStarred()
-                    .first()
-                    .associateBy { it.repoId }
-
-                searchRepository
-                    .searchRepositories(
-                        query = _state.value.query,
-                        searchPlatform = _state.value.selectedSearchPlatform,
-                        language = _state.value.selectedLanguage,
-                        sortBy = _state.value.selectedSortBy,
-                        sortOrder = _state.value.selectedSortOrder,
-                        page = currentPage
+        currentSearchJob =
+            viewModelScope.launch {
+                _state.update {
+                    it.copy(
+                        isLoading = isInitial,
+                        isLoadingMore = !isInitial,
+                        errorMessage = null,
+                        repositories = if (isInitial) emptyList() else it.repositories,
+                        totalCount = if (isInitial) null else it.totalCount,
                     )
-                    .collect { paginatedRepos ->
-                        currentPage = paginatedRepos.nextPageIndex
+                }
 
-                        val newReposWithStatus = paginatedRepos.repos.map { repo ->
-                            val app = installedMap[repo.id]
-                            val favourite = favoritesMap[repo.id]
-                            val starred = starredReposMap[repo.id]
+                try {
+                    val installedMap =
+                        installedAppsRepository
+                            .getAllInstalledApps()
+                            .first()
+                            .associateBy { it.repoId }
+                    val favoritesMap =
+                        favouritesRepository
+                            .getAllFavorites()
+                            .first()
+                            .associateBy { it.repoId }
+                    val starredReposMap =
+                        starredRepository
+                            .getAllStarred()
+                            .first()
+                            .associateBy { it.repoId }
 
-                            DiscoveryRepository(
-                                isInstalled = app != null,
-                                isFavourite = favourite != null,
-                                isStarred = starred != null,
-                                isUpdateAvailable = app?.isUpdateAvailable ?: false,
-                                repository = repo
-                            )
-                        }
+                    searchRepository
+                        .searchRepositories(
+                            query = _state.value.query,
+                            searchPlatform = _state.value.selectedSearchPlatform,
+                            language = _state.value.selectedLanguage,
+                            sortBy = _state.value.selectedSortBy,
+                            sortOrder = _state.value.selectedSortOrder,
+                            page = currentPage,
+                        ).collect { paginatedRepos ->
+                            currentPage = paginatedRepos.nextPageIndex
 
-                        _state.update { currentState ->
-                            val mergedMap = LinkedHashMap<Long, DiscoveryRepository>()
+                            val newReposWithStatus =
+                                paginatedRepos.repos.map { repo ->
+                                    val app = installedMap[repo.id]
+                                    val favourite = favoritesMap[repo.id]
+                                    val starred = starredReposMap[repo.id]
 
-                            currentState.repositories.forEach { r ->
-                                mergedMap[r.repository.id] = r
-                            }
-
-                            newReposWithStatus.forEach { r ->
-                                val existing = mergedMap[r.repository.id]
-                                if (existing == null) {
-                                    mergedMap[r.repository.id] = r
-                                } else {
-                                    mergedMap[r.repository.id] = existing.copy(
-                                        isInstalled = r.isInstalled,
-                                        isUpdateAvailable = r.isUpdateAvailable,
-                                        isFavourite = r.isFavourite,
-                                        isStarred = r.isStarred,
-                                        repository = r.repository
+                                    DiscoveryRepository(
+                                        isInstalled = app != null,
+                                        isFavourite = favourite != null,
+                                        isStarred = starred != null,
+                                        isUpdateAvailable = app?.isUpdateAvailable ?: false,
+                                        repository = repo,
                                     )
                                 }
+
+                            _state.update { currentState ->
+                                val mergedMap = LinkedHashMap<Long, DiscoveryRepository>()
+
+                                currentState.repositories.forEach { r ->
+                                    mergedMap[r.repository.id] = r
+                                }
+
+                                newReposWithStatus.forEach { r ->
+                                    val existing = mergedMap[r.repository.id]
+                                    if (existing == null) {
+                                        mergedMap[r.repository.id] = r
+                                    } else {
+                                        mergedMap[r.repository.id] =
+                                            existing.copy(
+                                                isInstalled = r.isInstalled,
+                                                isUpdateAvailable = r.isUpdateAvailable,
+                                                isFavourite = r.isFavourite,
+                                                isStarred = r.isStarred,
+                                                repository = r.repository,
+                                            )
+                                    }
+                                }
+
+                                val allRepos = mergedMap.values.toList()
+
+                                currentState.copy(
+                                    repositories = allRepos,
+                                    hasMorePages = paginatedRepos.hasMore,
+                                    totalCount = allRepos.size,
+                                    errorMessage =
+                                        if (allRepos.isEmpty() && !paginatedRepos.hasMore) {
+                                            getString(Res.string.no_repositories_found)
+                                        } else {
+                                            null
+                                        },
+                                )
                             }
-
-                            val allRepos = mergedMap.values.toList()
-
-                            currentState.copy(
-                                repositories = allRepos,
-                                hasMorePages = paginatedRepos.hasMore,
-                                totalCount = allRepos.size,
-                                errorMessage = if (allRepos.isEmpty() && !paginatedRepos.hasMore) {
-                                    getString(Res.string.no_repositories_found)
-                                } else null
-                            )
                         }
+
+                    _state.update {
+                        it.copy(isLoading = false, isLoadingMore = false)
                     }
-
-                _state.update {
-                    it.copy(isLoading = false, isLoadingMore = false)
-                }
-            } catch (e: RateLimitException) {
-                logger.debug("Rate limit exceeded: ${e.message}")
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        isLoadingMore = false,
-                        errorMessage = e.message
-                    )
-                }
-
-            } catch (e: CancellationException) {
-                logger.debug("Search cancelled (expected): ${e.message}")
-            } catch (e: Exception) {
-                logger.error("Search failed: ${e.message}")
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        isLoadingMore = false,
-                        errorMessage = e.message ?: getString(Res.string.search_failed)
-                    )
+                } catch (e: RateLimitException) {
+                    logger.debug("Rate limit exceeded: ${e.message}")
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoadingMore = false,
+                            errorMessage = e.message,
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    logger.debug("Search cancelled (expected): ${e.message}")
+                } catch (e: Exception) {
+                    logger.error("Search failed: ${e.message}")
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoadingMore = false,
+                            errorMessage = e.message ?: getString(Res.string.search_failed),
+                        )
+                    }
                 }
             }
-        }
     }
 
     fun onAction(action: SearchAction) {
@@ -342,7 +350,6 @@ class SearchViewModel(
                 }
             }
 
-
             is SearchAction.OnSearchChange -> {
                 val links = parseGithubUrls(action.query)
                 _state.update {
@@ -362,7 +369,7 @@ class SearchViewModel(
                             isLoadingMore = false,
                             errorMessage = null,
                             repositories = emptyList(),
-                            totalCount = null
+                            totalCount = null,
                         )
                     }
                     return
@@ -375,7 +382,7 @@ class SearchViewModel(
                             isLoading = false,
                             isLoadingMore = false,
                             errorMessage = null,
-                            totalCount = null
+                            totalCount = null,
                         )
                     }
                 } else if (action.query.trim().length < MIN_QUERY_LENGTH) {
@@ -384,19 +391,20 @@ class SearchViewModel(
                         it.copy(
                             isLoading = false,
                             isLoadingMore = false,
-                            errorMessage = null
+                            errorMessage = null,
                         )
                     }
                 } else {
-                    searchDebounceJob = viewModelScope.launch {
-                        try {
-                            delay(DEBOUNCE_MS)
-                            currentPage = 1
-                            performSearch(isInitial = true)
-                        } catch (_: CancellationException) {
-                            logger.debug("Debounce cancelled (expected)")
+                    searchDebounceJob =
+                        viewModelScope.launch {
+                            try {
+                                delay(DEBOUNCE_MS)
+                                currentPage = 1
+                                performSearch(isInitial = true)
+                            } catch (_: CancellationException) {
+                                logger.debug("Debounce cancelled (expected)")
+                            }
                         }
-                    }
                 }
             }
 
@@ -426,7 +434,7 @@ class SearchViewModel(
                     }.onFailure { t ->
                         logger.error("Failed to share link: ${t.message}")
                         _events.send(
-                            SearchEvent.OnMessage(getString(Res.string.failed_to_share_link))
+                            SearchEvent.OnMessage(getString(Res.string.failed_to_share_link)),
                         )
                         return@launch
                     }
@@ -514,8 +522,8 @@ class SearchViewModel(
                             _events.send(
                                 SearchEvent.NavigateToRepo(
                                     links.first().owner,
-                                    links.first().repo
-                                )
+                                    links.first().repo,
+                                ),
                             )
                         } else {
                             _state.update {
@@ -544,15 +552,15 @@ class SearchViewModel(
             }
 
             is SearchAction.OnRepositoryClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
 
             SearchAction.OnNavigateBackClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
 
             is SearchAction.OnRepositoryDeveloperClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
         }
     }

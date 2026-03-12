@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GithubDeviceTokenErrorDto(
     @SerialName("error") val error: String,
-    @SerialName("error_description") val errorDescription: String? = null
+    @SerialName("error_description") val errorDescription: String? = null,
 )

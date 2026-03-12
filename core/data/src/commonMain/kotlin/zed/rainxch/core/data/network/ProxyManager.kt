@@ -21,7 +21,7 @@ object ProxyManager {
         host: String,
         port: Int,
         username: String? = null,
-        password: String? = null
+        password: String? = null,
     ) {
         _proxyConfig.value = ProxyConfig.Http(host, port, username, password)
     }
@@ -30,7 +30,7 @@ object ProxyManager {
         host: String,
         port: Int,
         username: String? = null,
-        password: String? = null
+        password: String? = null,
     ) {
         _proxyConfig.value = ProxyConfig.Socks(host, port, username, password)
     }

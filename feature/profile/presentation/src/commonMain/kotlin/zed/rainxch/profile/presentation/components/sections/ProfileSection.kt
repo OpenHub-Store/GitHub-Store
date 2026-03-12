@@ -14,7 +14,7 @@ fun LazyListScope.profile(
 ) {
     accountSection(
         state = state,
-        onAction = onAction
+        onAction = onAction,
     )
 
     item {
@@ -23,6 +23,6 @@ fun LazyListScope.profile(
 
     options(
         isUserLoggedIn = state.isUserLoggedIn,
-        onAction = onAction
+        onAction = onAction,
     )
 }

@@ -14,6 +14,6 @@ interface SearchRepository {
         language: ProgrammingLanguage,
         sortBy: SortBy,
         sortOrder: SortOrder,
-        page: Int
+        page: Int,
     ): Flow<PaginatedDiscoveryRepositories>
 }

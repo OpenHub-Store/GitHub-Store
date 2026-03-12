@@ -4,7 +4,6 @@ package zed.rainxch.devprofile.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +19,7 @@ import zed.rainxch.core.domain.repository.FavouritesRepository
 import zed.rainxch.devprofile.domain.model.RepoFilterType
 import zed.rainxch.devprofile.domain.model.RepoSortType
 import zed.rainxch.devprofile.domain.repository.DeveloperProfileRepository
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -27,24 +27,23 @@ import kotlin.time.ExperimentalTime
 class DeveloperProfileViewModel(
     private val username: String,
     private val repository: DeveloperProfileRepository,
-    private val favouritesRepository: FavouritesRepository
+    private val favouritesRepository: FavouritesRepository,
 ) : ViewModel() {
-
     private var hasLoadedInitialData = false
 
     private val _state = MutableStateFlow(DeveloperProfileState(username = username))
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                loadDeveloperData()
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = DeveloperProfileState(username = username)
-        )
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    loadDeveloperData()
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = DeveloperProfileState(username = username),
+            )
 
     private fun loadDeveloperData() {
         viewModelScope.launch {
@@ -53,7 +52,7 @@ class DeveloperProfileViewModel(
                     it.copy(
                         isLoading = true,
                         isLoadingRepos = false,
-                        errorMessage = null
+                        errorMessage = null,
                     )
                 }
 
@@ -64,16 +63,16 @@ class DeveloperProfileViewModel(
                             it.copy(
                                 profile = profile,
                                 isLoading = false,
-                                isLoadingRepos = true
+                                isLoadingRepos = true,
                             )
                         }
-                    }
-                    .onFailure { error ->
+                    }.onFailure { error ->
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = error.message
-                                    ?: getString(Res.string.failed_to_load_profile)
+                                errorMessage =
+                                    error.message
+                                        ?: getString(Res.string.failed_to_load_profile),
                             )
                         }
                         return@launch
@@ -87,18 +86,18 @@ class DeveloperProfileViewModel(
                             it.copy(
                                 repositories = repos.toImmutableList(),
                                 isLoading = false,
-                                isLoadingRepos = false
+                                isLoadingRepos = false,
                             )
                         }
                         applyFiltersAndSort()
-                    }
-                    .onFailure { error ->
+                    }.onFailure { error ->
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 isLoadingRepos = false,
-                                errorMessage = error.message
-                                    ?: getString(Res.string.failed_to_load_repositories)
+                                errorMessage =
+                                    error.message
+                                        ?: getString(Res.string.failed_to_load_repositories),
                             )
                         }
                     }
@@ -113,10 +112,9 @@ class DeveloperProfileViewModel(
                     it.copy(
                         isLoading = false,
                         isLoadingRepos = false,
-                        errorMessage = e.message
+                        errorMessage = e.message,
                     )
                 }
-
             }
         }
     }
@@ -128,29 +126,49 @@ class DeveloperProfileViewModel(
 
             if (currentState.searchQuery.isNotBlank()) {
                 val query = currentState.searchQuery.lowercase()
-                filtered = filtered.filter { repo ->
-                    repo.name.lowercase().contains(query) ||
-                            repo.description?.lowercase()?.contains(query) == true
-                }.toImmutableList()
+                filtered =
+                    filtered
+                        .filter { repo ->
+                            repo.name.lowercase().contains(query) ||
+                                repo.description?.lowercase()?.contains(query) == true
+                        }.toImmutableList()
             }
 
-            filtered = when (currentState.currentFilter) {
-                RepoFilterType.WITH_RELEASES -> filtered.filter { it.hasInstallableAssets }
-                    .toImmutableList()
+            filtered =
+                when (currentState.currentFilter) {
+                    RepoFilterType.WITH_RELEASES -> {
+                        filtered
+                            .filter { it.hasInstallableAssets }
+                            .toImmutableList()
+                    }
 
-                RepoFilterType.INSTALLED -> filtered.filter { it.isInstalled }.toImmutableList()
-                RepoFilterType.FAVORITES -> filtered.filter { it.isFavorite }.toImmutableList()
-            }
+                    RepoFilterType.INSTALLED -> {
+                        filtered.filter { it.isInstalled }.toImmutableList()
+                    }
 
-            filtered = when (currentState.currentSort) {
-                RepoSortType.UPDATED -> filtered.sortedByDescending { it.updatedAt }
-                    .toImmutableList()
+                    RepoFilterType.FAVORITES -> {
+                        filtered.filter { it.isFavorite }.toImmutableList()
+                    }
+                }
 
-                RepoSortType.STARS -> filtered.sortedByDescending { it.stargazersCount }
-                    .toImmutableList()
+            filtered =
+                when (currentState.currentSort) {
+                    RepoSortType.UPDATED -> {
+                        filtered
+                            .sortedByDescending { it.updatedAt }
+                            .toImmutableList()
+                    }
 
-                RepoSortType.NAME -> filtered.sortedBy { it.name.lowercase() }.toImmutableList()
-            }
+                    RepoSortType.STARS -> {
+                        filtered
+                            .sortedByDescending { it.stargazersCount }
+                            .toImmutableList()
+                    }
+
+                    RepoSortType.NAME -> {
+                        filtered.sortedBy { it.name.lowercase() }.toImmutableList()
+                    }
+                }
 
             _state.update { it.copy(filteredRepositories = filtered) }
         }
@@ -160,7 +178,8 @@ class DeveloperProfileViewModel(
         when (action) {
             DeveloperProfileAction.OnNavigateBackClick,
             is DeveloperProfileAction.OnRepositoryClick,
-            is DeveloperProfileAction.OnOpenLink -> {
+            is DeveloperProfileAction.OnOpenLink,
+            -> {
             }
 
             is DeveloperProfileAction.OnFilterChange -> {
@@ -182,30 +201,33 @@ class DeveloperProfileViewModel(
                 viewModelScope.launch {
                     val repo = action.repository
 
-                    val favoriteRepo = FavoriteRepo(
-                        repoId = repo.id,
-                        repoName = repo.name,
-                        repoOwner = repo.fullName.split("/")[0],
-                        repoOwnerAvatarUrl = _state.value.profile?.avatarUrl ?: "",
-                        repoDescription = repo.description,
-                        primaryLanguage = repo.language,
-                        repoUrl = repo.htmlUrl,
-                        latestVersion = repo.latestVersion,
-                        latestReleaseUrl = null,
-                        addedAt = Clock.System.now().toEpochMilliseconds(),
-                        lastSyncedAt = Clock.System.now().toEpochMilliseconds()
-                    )
+                    val favoriteRepo =
+                        FavoriteRepo(
+                            repoId = repo.id,
+                            repoName = repo.name,
+                            repoOwner = repo.fullName.split("/")[0],
+                            repoOwnerAvatarUrl = _state.value.profile?.avatarUrl ?: "",
+                            repoDescription = repo.description,
+                            primaryLanguage = repo.language,
+                            repoUrl = repo.htmlUrl,
+                            latestVersion = repo.latestVersion,
+                            latestReleaseUrl = null,
+                            addedAt = Clock.System.now().toEpochMilliseconds(),
+                            lastSyncedAt = Clock.System.now().toEpochMilliseconds(),
+                        )
 
                     favouritesRepository.toggleFavorite(favoriteRepo)
 
                     _state.update { state ->
-                        val updatedRepos = state.repositories.map {
-                            if (it.id == repo.id) {
-                                it.copy(isFavorite = !it.isFavorite)
-                            } else {
-                                it
-                            }
-                        }.toImmutableList()
+                        val updatedRepos =
+                            state.repositories
+                                .map {
+                                    if (it.id == repo.id) {
+                                        it.copy(isFavorite = !it.isFavorite)
+                                    } else {
+                                        it
+                                    }
+                                }.toImmutableList()
 
                         state.copy(repositories = updatedRepos)
                     }

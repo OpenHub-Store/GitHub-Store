@@ -17,5 +17,5 @@ data class ReleaseNetwork(
     @SerialName("tarball_url") val tarballUrl: String,
     @SerialName("zipball_url") val zipballUrl: String,
     @SerialName("html_url") val htmlUrl: String,
-    @SerialName("assets") val assets: List<AssetNetwork>
+    @SerialName("assets") val assets: List<AssetNetwork>,
 )

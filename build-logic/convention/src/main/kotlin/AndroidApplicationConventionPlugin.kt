@@ -14,13 +14,33 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
             extensions.configure<ApplicationExtension> {
                 namespace = "zed.rainxch.githubstore"
-                compileSdk = libs.findVersion("projectCompileSdkVersion").get().toString().toInt()
+                compileSdk =
+                    libs
+                        .findVersion("projectCompileSdkVersion")
+                        .get()
+                        .toString()
+                        .toInt()
 
                 defaultConfig {
                     applicationId = libs.findVersion("projectApplicationId").get().toString()
-                    minSdk = libs.findVersion("projectMinSdkVersion").get().toString().toInt()
-                    targetSdk = libs.findVersion("projectTargetSdkVersion").get().toString().toInt()
-                    versionCode = libs.findVersion("projectVersionCode").get().toString().toInt()
+                    minSdk =
+                        libs
+                            .findVersion("projectMinSdkVersion")
+                            .get()
+                            .toString()
+                            .toInt()
+                    targetSdk =
+                        libs
+                            .findVersion("projectTargetSdkVersion")
+                            .get()
+                            .toString()
+                            .toInt()
+                    versionCode =
+                        libs
+                            .findVersion("projectVersionCode")
+                            .get()
+                            .toString()
+                            .toInt()
                     versionName = libs.findVersion("projectVersionName").get().toString()
                 }
                 packaging {
@@ -35,7 +55,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
                         proguardFiles(
                             getDefaultProguardFile("proguard-android-optimize.txt"),
-                            "proguard-rules.pro"
+                            "proguard-rules.pro",
                         )
                     }
                 }
@@ -44,5 +64,4 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             }
         }
     }
-
 }

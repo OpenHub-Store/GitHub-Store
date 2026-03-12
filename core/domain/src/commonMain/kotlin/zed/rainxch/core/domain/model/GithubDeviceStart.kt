@@ -6,5 +6,5 @@ data class GithubDeviceStart(
     val verificationUri: String,
     val verificationUriComplete: String? = null,
     val intervalSec: Int = 5,
-    val expiresInSec: Int
+    val expiresInSec: Int,
 )

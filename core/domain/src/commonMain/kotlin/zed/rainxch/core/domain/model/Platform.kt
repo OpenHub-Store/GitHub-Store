@@ -4,5 +4,5 @@ enum class Platform {
     ANDROID,
     WINDOWS,
     MACOS,
-    LINUX
+    LINUX,
 }

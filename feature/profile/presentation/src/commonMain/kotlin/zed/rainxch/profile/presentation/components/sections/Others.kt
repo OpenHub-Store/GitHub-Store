@@ -34,48 +34,50 @@ import zed.rainxch.profile.presentation.components.SectionHeader
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun LazyListScope.othersSection(
     state: ProfileState,
-    onAction: (ProfileAction) -> Unit
+    onAction: (ProfileAction) -> Unit,
 ) {
     item {
         SectionHeader(
-            text = stringResource(Res.string.storage).uppercase()
+            text = stringResource(Res.string.storage).uppercase(),
         )
 
         Spacer(Modifier.height(8.dp))
 
         ExpressiveCard {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Storage,
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(36.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                        .padding(8.dp)
+                    modifier =
+                        Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(36.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .padding(8.dp),
                 )
 
-                Column (
+                Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
-                    horizontalAlignment = Alignment.Start
+                    horizontalAlignment = Alignment.Start,
                 ) {
                     Text(
                         text = stringResource(Res.string.clear_cache),
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Text(
                         text = "${stringResource(Res.string.current_size)} ${state.cacheSize}",
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -84,15 +86,16 @@ fun LazyListScope.othersSection(
                         onAction(ProfileAction.OnClearCacheClick)
                     },
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                        ),
                 ) {
                     Text(
                         text = stringResource(Res.string.clear),
                         style = MaterialTheme.typography.titleMediumEmphasized,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }

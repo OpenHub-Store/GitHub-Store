@@ -23,7 +23,7 @@ sealed interface GithubStoreGraph {
 
     @Serializable
     data class DeveloperProfileScreen(
-        val username: String
+        val username: String,
     ) : GithubStoreGraph
 
     @Serializable

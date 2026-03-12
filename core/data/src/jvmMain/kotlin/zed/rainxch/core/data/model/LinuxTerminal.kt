@@ -8,5 +8,5 @@ enum class LinuxTerminal {
     ALACRITTY,
     KITTY,
     TILIX,
-    MATE_TERMINAL
+    MATE_TERMINAL,
 }

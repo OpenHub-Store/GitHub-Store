@@ -10,13 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import zed.rainxch.githubstore.core.presentation.res.*
 import io.github.fletchmckee.liquid.liquefiable
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.details.presentation.DetailsState
 import zed.rainxch.details.presentation.model.LogResult
 import zed.rainxch.details.presentation.utils.LocalTopbarLiquidState
 import zed.rainxch.details.presentation.utils.asText
+import zed.rainxch.githubstore.core.presentation.res.*
 
 fun LazyListScope.logs(state: DetailsState) {
     item {
@@ -28,9 +28,10 @@ fun LazyListScope.logs(state: DetailsState) {
             text = stringResource(Res.string.install_logs),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .liquefiable(liquidState),
+            modifier =
+                Modifier
+                    .padding(vertical = 8.dp)
+                    .liquefiable(liquidState),
             fontWeight = FontWeight.Bold,
         )
     }
@@ -40,13 +41,17 @@ fun LazyListScope.logs(state: DetailsState) {
 
         Text(
             text = "> ${log.result.asText()}: ${log.assetName}",
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontStyle = FontStyle.Italic
-            ),
-            color = if (log.result is LogResult.Error) {
-                MaterialTheme.colorScheme.error
-            } else MaterialTheme.colorScheme.outline,
-            modifier = Modifier.liquefiable(liquidState)
+            style =
+                MaterialTheme.typography.labelSmall.copy(
+                    fontStyle = FontStyle.Italic,
+                ),
+            color =
+                if (log.result is LogResult.Error) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.outline
+                },
+            modifier = Modifier.liquefiable(liquidState),
         )
     }
 }

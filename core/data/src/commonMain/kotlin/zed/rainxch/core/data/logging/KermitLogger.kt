@@ -3,8 +3,7 @@ package zed.rainxch.core.data.logging
 import co.touchlab.kermit.Logger
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
 
-object KermitLogger: GitHubStoreLogger {
-
+object KermitLogger : GitHubStoreLogger {
     override fun debug(message: String) {
         Logger.d(message)
     }
@@ -17,7 +16,10 @@ object KermitLogger: GitHubStoreLogger {
         Logger.w(message)
     }
 
-    override fun error(message: String, throwable: Throwable?) {
+    override fun error(
+        message: String,
+        throwable: Throwable?,
+    ) {
         Logger.e(message, throwable)
     }
 }

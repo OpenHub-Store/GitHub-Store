@@ -2,7 +2,6 @@ package zed.rainxch.apps.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -27,6 +26,7 @@ import zed.rainxch.core.domain.network.Downloader
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
+import zed.rainxch.githubstore.core.presentation.res.*
 import java.io.File
 
 class AppsViewModel(
@@ -35,9 +35,8 @@ class AppsViewModel(
     private val downloader: Downloader,
     private val installedAppsRepository: InstalledAppsRepository,
     private val syncInstalledAppsUseCase: SyncInstalledAppsUseCase,
-    private val logger: GitHubStoreLogger
+    private val logger: GitHubStoreLogger,
 ) : ViewModel() {
-
     companion object {
         private const val UPDATE_CHECK_COOLDOWN_MS = 30 * 60 * 1000L // 30 minutes
     }
@@ -48,18 +47,18 @@ class AppsViewModel(
     private var lastAutoCheckTimestamp: Long = 0L
 
     private val _state = MutableStateFlow(AppsState())
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                loadApps()
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = AppsState()
-        )
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    loadApps()
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = AppsState(),
+            )
 
     private val _events = Channel<AppsEvent>()
     val events = _events.receiveAsFlow()
@@ -75,25 +74,29 @@ class AppsViewModel(
                 }
 
                 appsRepository.getApps().collect { apps ->
-                    val appItems = apps.map { app ->
-                        val existing = _state.value.apps.find {
-                            it.installedApp.packageName == app.packageName
-                        }
-                        AppItem(
-                            installedApp = app,
-                            updateState = existing?.updateState ?: UpdateState.Idle,
-                            downloadProgress = existing?.downloadProgress,
-                            error = existing?.error
-                        )
-                    }.sortedBy { it.installedApp.isUpdateAvailable }
+                    val appItems =
+                        apps
+                            .map { app ->
+                                val existing =
+                                    _state.value.apps.find {
+                                        it.installedApp.packageName == app.packageName
+                                    }
+                                AppItem(
+                                    installedApp = app,
+                                    updateState = existing?.updateState ?: UpdateState.Idle,
+                                    downloadProgress = existing?.downloadProgress,
+                                    error = existing?.error,
+                                )
+                            }.sortedBy { it.installedApp.isUpdateAvailable }
 
                     _state.update {
                         it.copy(
                             apps = appItems,
                             isLoading = false,
-                            updateAllButtonEnabled = appItems.any { item ->
-                                item.installedApp.isUpdateAvailable
-                            }
+                            updateAllButtonEnabled =
+                                appItems.any { item ->
+                                    item.installedApp.isUpdateAvailable
+                                },
                         )
                     }
 
@@ -209,22 +212,24 @@ class AppsViewModel(
     private fun filterApps() {
         _state.update { current ->
             current.copy(
-                filteredApps = computeFilteredApps(current.apps, current.searchQuery)
+                filteredApps = computeFilteredApps(current.apps, current.searchQuery),
             )
         }
     }
 
-    private fun computeFilteredApps(apps: List<AppItem>, query: String): List<AppItem> {
-        return if (query.isBlank()) {
+    private fun computeFilteredApps(
+        apps: List<AppItem>,
+        query: String,
+    ): List<AppItem> =
+        if (query.isBlank()) {
             apps.sortedBy { it.installedApp.isUpdateAvailable }
         } else {
-            apps.filter { appItem ->
-                appItem.installedApp.appName.contains(query, ignoreCase = true) ||
+            apps
+                .filter { appItem ->
+                    appItem.installedApp.appName.contains(query, ignoreCase = true) ||
                         appItem.installedApp.repoOwner.contains(query, ignoreCase = true)
-            }.sortedBy { it.installedApp.isUpdateAvailable }
+                }.sortedBy { it.installedApp.isUpdateAvailable }
         }
-    }
-
 
     private fun uninstallApp(app: InstalledApp) {
         viewModelScope.launch {
@@ -235,8 +240,8 @@ class AppsViewModel(
                 logger.error("Failed to request uninstall for ${app.packageName}: ${e.message}")
                 _events.send(
                     AppsEvent.ShowError(
-                        getString(Res.string.failed_to_uninstall, app.appName)
-                    )
+                        getString(Res.string.failed_to_uninstall, app.appName),
+                    ),
                 )
             }
         }
@@ -253,12 +258,12 @@ class AppsViewModel(
                                 AppsEvent.ShowError(
                                     getString(
                                         Res.string.cannot_launch,
-                                        app.appName
-                                    )
-                                )
+                                        app.appName,
+                                    ),
+                                ),
                             )
                         }
-                    }
+                    },
                 )
             } catch (e: Exception) {
                 logger.error("Failed to open app: ${e.message}")
@@ -266,9 +271,9 @@ class AppsViewModel(
                     AppsEvent.ShowError(
                         getString(
                             Res.string.failed_to_open,
-                            app.appName
-                        )
-                    )
+                            app.appName,
+                        ),
+                    ),
                 )
             }
         }
@@ -280,160 +285,166 @@ class AppsViewModel(
             return
         }
 
-        val job = viewModelScope.launch {
-            try {
-                updateAppState(app.packageName, UpdateState.CheckingUpdate)
+        val job =
+            viewModelScope.launch {
+                try {
+                    updateAppState(app.packageName, UpdateState.CheckingUpdate)
 
-                val latestRelease = try {
-                    appsRepository.getLatestRelease(
-                        owner = app.repoOwner,
-                        repo = app.repoName
-                    )
-                } catch (e: Exception) {
-                    logger.error("Failed to fetch latest release: ${e.message}")
-                    throw IllegalStateException("Failed to fetch latest release: ${e.message}")
-                }
-
-                if (latestRelease == null) {
-                    throw IllegalStateException("No release found for ${app.appName}")
-                }
-
-                val installableAssets = latestRelease.assets.filter { asset ->
-                    installer.isAssetInstallable(asset.name)
-                }
-
-                if (installableAssets.isEmpty()) {
-                    throw IllegalStateException("No installable assets found for this platform")
-                }
-
-                val primaryAsset = installer.choosePrimaryAsset(installableAssets)
-                    ?: throw IllegalStateException("Could not determine primary asset")
-
-                logger.debug(
-                    "Update: ${app.appName} from ${app.installedVersion} to ${latestRelease.tagName}, " +
-                            "asset: ${primaryAsset.name}"
-                )
-
-                val latestAssetUrl = primaryAsset.downloadUrl
-                val latestAssetName = primaryAsset.name
-                val latestVersion = latestRelease.tagName
-                val latestAssetSize = primaryAsset.size
-
-                val ext = latestAssetName.substringAfterLast('.', "").lowercase()
-                installer.ensurePermissionsOrThrow(ext)
-
-                val existingPath = downloader.getDownloadedFilePath(latestAssetName)
-                if (existingPath != null) {
-                    val file = File(existingPath)
-                    try {
-                        val apkInfo =
-                            installer.getApkInfoExtractor().extractPackageInfo(existingPath)
-                        val normalizedExisting =
-                            apkInfo?.versionName?.removePrefix("v")?.removePrefix("V") ?: ""
-                        val normalizedLatest =
-                            latestVersion.removePrefix("v").removePrefix("V")
-                        if (normalizedExisting != normalizedLatest) {
-                            val deleted = file.delete()
-                            logger.debug("Deleted mismatched existing file ($normalizedExisting != $normalizedLatest): $deleted")
+                    val latestRelease =
+                        try {
+                            appsRepository.getLatestRelease(
+                                owner = app.repoOwner,
+                                repo = app.repoName,
+                            )
+                        } catch (e: Exception) {
+                            logger.error("Failed to fetch latest release: ${e.message}")
+                            throw IllegalStateException("Failed to fetch latest release: ${e.message}")
                         }
-                    } catch (e: Exception) {
-                        logger.debug("Failed to extract APK info for existing file: ${e.message}")
-                        val deleted = file.delete()
-                        logger.debug("Deleted unextractable existing file: $deleted")
+
+                    if (latestRelease == null) {
+                        throw IllegalStateException("No release found for ${app.appName}")
                     }
-                }
 
-                updateAppState(app.packageName, UpdateState.Downloading)
+                    val installableAssets =
+                        latestRelease.assets.filter { asset ->
+                            installer.isAssetInstallable(asset.name)
+                        }
 
-                downloader.download(latestAssetUrl, latestAssetName).collect { progress ->
-                    updateAppProgress(app.packageName, progress.percent)
-                }
+                    if (installableAssets.isEmpty()) {
+                        throw IllegalStateException("No installable assets found for this platform")
+                    }
 
-                val filePath = downloader.getDownloadedFilePath(latestAssetName)
-                    ?: throw IllegalStateException("Downloaded file not found")
+                    val primaryAsset =
+                        installer.choosePrimaryAsset(installableAssets)
+                            ?: throw IllegalStateException("Could not determine primary asset")
 
-                val apkInfo = installer.getApkInfoExtractor().extractPackageInfo(filePath)
-                    ?: throw IllegalStateException("Failed to extract APK info")
-
-                // Save latest release metadata and mark as pending install
-                // so PackageEventReceiver can verify the actual installation
-                val currentApp = installedAppsRepository.getAppByPackage(app.packageName)
-                if (currentApp != null) {
-                    installedAppsRepository.updateApp(
-                        currentApp.copy(
-                            isPendingInstall = true,
-                            latestVersion = latestVersion,
-                            latestAssetName = latestAssetName,
-                            latestAssetUrl = latestAssetUrl,
-                            latestVersionName = apkInfo.versionName,
-                            latestVersionCode = apkInfo.versionCode
-                        )
+                    logger.debug(
+                        "Update: ${app.appName} from ${app.installedVersion} to ${latestRelease.tagName}, " +
+                            "asset: ${primaryAsset.name}",
                     )
-                } else {
-                    markPendingUpdate(app)
-                }
 
-                updateAppState(app.packageName, UpdateState.Installing)
+                    val latestAssetUrl = primaryAsset.downloadUrl
+                    val latestAssetName = primaryAsset.name
+                    val latestVersion = latestRelease.tagName
+                    val latestAssetSize = primaryAsset.size
 
-                try {
-                    installer.install(filePath, ext)
-                } catch (e: Exception) {
-                    installedAppsRepository.updatePendingStatus(app.packageName, false)
+                    val ext = latestAssetName.substringAfterLast('.', "").lowercase()
+                    installer.ensurePermissionsOrThrow(ext)
+
+                    val existingPath = downloader.getDownloadedFilePath(latestAssetName)
+                    if (existingPath != null) {
+                        val file = File(existingPath)
+                        try {
+                            val apkInfo =
+                                installer.getApkInfoExtractor().extractPackageInfo(existingPath)
+                            val normalizedExisting =
+                                apkInfo?.versionName?.removePrefix("v")?.removePrefix("V") ?: ""
+                            val normalizedLatest =
+                                latestVersion.removePrefix("v").removePrefix("V")
+                            if (normalizedExisting != normalizedLatest) {
+                                val deleted = file.delete()
+                                logger.debug("Deleted mismatched existing file ($normalizedExisting != $normalizedLatest): $deleted")
+                            }
+                        } catch (e: Exception) {
+                            logger.debug("Failed to extract APK info for existing file: ${e.message}")
+                            val deleted = file.delete()
+                            logger.debug("Deleted unextractable existing file: $deleted")
+                        }
+                    }
+
+                    updateAppState(app.packageName, UpdateState.Downloading)
+
+                    downloader.download(latestAssetUrl, latestAssetName).collect { progress ->
+                        updateAppProgress(app.packageName, progress.percent)
+                    }
+
+                    val filePath =
+                        downloader.getDownloadedFilePath(latestAssetName)
+                            ?: throw IllegalStateException("Downloaded file not found")
+
+                    val apkInfo =
+                        installer.getApkInfoExtractor().extractPackageInfo(filePath)
+                            ?: throw IllegalStateException("Failed to extract APK info")
+
+                    // Save latest release metadata and mark as pending install
+                    // so PackageEventReceiver can verify the actual installation
+                    val currentApp = installedAppsRepository.getAppByPackage(app.packageName)
+                    if (currentApp != null) {
+                        installedAppsRepository.updateApp(
+                            currentApp.copy(
+                                isPendingInstall = true,
+                                latestVersion = latestVersion,
+                                latestAssetName = latestAssetName,
+                                latestAssetUrl = latestAssetUrl,
+                                latestVersionName = apkInfo.versionName,
+                                latestVersionCode = apkInfo.versionCode,
+                            ),
+                        )
+                    } else {
+                        markPendingUpdate(app)
+                    }
+
+                    updateAppState(app.packageName, UpdateState.Installing)
+
+                    try {
+                        installer.install(filePath, ext)
+                    } catch (e: Exception) {
+                        installedAppsRepository.updatePendingStatus(app.packageName, false)
+                        throw e
+                    }
+
+                    // Don't mark as updated here — installer.install() just launches the
+                    // system install dialog and returns immediately. PackageEventReceiver
+                    // will handle confirming the actual installation via broadcast.
+                    updateAppState(app.packageName, UpdateState.Idle)
+
+                    logger.debug("Launched installer for ${app.appName} $latestVersion, waiting for system confirmation")
+                } catch (e: CancellationException) {
+                    logger.debug("Update cancelled for ${app.packageName}")
+                    cleanupUpdate(app.packageName, app.latestAssetName)
+                    try {
+                        installedAppsRepository.updatePendingStatus(app.packageName, false)
+                    } catch (clearEx: Exception) {
+                        logger.error("Failed to clear pending status on cancellation: ${clearEx.message}")
+                    }
+                    updateAppState(app.packageName, UpdateState.Idle)
                     throw e
-                }
-
-                // Don't mark as updated here — installer.install() just launches the
-                // system install dialog and returns immediately. PackageEventReceiver
-                // will handle confirming the actual installation via broadcast.
-                updateAppState(app.packageName, UpdateState.Idle)
-
-                logger.debug("Launched installer for ${app.appName} ${latestVersion}, waiting for system confirmation")
-
-            } catch (e: CancellationException) {
-                logger.debug("Update cancelled for ${app.packageName}")
-                cleanupUpdate(app.packageName, app.latestAssetName)
-                try {
-                    installedAppsRepository.updatePendingStatus(app.packageName, false)
-                } catch (clearEx: Exception) {
-                    logger.error("Failed to clear pending status on cancellation: ${clearEx.message}")
-                }
-                updateAppState(app.packageName, UpdateState.Idle)
-                throw e
-            } catch (_: RateLimitException) {
-                logger.debug("Rate limited during update for ${app.packageName}")
-                try {
-                    installedAppsRepository.updatePendingStatus(app.packageName, false)
-                } catch (clearEx: Exception) {
-                    logger.error("Failed to clear pending status on rate limit: ${clearEx.message}")
-                }
-                updateAppState(app.packageName, UpdateState.Idle)
-                _events.send(
-                    AppsEvent.ShowError(getString(Res.string.rate_limit_exceeded))
-                )
-            } catch (e: Exception) {
-                logger.error("Update failed for ${app.packageName}: ${e.message}")
-                cleanupUpdate(app.packageName, app.latestAssetName)
-                try {
-                    installedAppsRepository.updatePendingStatus(app.packageName, false)
-                } catch (clearEx: Exception) {
-                    logger.error("Failed to clear pending status on error: ${clearEx.message}")
-                }
-                updateAppState(
-                    app.packageName,
-                    UpdateState.Error(e.message ?: "Update failed")
-                )
-                _events.send(
-                    AppsEvent.ShowError(
-                        getString(
-                            Res.string.failed_to_update,
-                            app.appName, e.message ?: ""
-                        )
+                } catch (_: RateLimitException) {
+                    logger.debug("Rate limited during update for ${app.packageName}")
+                    try {
+                        installedAppsRepository.updatePendingStatus(app.packageName, false)
+                    } catch (clearEx: Exception) {
+                        logger.error("Failed to clear pending status on rate limit: ${clearEx.message}")
+                    }
+                    updateAppState(app.packageName, UpdateState.Idle)
+                    _events.send(
+                        AppsEvent.ShowError(getString(Res.string.rate_limit_exceeded)),
                     )
-                )
-            } finally {
-                activeUpdates.remove(app.packageName)
+                } catch (e: Exception) {
+                    logger.error("Update failed for ${app.packageName}: ${e.message}")
+                    cleanupUpdate(app.packageName, app.latestAssetName)
+                    try {
+                        installedAppsRepository.updatePendingStatus(app.packageName, false)
+                    } catch (clearEx: Exception) {
+                        logger.error("Failed to clear pending status on error: ${clearEx.message}")
+                    }
+                    updateAppState(
+                        app.packageName,
+                        UpdateState.Error(e.message ?: "Update failed"),
+                    )
+                    _events.send(
+                        AppsEvent.ShowError(
+                            getString(
+                                Res.string.failed_to_update,
+                                app.appName,
+                                e.message ?: "",
+                            ),
+                        ),
+                    )
+                } finally {
+                    activeUpdates.remove(app.packageName)
+                }
             }
-        }
 
         activeUpdates[app.packageName] = job
     }
@@ -444,71 +455,73 @@ class AppsViewModel(
             return
         }
 
-        updateAllJob = viewModelScope.launch {
-            try {
-                _state.update { it.copy(isUpdatingAll = true) }
+        updateAllJob =
+            viewModelScope.launch {
+                try {
+                    _state.update { it.copy(isUpdatingAll = true) }
 
-                val appsToUpdate = _state.value.apps.filter {
-                    it.installedApp.isUpdateAvailable &&
-                            it.updateState !is UpdateState.Success
-                }
+                    val appsToUpdate =
+                        _state.value.apps.filter {
+                            it.installedApp.isUpdateAvailable &&
+                                it.updateState !is UpdateState.Success
+                        }
 
-                if (appsToUpdate.isEmpty()) {
-                    _events.send(AppsEvent.ShowError(getString(Res.string.no_updates_available)))
-                    return@launch
-                }
-
-                logger.debug("Starting update all for ${appsToUpdate.size} apps")
-
-                appsToUpdate.forEachIndexed { index, appItem ->
-                    if (!isActive) {
-                        logger.debug("Update all cancelled")
+                    if (appsToUpdate.isEmpty()) {
+                        _events.send(AppsEvent.ShowError(getString(Res.string.no_updates_available)))
                         return@launch
                     }
 
-                    _state.update {
-                        it.copy(
-                            updateAllProgress = UpdateAllProgress(
-                                current = index + 1,
-                                total = appsToUpdate.size,
-                                currentAppName = appItem.installedApp.appName
+                    logger.debug("Starting update all for ${appsToUpdate.size} apps")
+
+                    appsToUpdate.forEachIndexed { index, appItem ->
+                        if (!isActive) {
+                            logger.debug("Update all cancelled")
+                            return@launch
+                        }
+
+                        _state.update {
+                            it.copy(
+                                updateAllProgress =
+                                    UpdateAllProgress(
+                                        current = index + 1,
+                                        total = appsToUpdate.size,
+                                        currentAppName = appItem.installedApp.appName,
+                                    ),
                             )
-                        )
+                        }
+
+                        logger.debug("Updating ${index + 1}/${appsToUpdate.size}: ${appItem.installedApp.appName}")
+
+                        updateSingleApp(appItem.installedApp)
+                        activeUpdates[appItem.installedApp.packageName]?.join()
+
+                        delay(1000)
                     }
 
-                    logger.debug("Updating ${index + 1}/${appsToUpdate.size}: ${appItem.installedApp.appName}")
-
-                    updateSingleApp(appItem.installedApp)
-                    activeUpdates[appItem.installedApp.packageName]?.join()
-
-                    delay(1000)
-                }
-
-                logger.debug("Update all completed successfully")
-                _events.send(AppsEvent.ShowSuccess(getString(Res.string.all_apps_updated_successfully)))
-
-            } catch (e: CancellationException) {
-                logger.debug("Update all cancelled")
-            } catch (e: Exception) {
-                logger.error("Update all failed: ${e.message}")
-                _events.send(
-                    AppsEvent.ShowError(
-                        getString(
-                            Res.string.update_all_failed,
-                            arrayOf(e.message)
+                    logger.debug("Update all completed successfully")
+                    _events.send(AppsEvent.ShowSuccess(getString(Res.string.all_apps_updated_successfully)))
+                } catch (e: CancellationException) {
+                    logger.debug("Update all cancelled")
+                } catch (e: Exception) {
+                    logger.error("Update all failed: ${e.message}")
+                    _events.send(
+                        AppsEvent.ShowError(
+                            getString(
+                                Res.string.update_all_failed,
+                                arrayOf(e.message),
+                            ),
+                        ),
+                    )
+                } finally {
+                    _state.update {
+                        it.copy(
+                            isUpdatingAll = false,
+                            updateAllProgress = null,
                         )
-                    )
-                )
-            } finally {
-                _state.update {
-                    it.copy(
-                        isUpdatingAll = false,
-                        updateAllProgress = null
-                    )
+                    }
+                    updateAllJob = null
                 }
-                updateAllJob = null
             }
-        }
     }
 
     private fun cancelUpdate(packageName: String) {
@@ -537,7 +550,6 @@ class AppsViewModel(
                 if (appItem.updateState != UpdateState.Idle &&
                     appItem.updateState != UpdateState.Success
                 ) {
-
                     appItem.installedApp.latestAssetName?.let { assetName ->
                         cleanupUpdate(appItem.installedApp.packageName, assetName)
                     }
@@ -549,42 +561,54 @@ class AppsViewModel(
         _state.update {
             it.copy(
                 isUpdatingAll = false,
-                updateAllProgress = null
+                updateAllProgress = null,
             )
         }
     }
 
-    private fun updateAppState(packageName: String, state: UpdateState) {
+    private fun updateAppState(
+        packageName: String,
+        state: UpdateState,
+    ) {
         _state.update { currentState ->
             currentState.copy(
-                apps = currentState.apps.map { appItem ->
-                    if (appItem.installedApp.packageName == packageName) {
-                        appItem.copy(
-                            updateState = state,
-                            downloadProgress = if (state is UpdateState.Downloading)
-                                appItem.downloadProgress else null,
-                            error = if (state is UpdateState.Error) state.message else null
-                        )
-                    } else {
-                        appItem
-                    }
-                }
+                apps =
+                    currentState.apps.map { appItem ->
+                        if (appItem.installedApp.packageName == packageName) {
+                            appItem.copy(
+                                updateState = state,
+                                downloadProgress =
+                                    if (state is UpdateState.Downloading) {
+                                        appItem.downloadProgress
+                                    } else {
+                                        null
+                                    },
+                                error = if (state is UpdateState.Error) state.message else null,
+                            )
+                        } else {
+                            appItem
+                        }
+                    },
             )
         }
 
         filterApps()
     }
 
-    private fun updateAppProgress(packageName: String, progress: Int?) {
+    private fun updateAppProgress(
+        packageName: String,
+        progress: Int?,
+    ) {
         _state.update { currentState ->
             currentState.copy(
-                apps = currentState.apps.map { appItem ->
-                    if (appItem.installedApp.packageName == packageName) {
-                        appItem.copy(downloadProgress = progress)
-                    } else {
-                        appItem
-                    }
-                }
+                apps =
+                    currentState.apps.map { appItem ->
+                        if (appItem.installedApp.packageName == packageName) {
+                            appItem.copy(downloadProgress = progress)
+                        } else {
+                            appItem
+                        }
+                    },
             )
         }
 
@@ -596,7 +620,10 @@ class AppsViewModel(
         logger.debug("Marked ${app.packageName} as pending install")
     }
 
-    private suspend fun cleanupUpdate(packageName: String, assetName: String?) {
+    private suspend fun cleanupUpdate(
+        packageName: String,
+        assetName: String?,
+    ) {
         try {
             if (assetName != null) {
                 val deleted = downloader.cancelDownload(assetName)

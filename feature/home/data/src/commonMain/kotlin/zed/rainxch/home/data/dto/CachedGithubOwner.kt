@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CachedGithubOwner(
     val login: String,
-    val avatarUrl: String
+    val avatarUrl: String,
 )

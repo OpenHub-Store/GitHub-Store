@@ -12,27 +12,33 @@ typealias LanguageCode = String
 interface DetailsRepository {
     suspend fun getRepositoryById(id: Long): GithubRepoSummary
 
-    suspend fun getRepositoryByOwnerAndName(owner: String, name: String): GithubRepoSummary
+    suspend fun getRepositoryByOwnerAndName(
+        owner: String,
+        name: String,
+    ): GithubRepoSummary
 
     suspend fun getLatestPublishedRelease(
         owner: String,
         repo: String,
-        defaultBranch: String
+        defaultBranch: String,
     ): GithubRelease?
 
     suspend fun getAllReleases(
         owner: String,
         repo: String,
-        defaultBranch: String
+        defaultBranch: String,
     ): List<GithubRelease>
 
     suspend fun getReadme(
         owner: String,
         repo: String,
-        defaultBranch: String
+        defaultBranch: String,
     ): Triple<ReadmeContent, LanguageCode?, ReadmePath>?
 
-    suspend fun getRepoStats(owner: String, repo: String): RepoStats
+    suspend fun getRepoStats(
+        owner: String,
+        repo: String,
+    ): RepoStats
 
     suspend fun getUserProfile(username: String): GithubUserProfile
 }

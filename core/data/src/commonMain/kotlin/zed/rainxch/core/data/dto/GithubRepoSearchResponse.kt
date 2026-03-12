@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GithubRepoSearchResponse(
     @SerialName("total_count") val totalCount: Int,
-    @SerialName("items") val items: List<GithubRepoNetworkModel>
+    @SerialName("items") val items: List<GithubRepoNetworkModel>,
 )

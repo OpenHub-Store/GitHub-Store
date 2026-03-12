@@ -55,7 +55,7 @@ fun LazyListScope.header(
                 installedApp = state.installedApp,
                 downloadStage = state.downloadStage,
                 downloadProgress = state.downloadProgressPercent,
-                modifier = Modifier.liquefiable(liquidState)
+                modifier = Modifier.liquefiable(liquidState),
             )
         }
     }
@@ -66,7 +66,7 @@ fun LazyListScope.header(
             VersionTypePicker(
                 selectedCategory = state.selectedReleaseCategory,
                 onAction = onAction,
-                modifier = Modifier.fillMaxWidth().animateItem()
+                modifier = Modifier.fillMaxWidth().animateItem(),
             )
         }
     }
@@ -77,14 +77,14 @@ fun LazyListScope.header(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 ReleaseAssetsPicker(
                     assetsList = state.installableAssets,
                     selectedAsset = state.primaryAsset,
                     isPickerVisible = state.isReleaseSelectorVisible,
                     onAction = onAction,
-                    modifier = Modifier.weight(.65f)
+                    modifier = Modifier.weight(.65f),
                 )
                 VersionPicker(
                     selectedRelease = state.selectedRelease,
@@ -125,12 +125,12 @@ fun LazyListScope.header(
                             Text(
                                 text = stringResource(Res.string.open_in_obtainium),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = stringResource(Res.string.obtainium_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     },
@@ -141,10 +141,10 @@ fun LazyListScope.header(
                         Icon(
                             imageVector = Icons.Default.Update,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     },
-                    modifier = Modifier.liquefiable(liquidState)
+                    modifier = Modifier.liquefiable(liquidState),
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -155,12 +155,12 @@ fun LazyListScope.header(
                             Text(
                                 text = stringResource(Res.string.inspect_with_appmanager),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = stringResource(Res.string.appmanager_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     },
@@ -171,10 +171,10 @@ fun LazyListScope.header(
                         Icon(
                             imageVector = Icons.Default.Security,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     },
-                    modifier = Modifier.liquefiable(liquidState)
+                    modifier = Modifier.liquefiable(liquidState),
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -185,12 +185,12 @@ fun LazyListScope.header(
                             Text(
                                 text = stringResource(Res.string.open_with_external_installer),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = stringResource(Res.string.external_installer_description),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     },
@@ -201,10 +201,10 @@ fun LazyListScope.header(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     },
-                    modifier = Modifier.liquefiable(liquidState)
+                    modifier = Modifier.liquefiable(liquidState),
                 )
             }
         }

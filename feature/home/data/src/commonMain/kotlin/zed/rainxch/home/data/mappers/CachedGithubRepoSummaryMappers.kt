@@ -4,17 +4,18 @@ import zed.rainxch.core.domain.model.GithubRepoSummary
 import zed.rainxch.core.domain.model.GithubUser
 import zed.rainxch.home.data.dto.CachedGithubRepoSummary
 
-fun CachedGithubRepoSummary.toGithubRepoSummary(): GithubRepoSummary {
-    return GithubRepoSummary(
+fun CachedGithubRepoSummary.toGithubRepoSummary(): GithubRepoSummary =
+    GithubRepoSummary(
         id = id,
         name = name,
         fullName = fullName,
-        owner = GithubUser(
-            id = 0,
-            login = owner.login,
-            avatarUrl = owner.avatarUrl,
-            htmlUrl = "https://github.com/${owner.login}"
-        ),
+        owner =
+            GithubUser(
+                id = 0,
+                login = owner.login,
+                avatarUrl = owner.avatarUrl,
+                htmlUrl = "https://github.com/${owner.login}",
+            ),
         description = description,
         defaultBranch = defaultBranch,
         htmlUrl = htmlUrl,
@@ -25,4 +26,3 @@ fun CachedGithubRepoSummary.toGithubRepoSummary(): GithubRepoSummary {
         releasesUrl = releasesUrl,
         updatedAt = latestReleaseDate ?: updatedAt,
     )
-}

@@ -24,9 +24,9 @@ import zed.rainxch.core.data.network.createGitHubHttpClient
 import zed.rainxch.core.data.repository.AuthenticationStateImpl
 import zed.rainxch.core.data.repository.FavouritesRepositoryImpl
 import zed.rainxch.core.data.repository.InstalledAppsRepositoryImpl
+import zed.rainxch.core.data.repository.ProxyRepositoryImpl
 import zed.rainxch.core.data.repository.RateLimitRepositoryImpl
 import zed.rainxch.core.data.repository.StarredRepositoryImpl
-import zed.rainxch.core.data.repository.ProxyRepositoryImpl
 import zed.rainxch.core.data.repository.ThemesRepositoryImpl
 import zed.rainxch.core.domain.getPlatform
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
@@ -41,151 +41,165 @@ import zed.rainxch.core.domain.repository.StarredRepository
 import zed.rainxch.core.domain.repository.ThemesRepository
 import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
 
-val coreModule = module {
-    single {
-        CoroutineScope(Dispatchers.IO + SupervisorJob())
+val coreModule =
+    module {
+        single {
+            CoroutineScope(Dispatchers.IO + SupervisorJob())
+        }
+
+        single<GitHubStoreLogger> {
+            KermitLogger
+        }
+
+        single<Platform> {
+            getPlatform()
+        }
+
+        single<AuthenticationState> {
+            AuthenticationStateImpl(
+                tokenStore = get(),
+            )
+        }
+
+        single<FavouritesRepository> {
+            FavouritesRepositoryImpl(
+                favoriteRepoDao = get(),
+                installedAppsDao = get(),
+            )
+        }
+
+        single<InstalledAppsRepository> {
+            InstalledAppsRepositoryImpl(
+                database = get(),
+                installedAppsDao = get(),
+                historyDao = get(),
+                installer = get(),
+                httpClient = get(),
+            )
+        }
+
+        single<StarredRepository> {
+            StarredRepositoryImpl(
+                installedAppsDao = get(),
+                starredRepoDao = get(),
+                platform = get(),
+                httpClient = get(),
+            )
+        }
+
+        single<ThemesRepository> {
+            ThemesRepositoryImpl(
+                preferences = get(),
+            )
+        }
+
+        single<ProxyRepository> {
+            ProxyRepositoryImpl(
+                preferences = get(),
+            )
+        }
+
+        single<SyncInstalledAppsUseCase> {
+            SyncInstalledAppsUseCase(
+                packageMonitor = get(),
+                installedAppsRepository = get(),
+                platform = get(),
+                logger = get(),
+            )
+        }
+
+        single<CacheManager> {
+            CacheManager(cacheDao = get())
+        }
     }
 
-    single<GitHubStoreLogger> {
-        KermitLogger
-    }
-
-    single<Platform> {
-        getPlatform()
-    }
-
-    single<AuthenticationState> {
-        AuthenticationStateImpl(
-            tokenStore = get()
-        )
-    }
-
-    single<FavouritesRepository> {
-        FavouritesRepositoryImpl(
-            favoriteRepoDao = get(),
-            installedAppsDao = get()
-        )
-    }
-
-    single<InstalledAppsRepository> {
-        InstalledAppsRepositoryImpl(
-            database = get(),
-            installedAppsDao = get(),
-            historyDao = get(),
-            installer = get(),
-            httpClient = get()
-        )
-    }
-
-    single<StarredRepository> {
-        StarredRepositoryImpl(
-            installedAppsDao = get(),
-            starredRepoDao = get(),
-            platform = get(),
-            httpClient = get()
-        )
-    }
-
-    single<ThemesRepository> {
-        ThemesRepositoryImpl(
-            preferences = get()
-        )
-    }
-
-    single<ProxyRepository> {
-        ProxyRepositoryImpl(
-            preferences = get()
-        )
-    }
-
-    single<SyncInstalledAppsUseCase> {
-        SyncInstalledAppsUseCase(
-            packageMonitor = get(),
-            installedAppsRepository = get(),
-            platform = get(),
-            logger = get()
-        )
-    }
-
-    single<CacheManager> {
-        CacheManager(cacheDao = get())
-    }
-}
-
-val networkModule = module {
-    single<GitHubClientProvider> {
-        val config = runBlocking {
-            runCatching {
-                withTimeout(1_500L) {
-                    get<ProxyRepository>().getProxyConfig().first()
+val networkModule =
+    module {
+        single<GitHubClientProvider> {
+            val config =
+                runBlocking {
+                    runCatching {
+                        withTimeout(1_500L) {
+                            get<ProxyRepository>().getProxyConfig().first()
+                        }
+                    }.getOrDefault(ProxyConfig.None)
                 }
-            }.getOrDefault(ProxyConfig.None)
+
+            when (config) {
+                is ProxyConfig.None -> {
+                    ProxyManager.setNoProxy()
+                }
+
+                is ProxyConfig.System -> {
+                    ProxyManager.setSystemProxy()
+                }
+
+                is ProxyConfig.Http -> {
+                    ProxyManager.setHttpProxy(
+                        host = config.host,
+                        port = config.port,
+                        username = config.username,
+                        password = config.password,
+                    )
+                }
+
+                is ProxyConfig.Socks -> {
+                    ProxyManager.setSocksProxy(
+                        host = config.host,
+                        port = config.port,
+                        username = config.username,
+                        password = config.password,
+                    )
+                }
+            }
+
+            GitHubClientProvider(
+                tokenStore = get(),
+                rateLimitRepository = get(),
+                authenticationState = get(),
+                proxyConfigFlow = ProxyManager.currentProxyConfig,
+            )
         }
 
-        when (config) {
-            is ProxyConfig.None -> ProxyManager.setNoProxy()
-            is ProxyConfig.System -> ProxyManager.setSystemProxy()
-            is ProxyConfig.Http -> ProxyManager.setHttpProxy(
-                host = config.host,
-                port = config.port,
-                username = config.username,
-                password = config.password
-            )
-
-            is ProxyConfig.Socks -> ProxyManager.setSocksProxy(
-                host = config.host,
-                port = config.port,
-                username = config.username,
-                password = config.password
+        single<HttpClient> {
+            createGitHubHttpClient(
+                tokenStore = get(),
+                rateLimitRepository = get(),
+                authenticationState = get(),
+                scope = get(),
             )
         }
 
-        GitHubClientProvider(
-            tokenStore = get(),
-            rateLimitRepository = get(),
-            authenticationState = get(),
-            proxyConfigFlow = ProxyManager.currentProxyConfig
-        )
+        single<TokenStore> {
+            DefaultTokenStore(
+                dataStore = get(),
+            )
+        }
+
+        single<RateLimitRepository> {
+            RateLimitRepositoryImpl()
+        }
     }
 
-    single<HttpClient> {
-        createGitHubHttpClient(
-            tokenStore = get(),
-            rateLimitRepository = get(),
-            authenticationState = get(),
-            scope = get()
-        )
-    }
+val databaseModule =
+    module {
+        single<FavoriteRepoDao> {
+            get<AppDatabase>().favoriteRepoDao
+        }
 
-    single<TokenStore> {
-        DefaultTokenStore(
-            dataStore = get()
-        )
-    }
+        single<InstalledAppDao> {
+            get<AppDatabase>().installedAppDao
+        }
 
-    single<RateLimitRepository> {
-        RateLimitRepositoryImpl()
-    }
-}
+        single<StarredRepoDao> {
+            get<AppDatabase>().starredReposDao
+        }
 
-val databaseModule = module {
-    single<FavoriteRepoDao> {
-        get<AppDatabase>().favoriteRepoDao
-    }
+        single<UpdateHistoryDao> {
+            get<AppDatabase>().updateHistoryDao
+        }
 
-    single<InstalledAppDao> {
-        get<AppDatabase>().installedAppDao
+        single<CacheDao> {
+            get<AppDatabase>().cacheDao
+        }
     }
-
-    single<StarredRepoDao> {
-        get<AppDatabase>().starredReposDao
-    }
-
-    single<UpdateHistoryDao> {
-        get<AppDatabase>().updateHistoryDao
-    }
-
-    single<CacheDao> {
-        get<AppDatabase>().cacheDao
-    }
-}

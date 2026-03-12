@@ -19,7 +19,7 @@ class CmpApplicationConventionPlugin : Plugin<Project> {
             configureJvmTarget()
 
             dependencies {
-                "debugImplementation"(libs.findLibrary("androidx-compose-ui-tooling").get( ))
+                "debugImplementation"(libs.findLibrary("androidx-compose-ui-tooling").get())
             }
         }
     }

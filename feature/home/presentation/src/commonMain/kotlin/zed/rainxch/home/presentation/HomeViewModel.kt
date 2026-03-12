@@ -23,8 +23,8 @@ import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
 import zed.rainxch.core.domain.utils.ShareManager
 import zed.rainxch.core.presentation.model.DiscoveryRepository
 import zed.rainxch.githubstore.core.presentation.res.*
-import zed.rainxch.home.domain.repository.HomeRepository
 import zed.rainxch.home.domain.model.HomeCategory
+import zed.rainxch.home.domain.repository.HomeRepository
 
 class HomeViewModel(
     private val homeRepository: HomeRepository,
@@ -34,34 +34,33 @@ class HomeViewModel(
     private val favouritesRepository: FavouritesRepository,
     private val starredRepository: StarredRepository,
     private val logger: GitHubStoreLogger,
-    private val shareManager: ShareManager
+    private val shareManager: ShareManager,
 ) : ViewModel() {
-
     private var hasLoadedInitialData = false
     private var currentJob: Job? = null
     private var switchCategoryJob: Job? = null
     private var nextPageIndex = 1
 
     private val _state = MutableStateFlow(HomeState())
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                syncSystemState()
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    syncSystemState()
 
-                loadPlatform()
-                loadRepos(isInitial = true)
-                observeInstalledApps()
-                observeFavourites()
-                observeStarredRepos()
+                    loadPlatform()
+                    loadRepos(isInitial = true)
+                    observeInstalledApps()
+                    observeFavourites()
+                    observeStarredRepos()
 
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = HomeState()
-        )
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = HomeState(),
+            )
 
     private val _events = Channel<HomeEvent>()
     val events = _events.receiveAsFlow()
@@ -91,28 +90,31 @@ class HomeViewModel(
                 val installedMap = installedApps.associateBy { it.repoId }
                 _state.update { current ->
                     current.copy(
-                        repos = current.repos.map { homeRepo ->
-                            val app = installedMap[homeRepo.repository.id]
-                            homeRepo.copy(
-                                isInstalled = app != null,
-                                isUpdateAvailable = app?.isUpdateAvailable ?: false
-                            )
-                        },
-                        isUpdateAvailable = installedMap.any { it.value.isUpdateAvailable }
+                        repos =
+                            current.repos.map { homeRepo ->
+                                val app = installedMap[homeRepo.repository.id]
+                                homeRepo.copy(
+                                    isInstalled = app != null,
+                                    isUpdateAvailable = app?.isUpdateAvailable ?: false,
+                                )
+                            },
+                        isUpdateAvailable = installedMap.any { it.value.isUpdateAvailable },
                     )
                 }
             }
         }
     }
 
-    private fun loadRepos(isInitial: Boolean = false, category: HomeCategory? = null): Job? {
+    private fun loadRepos(
+        isInitial: Boolean = false,
+        category: HomeCategory? = null,
+    ): Job? {
         currentJob?.cancel()
 
         if (_state.value.isLoading || _state.value.isLoadingMore) {
             logger.debug("Already loading, skipping...")
             return null
         }
-
 
         if (isInitial) {
             nextPageIndex = 1
@@ -122,99 +124,117 @@ class HomeViewModel(
 
         logger.debug("Loading repos: category=$targetCategory, page=$nextPageIndex, isInitial=$isInitial")
 
-        return viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoading = isInitial,
-                    isLoadingMore = !isInitial,
-                    errorMessage = null,
-                    currentCategory = targetCategory,
-                    repos = if (isInitial) emptyList() else it.repos
-                )
-            }
-
-            try {
-                val flow = when (targetCategory) {
-                    HomeCategory.TRENDING -> homeRepository.getTrendingRepositories(nextPageIndex)
-                    HomeCategory.HOT_RELEASE -> homeRepository.getHotReleaseRepositories(
-                        nextPageIndex
-                    )
-
-                    HomeCategory.MOST_POPULAR -> homeRepository.getMostPopular(nextPageIndex)
-                }
-
-                flow.collect { paginatedRepos ->
-                    logger.debug("Received ${paginatedRepos.repos.size} repos, hasMore=${paginatedRepos.hasMore}, nextPage=${paginatedRepos.nextPageIndex}")
-
-                    this@HomeViewModel.nextPageIndex = paginatedRepos.nextPageIndex
-
-                    val installedAppsMap = installedAppsRepository
-                        .getAllInstalledApps()
-                        .first()
-                        .associateBy { it.repoId }
-
-                    val favoritesMap = favouritesRepository
-                        .getAllFavorites()
-                        .first()
-                        .associateBy { it.repoId }
-
-                    val starredReposMap = starredRepository
-                        .getAllStarred()
-                        .first()
-                        .associateBy { it.repoId }
-
-                    val newReposWithStatus = paginatedRepos.repos.map { repo ->
-                        val app = installedAppsMap[repo.id]
-                        val favourite = favoritesMap[repo.id]
-                        val starred = starredReposMap[repo.id]
-
-                        DiscoveryRepository(
-                            isInstalled = app != null,
-                            isFavourite = favourite != null,
-                            isStarred = starred != null,
-                            isUpdateAvailable = app?.isUpdateAvailable ?: false,
-                            repository = repo
-                        )
-                    }
-
-                    _state.update { currentState ->
-                        val rawList = currentState.repos + newReposWithStatus
-                        val uniqueList = rawList.distinctBy { it.repository.fullName }
-
-                        currentState.copy(
-                            repos = uniqueList,
-                            hasMorePages = paginatedRepos.hasMore,
-                            errorMessage = if (uniqueList.isEmpty() && !paginatedRepos.hasMore) {
-                                getString(Res.string.no_repositories_found)
-                            } else null
-                        )
-                    }
-                }
-
-                logger.debug("Flow completed")
-                _state.update {
-                    it.copy(isLoading = false, isLoadingMore = false)
-                }
-
-            } catch (t: Throwable) {
-                if (t is CancellationException) {
-                    logger.debug("Load cancelled (expected)")
-                    throw t
-                }
-
-                logger.error("Load failed: ${t.message}")
+        return viewModelScope
+            .launch {
                 _state.update {
                     it.copy(
-                        isLoading = false,
-                        isLoadingMore = false,
-                        errorMessage = t.message
-                            ?: getString(Res.string.home_failed_to_load_repositories)
+                        isLoading = isInitial,
+                        isLoadingMore = !isInitial,
+                        errorMessage = null,
+                        currentCategory = targetCategory,
+                        repos = if (isInitial) emptyList() else it.repos,
                     )
                 }
+
+                try {
+                    val flow =
+                        when (targetCategory) {
+                            HomeCategory.TRENDING -> {
+                                homeRepository.getTrendingRepositories(nextPageIndex)
+                            }
+
+                            HomeCategory.HOT_RELEASE -> {
+                                homeRepository.getHotReleaseRepositories(
+                                    nextPageIndex,
+                                )
+                            }
+
+                            HomeCategory.MOST_POPULAR -> {
+                                homeRepository.getMostPopular(nextPageIndex)
+                            }
+                        }
+
+                    flow.collect { paginatedRepos ->
+                        logger.debug(
+                            "Received ${paginatedRepos.repos.size} repos, hasMore=${paginatedRepos.hasMore}, nextPage=${paginatedRepos.nextPageIndex}",
+                        )
+
+                        this@HomeViewModel.nextPageIndex = paginatedRepos.nextPageIndex
+
+                        val installedAppsMap =
+                            installedAppsRepository
+                                .getAllInstalledApps()
+                                .first()
+                                .associateBy { it.repoId }
+
+                        val favoritesMap =
+                            favouritesRepository
+                                .getAllFavorites()
+                                .first()
+                                .associateBy { it.repoId }
+
+                        val starredReposMap =
+                            starredRepository
+                                .getAllStarred()
+                                .first()
+                                .associateBy { it.repoId }
+
+                        val newReposWithStatus =
+                            paginatedRepos.repos.map { repo ->
+                                val app = installedAppsMap[repo.id]
+                                val favourite = favoritesMap[repo.id]
+                                val starred = starredReposMap[repo.id]
+
+                                DiscoveryRepository(
+                                    isInstalled = app != null,
+                                    isFavourite = favourite != null,
+                                    isStarred = starred != null,
+                                    isUpdateAvailable = app?.isUpdateAvailable ?: false,
+                                    repository = repo,
+                                )
+                            }
+
+                        _state.update { currentState ->
+                            val rawList = currentState.repos + newReposWithStatus
+                            val uniqueList = rawList.distinctBy { it.repository.fullName }
+
+                            currentState.copy(
+                                repos = uniqueList,
+                                hasMorePages = paginatedRepos.hasMore,
+                                errorMessage =
+                                    if (uniqueList.isEmpty() && !paginatedRepos.hasMore) {
+                                        getString(Res.string.no_repositories_found)
+                                    } else {
+                                        null
+                                    },
+                            )
+                        }
+                    }
+
+                    logger.debug("Flow completed")
+                    _state.update {
+                        it.copy(isLoading = false, isLoadingMore = false)
+                    }
+                } catch (t: Throwable) {
+                    if (t is CancellationException) {
+                        logger.debug("Load cancelled (expected)")
+                        throw t
+                    }
+
+                    logger.error("Load failed: ${t.message}")
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoadingMore = false,
+                            errorMessage =
+                                t.message
+                                    ?: getString(Res.string.home_failed_to_load_repositories),
+                        )
+                    }
+                }
+            }.also {
+                currentJob = it
             }
-        }.also {
-            currentJob = it
-        }
     }
 
     fun onAction(action: HomeAction) {
@@ -233,7 +253,9 @@ class HomeViewModel(
             }
 
             HomeAction.LoadMore -> {
-                logger.debug("LoadMore action: isLoading=${_state.value.isLoading}, isLoadingMore=${_state.value.isLoadingMore}, hasMore=${_state.value.hasMorePages}")
+                logger.debug(
+                    "LoadMore action: isLoading=${_state.value.isLoading}, isLoadingMore=${_state.value.isLoadingMore}, hasMore=${_state.value.hasMorePages}",
+                )
 
                 if (!_state.value.isLoadingMore && !_state.value.isLoading && _state.value.hasMorePages) {
                     loadRepos(isInitial = false)
@@ -244,12 +266,12 @@ class HomeViewModel(
                 if (_state.value.currentCategory != action.category) {
                     nextPageIndex = 1
                     switchCategoryJob?.cancel()
-                    switchCategoryJob = viewModelScope.launch {
-                        loadRepos(isInitial = true, category = action.category)?.join()
-                            ?: return@launch
-                        _events.send(HomeEvent.OnScrollToListTop)
-                    }
-
+                    switchCategoryJob =
+                        viewModelScope.launch {
+                            loadRepos(isInitial = true, category = action.category)?.join()
+                                ?: return@launch
+                            _events.send(HomeEvent.OnScrollToListTop)
+                        }
                 }
             }
 
@@ -260,7 +282,7 @@ class HomeViewModel(
                     }.onFailure { t ->
                         logger.error("Failed to share link: ${t.message}")
                         _events.send(
-                            HomeEvent.OnMessage(getString(Res.string.failed_to_share_link))
+                            HomeEvent.OnMessage(getString(Res.string.failed_to_share_link)),
                         )
                         return@launch
                     }
@@ -272,23 +294,23 @@ class HomeViewModel(
             }
 
             is HomeAction.OnRepositoryClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
 
             is HomeAction.OnRepositoryDeveloperClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
 
             HomeAction.OnSearchClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
 
             HomeAction.OnSettingsClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
 
             HomeAction.OnAppsClick -> {
-                /* Handled in composable */
+                // Handled in composable
             }
         }
     }
@@ -299,11 +321,12 @@ class HomeViewModel(
                 val favouritesMap = favourites.associateBy { it.repoId }
                 _state.update { current ->
                     current.copy(
-                        repos = current.repos.map { homeRepo ->
-                            homeRepo.copy(
-                                isFavourite = favouritesMap.containsKey(homeRepo.repository.id)
-                            )
-                        }
+                        repos =
+                            current.repos.map { homeRepo ->
+                                homeRepo.copy(
+                                    isFavourite = favouritesMap.containsKey(homeRepo.repository.id),
+                                )
+                            },
                     )
                 }
             }
@@ -316,11 +339,12 @@ class HomeViewModel(
                 val starredReposById = starredRepos.associateBy { it.repoId }
                 _state.update { current ->
                     current.copy(
-                        repos = current.repos.map { homeRepo ->
-                            homeRepo.copy(
-                                isStarred = starredReposById.containsKey(homeRepo.repository.id)
-                            )
-                        }
+                        repos =
+                            current.repos.map { homeRepo ->
+                                homeRepo.copy(
+                                    isStarred = starredReposById.containsKey(homeRepo.repository.id),
+                                )
+                            },
                     )
                 }
             }

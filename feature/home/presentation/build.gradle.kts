@@ -15,22 +15,19 @@ kotlin {
                 implementation(libs.liquid)
 
                 implementation(compose.components.resources)
-                
+
                 implementation(libs.androidx.compose.ui.tooling.preview)
             }
         }
 
         androidMain {
             dependencies {
-
             }
         }
 
         jvmMain {
             dependencies {
-
             }
         }
     }
-
 }

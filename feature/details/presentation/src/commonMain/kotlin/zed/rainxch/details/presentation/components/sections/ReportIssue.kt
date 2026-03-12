@@ -24,9 +24,7 @@ import zed.rainxch.githubstore.core.presentation.res.open_github_link
 import zed.rainxch.githubstore.core.presentation.res.open_in_browser
 import zed.rainxch.githubstore.core.presentation.res.report_issue
 
-fun LazyListScope.reportIssue(
-    repoUrl: String
-) {
+fun LazyListScope.reportIssue(repoUrl: String) {
     item {
         val uriHandler = LocalUriHandler.current
 
@@ -34,35 +32,36 @@ fun LazyListScope.reportIssue(
             onClick = {
                 uriHandler.openUri("${repoUrl.trimEnd('/')}/issues")
             },
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-            ),
-            shape = RoundedCornerShape(32.dp)
+            colors =
+                CardDefaults.outlinedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+            shape = RoundedCornerShape(32.dp),
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = Icons.Default.BugReport,
                     contentDescription = stringResource(Res.string.report_issue),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 )
 
                 Text(
                     text = stringResource(Res.string.report_issue),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = stringResource(Res.string.open_in_browser),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

@@ -19,19 +19,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.fletchmckee.liquid.liquefiable
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.presentation.locals.LocalBottomNavigationHeight
 import zed.rainxch.core.presentation.locals.LocalBottomNavigationLiquid
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.profile.presentation.components.LogoutDialog
 import zed.rainxch.profile.presentation.components.sections.about
 import zed.rainxch.profile.presentation.components.sections.logout
@@ -48,7 +48,7 @@ fun ProfileRoot(
     onNavigateToStarredRepos: () -> Unit,
     onNavigateToFavouriteRepos: () -> Unit,
     onNavigateToSponsor: () -> Unit,
-    viewModel: ProfileViewModel = koinViewModel()
+    viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarState = remember { SnackbarHostState() }
@@ -129,7 +129,7 @@ fun ProfileRoot(
                 }
             }
         },
-        snackbarState = snackbarState
+        snackbarState = snackbarState,
     )
 
     if (state.isLogoutDialogVisible) {
@@ -139,7 +139,7 @@ fun ProfileRoot(
             },
             onLogout = {
                 viewModel.onAction(ProfileAction.OnLogoutConfirmClick)
-            }
+            },
         )
     }
 }
@@ -149,7 +149,7 @@ fun ProfileRoot(
 fun ProfileScreen(
     state: ProfileState,
     onAction: (ProfileAction) -> Unit,
-    snackbarState: SnackbarHostState
+    snackbarState: SnackbarHostState,
 ) {
     val liquidState = LocalBottomNavigationLiquid.current
     val bottomNavHeight = LocalBottomNavigationHeight.current
@@ -157,24 +157,25 @@ fun ProfileScreen(
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarState,
-                modifier = Modifier.padding(bottom = bottomNavHeight + 16.dp)
+                modifier = Modifier.padding(bottom = bottomNavHeight + 16.dp),
             )
         },
         topBar = {
             TopAppBar()
         },
         containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier.liquefiable(liquidState)
+        modifier = Modifier.liquefiable(liquidState),
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp),
         ) {
             profile(
                 state = state,
-                onAction = onAction
+                onAction = onAction,
             )
 
             item {
@@ -183,7 +184,7 @@ fun ProfileScreen(
 
             settings(
                 state = state,
-                onAction = onAction
+                onAction = onAction,
             )
 
             item {
@@ -192,7 +193,7 @@ fun ProfileScreen(
 
             networkSection(
                 state = state,
-                onAction = onAction
+                onAction = onAction,
             )
 
             item {
@@ -201,7 +202,7 @@ fun ProfileScreen(
 
             othersSection(
                 state = state,
-                onAction = onAction
+                onAction = onAction,
             )
 
             item {
@@ -210,7 +211,7 @@ fun ProfileScreen(
 
             about(
                 versionName = state.versionName,
-                onAction = onAction
+                onAction = onAction,
             )
 
             item {
@@ -219,7 +220,7 @@ fun ProfileScreen(
 
             if (state.isUserLoggedIn) {
                 logout(
-                    onAction = onAction
+                    onAction = onAction,
                 )
             }
 
@@ -239,9 +240,9 @@ private fun TopAppBar() {
                 text = stringResource(Res.string.profile_title),
                 style = MaterialTheme.typography.titleMediumEmphasized,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
-        }
+        },
     )
 }
 
@@ -252,7 +253,7 @@ private fun Preview() {
         ProfileScreen(
             state = ProfileState(),
             onAction = {},
-            snackbarState = SnackbarHostState()
+            snackbarState = SnackbarHostState(),
         )
     }
 }

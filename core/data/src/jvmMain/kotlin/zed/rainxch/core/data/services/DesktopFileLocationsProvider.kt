@@ -7,34 +7,39 @@ import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 
 class DesktopFileLocationsProvider(
-    private val platform: Platform
+    private val platform: Platform,
 ) : FileLocationsProvider {
-
     override fun appDownloadsDir(): String {
-        val baseDir = when (platform) {
-            Platform.WINDOWS -> {
-                val appData = System.getenv("LOCALAPPDATA")
-                    ?: (System.getProperty("user.home") + "\\AppData\\Local")
-                File(appData, "GithubStore\\Downloads")
+        val baseDir =
+            when (platform) {
+                Platform.WINDOWS -> {
+                    val appData =
+                        System.getenv("LOCALAPPDATA")
+                            ?: (System.getProperty("user.home") + "\\AppData\\Local")
+                    File(appData, "GithubStore\\Downloads")
+                }
+
+                Platform.MACOS -> {
+                    val home = System.getProperty("user.home")
+                    File(home, "Library/Caches/GithubStore/Downloads")
+                }
+
+                Platform.LINUX -> {
+                    val cacheHome =
+                        System.getenv("XDG_CACHE_HOME")
+                            ?: (System.getProperty("user.home") + "/.cache")
+                    File(cacheHome, "githubstore/downloads")
+                }
+
+                else -> {
+                    File(System.getProperty("user.home"), ".githubstore/downloads")
+                }
             }
-            Platform.MACOS -> {
-                val home = System.getProperty("user.home")
-                File(home, "Library/Caches/GithubStore/Downloads")
-            }
-            Platform.LINUX -> {
-                val cacheHome = System.getenv("XDG_CACHE_HOME")
-                    ?: (System.getProperty("user.home") + "/.cache")
-                File(cacheHome, "githubstore/downloads")
-            }
-            else -> {
-                File(System.getProperty("user.home"), ".githubstore/downloads")
-            }
-        }
-        
+
         if (!baseDir.exists()) {
             baseDir.mkdirs()
         }
-        
+
         return baseDir.absolutePath
     }
 
@@ -63,30 +68,36 @@ class DesktopFileLocationsProvider(
 
     override fun userDownloadsDir(): String {
         val appSubdirName = "GitHub Store Downloads"
-        val downloadsDir = when (platform) {
-            Platform.WINDOWS -> {
-                val userProfile = System.getenv("USERPROFILE")
-                    ?: System.getProperty("user.home")
-                File(userProfile, "Downloads").resolve(appSubdirName)
-            }
-            Platform.MACOS -> {
-                val home = System.getProperty("user.home")
-                File(home, "Downloads").resolve(appSubdirName)
-            }
-            Platform.LINUX -> {
-                val xdgDownloads = getXdgDownloadsDir()
-                val baseDir = if (xdgDownloads != null) {
-                    File(xdgDownloads)
-                } else {
-                    val home = System.getProperty("user.home")
-                    File(home, "Downloads")
+        val downloadsDir =
+            when (platform) {
+                Platform.WINDOWS -> {
+                    val userProfile =
+                        System.getenv("USERPROFILE")
+                            ?: System.getProperty("user.home")
+                    File(userProfile, "Downloads").resolve(appSubdirName)
                 }
-                baseDir.resolve(appSubdirName)
+
+                Platform.MACOS -> {
+                    val home = System.getProperty("user.home")
+                    File(home, "Downloads").resolve(appSubdirName)
+                }
+
+                Platform.LINUX -> {
+                    val xdgDownloads = getXdgDownloadsDir()
+                    val baseDir =
+                        if (xdgDownloads != null) {
+                            File(xdgDownloads)
+                        } else {
+                            val home = System.getProperty("user.home")
+                            File(home, "Downloads")
+                        }
+                    baseDir.resolve(appSubdirName)
+                }
+
+                else -> {
+                    File(System.getProperty("user.home"), "Downloads").resolve(appSubdirName)
+                }
             }
-            else -> {
-                File(System.getProperty("user.home"), "Downloads").resolve(appSubdirName)
-            }
-        }
 
         if (!downloadsDir.exists()) {
             downloadsDir.mkdirs()
@@ -134,18 +145,21 @@ class DesktopFileLocationsProvider(
 
     private fun getXdgDownloadsDir(): String? {
         return try {
-            val userDirsFile = File(
-                System.getProperty("user.home"),
-                ".config/user-dirs.dirs"
-            )
+            val userDirsFile =
+                File(
+                    System.getProperty("user.home"),
+                    ".config/user-dirs.dirs",
+                )
 
             if (userDirsFile.exists()) {
                 userDirsFile.readLines().forEach { line ->
                     if (line.trim().startsWith("XDG_DOWNLOAD_DIR=")) {
-                        val path = line.substringAfter("=")
-                            .trim()
-                            .removeSurrounding("\"")
-                            .replace("\$HOME", System.getProperty("user.home"))
+                        val path =
+                            line
+                                .substringAfter("=")
+                                .trim()
+                                .removeSurrounding("\"")
+                                .replace("\$HOME", System.getProperty("user.home"))
                         return path
                     }
                 }

@@ -14,19 +14,22 @@ import zed.rainxch.core.domain.system.PackageMonitor
 
 class PackageEventReceiver(
     private val installedAppsRepository: InstalledAppsRepository,
-    private val packageMonitor: PackageMonitor
+    private val packageMonitor: PackageMonitor,
 ) : BroadcastReceiver() {
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override fun onReceive(context: Context?, intent: Intent?) {
+    override fun onReceive(
+        context: Context?,
+        intent: Intent?,
+    ) {
         val packageName = intent?.data?.schemeSpecificPart ?: return
 
         Logger.d { "PackageEventReceiver: ${intent.action} for $packageName" }
 
         when (intent.action) {
             Intent.ACTION_PACKAGE_ADDED,
-            Intent.ACTION_PACKAGE_REPLACED -> {
+            Intent.ACTION_PACKAGE_REPLACED,
+            -> {
                 scope.launch { onPackageInstalled(packageName) }
             }
 
@@ -44,7 +47,8 @@ class PackageEventReceiver(
                 val systemInfo = packageMonitor.getInstalledPackageInfo(packageName)
                 if (systemInfo != null) {
                     val expectedVersionCode = app.latestVersionCode ?: 0L
-                    val wasActuallyUpdated = expectedVersionCode > 0L &&
+                    val wasActuallyUpdated =
+                        expectedVersionCode > 0L &&
                             systemInfo.versionCode >= expectedVersionCode
 
                     if (wasActuallyUpdated) {
@@ -54,7 +58,7 @@ class PackageEventReceiver(
                             newAssetName = app.latestAssetName ?: "",
                             newAssetUrl = app.latestAssetUrl ?: "",
                             newVersionName = systemInfo.versionName,
-                            newVersionCode = systemInfo.versionCode
+                            newVersionCode = systemInfo.versionCode,
                         )
                         installedAppsRepository.updatePendingStatus(packageName, false)
                         Logger.i { "Update confirmed via broadcast: $packageName (v${systemInfo.versionName})" }
@@ -64,14 +68,17 @@ class PackageEventReceiver(
                                 isPendingInstall = false,
                                 installedVersionName = systemInfo.versionName,
                                 installedVersionCode = systemInfo.versionCode,
-                                isUpdateAvailable = (app.latestVersionCode
-                                    ?: 0L) > systemInfo.versionCode
-                            )
+                                isUpdateAvailable =
+                                    (
+                                        app.latestVersionCode
+                                            ?: 0L
+                                    ) > systemInfo.versionCode,
+                            ),
                         )
                         Logger.i {
                             "Package replaced but not updated to target: $packageName " +
-                                    "(system: v${systemInfo.versionName}/${systemInfo.versionCode}, " +
-                                    "target: v${app.latestVersionName}/${app.latestVersionCode})"
+                                "(system: v${systemInfo.versionName}/${systemInfo.versionCode}, " +
+                                "target: v${app.latestVersionName}/${app.latestVersionCode})"
                         }
                     }
                 } else {
@@ -84,8 +91,8 @@ class PackageEventReceiver(
                     installedAppsRepository.updateApp(
                         app.copy(
                             installedVersionName = systemInfo.versionName,
-                            installedVersionCode = systemInfo.versionCode
-                        )
+                            installedVersionCode = systemInfo.versionCode,
+                        ),
                     )
                     Logger.d { "Updated version info via broadcast: $packageName (v${systemInfo.versionName})" }
                 }
@@ -105,13 +112,12 @@ class PackageEventReceiver(
     }
 
     companion object {
-        fun createIntentFilter(): IntentFilter {
-            return IntentFilter().apply {
+        fun createIntentFilter(): IntentFilter =
+            IntentFilter().apply {
                 addAction(Intent.ACTION_PACKAGE_ADDED)
                 addAction(Intent.ACTION_PACKAGE_REPLACED)
                 addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED)
                 addDataScheme("package")
             }
-        }
     }
 }

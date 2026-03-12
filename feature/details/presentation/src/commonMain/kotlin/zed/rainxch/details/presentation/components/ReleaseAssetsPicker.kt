@@ -54,12 +54,12 @@ import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.core.domain.model.GithubAsset
 import zed.rainxch.core.domain.model.GithubUser
 import zed.rainxch.details.presentation.DetailsAction
-import zed.rainxch.githubstore.core.presentation.res.Res
 import zed.rainxch.githubstore.core.presentation.res.*
+import zed.rainxch.githubstore.core.presentation.res.Res
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
+    ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun ReleaseAssetsPicker(
@@ -69,11 +69,9 @@ fun ReleaseAssetsPicker(
     selectedAsset: GithubAsset? = null,
     isPickerVisible: Boolean = false,
 ) {
-
     val isPickerEnabled by remember(assetsList) {
         derivedStateOf { assetsList.isNotEmpty() }
     }
-
 
     ReleaseAssetsItemsPicker(
         showPicker = isPickerVisible,
@@ -85,13 +83,13 @@ fun ReleaseAssetsPicker(
 
     Column(
         modifier = modifier.wrapContentHeight(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
             text = stringResource(Res.string.assets_title),
             style = MaterialTheme.typography.labelLargeEmphasized,
             color = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.padding(horizontal = 4.dp)
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
         OutlinedCard(
             onClick = { onAction(DetailsAction.ToggleReleaseAssetsPicker) },
@@ -99,12 +97,13 @@ fun ReleaseAssetsPicker(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .heightIn(min = 36.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .heightIn(min = 36.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = selectedAsset?.name ?: stringResource(Res.string.no_assets_selected),
@@ -112,17 +111,16 @@ fun ReleaseAssetsPicker(
                     fontWeight = FontWeight.SemiBold,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 Icon(
                     imageVector = Icons.Default.UnfoldMore,
                     contentDescription = stringResource(Res.string.select_version),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,7 +140,8 @@ private fun ReleaseAssetsItemsPicker(
 
     ReleaseAssetsAboutDialog(
         showDialog = showInfoDialog,
-        onDismiss = { showInfoDialog = false })
+        onDismiss = { showInfoDialog = false },
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -150,17 +149,20 @@ private fun ReleaseAssetsItemsPicker(
         modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding(),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = stringResource(Res.string.assets_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        .weight(1f)
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .weight(1f),
                 )
                 IconButton(onClick = { showInfoDialog = true }) {
                     Icon(imageVector = Icons.Outlined.Info, contentDescription = stringResource(Res.string.icon_content_description_info))
@@ -171,7 +173,7 @@ private fun ReleaseAssetsItemsPicker(
 
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 8.dp),
             ) {
                 if (assetsList.isNotEmpty()) {
                     items(items = assetsList, key = { it.id }) { asset ->
@@ -179,7 +181,7 @@ private fun ReleaseAssetsItemsPicker(
                             asset = asset,
                             isSelected = asset.id == selectedAsset?.id,
                             onClick = { onSelect(asset) },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 } else {
@@ -189,7 +191,7 @@ private fun ReleaseAssetsItemsPicker(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(16.dp)
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                         )
                     }
                 }
@@ -214,11 +216,11 @@ private fun ReleaseAssetsAboutDialog(
         Surface(
             color = containerColor,
             contentColor = contentColorFor(containerColor),
-            shape = shape
+            shape = shape,
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.multiple_assets_info_dialog_title),
@@ -228,7 +230,7 @@ private fun ReleaseAssetsAboutDialog(
                 Text(
                     text = stringResource(Res.string.multiple_assets_info_dialog_text),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AlertDialogDefaults.textContentColor
+                    color = AlertDialogDefaults.textContentColor,
                 )
             }
         }
@@ -243,13 +245,14 @@ private fun ReleaseAssetItem(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.clickable(
-            onClickLabel = stringResource(Res.string.assets_selection_label),
-            onClick = onClick
-        )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier =
+            modifier
+                .clickable(
+                    onClickLabel = stringResource(Res.string.assets_selection_label),
+                    onClick = onClick,
+                ).padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -258,18 +261,19 @@ private fun ReleaseAssetItem(
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                }
+                color =
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
             )
             Text(
                 text = formatFileSize(asset.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
         if (isSelected) {
@@ -278,33 +282,34 @@ private fun ReleaseAssetItem(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
     }
 }
 
-private fun formatFileSize(bytes: Long): String {
-    return when {
+private fun formatFileSize(bytes: Long): String =
+    when {
         bytes >= 1_073_741_824 -> "%.1f GB".format(bytes / 1_073_741_824.0)
         bytes >= 1_048_576 -> "%.1f MB".format(bytes / 1_048_576.0)
         bytes >= 1_024 -> "%.1f KB".format(bytes / 1_024.0)
         else -> "$bytes B"
     }
-}
 
 @Preview
 @Composable
 private fun ReleaseAssetsPickerItemPreview() {
     ReleaseAssetItem(
-        asset = GithubAsset(
-            id = -1,
-            name = "Random",
-            contentType = "",
-            size = 20 * 1024,
-            downloadUrl = "",
-            uploader = GithubUser(id = -1, login = "", avatarUrl = "", htmlUrl = "")
-        ),
-        onClick = {}, isSelected = false,
+        asset =
+            GithubAsset(
+                id = -1,
+                name = "Random",
+                contentType = "",
+                size = 20 * 1024,
+                downloadUrl = "",
+                uploader = GithubUser(id = -1, login = "", avatarUrl = "", htmlUrl = ""),
+            ),
+        onClick = {},
+        isSelected = false,
     )
 }

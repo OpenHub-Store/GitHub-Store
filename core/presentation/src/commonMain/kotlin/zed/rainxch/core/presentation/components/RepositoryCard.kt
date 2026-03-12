@@ -56,13 +56,13 @@ fun RepositoryCard(
     onClick: () -> Unit,
     onShareClick: () -> Unit,
     onDeveloperClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val uriHandler = LocalUriHandler.current
 
     ExpressiveCard(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Box {
             if (discoveryRepository.isFavourite) {
@@ -70,10 +70,11 @@ fun RepositoryCard(
                     imageVector = Icons.Default.Favorite,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                    modifier = Modifier
-                        .size(120.dp)
-                        .align(Alignment.BottomStart)
-                        .offset(x = (-32).dp, y = 32.dp)
+                    modifier =
+                        Modifier
+                            .size(120.dp)
+                            .align(Alignment.BottomStart)
+                            .offset(x = (-32).dp, y = 32.dp),
                 )
             }
 
@@ -82,36 +83,39 @@ fun RepositoryCard(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f),
-                    modifier = Modifier
-                        .size(120.dp)
-                        .align(Alignment.TopEnd)
-                        .offset(x = 32.dp, y = (-32).dp)
+                    modifier =
+                        Modifier
+                            .size(120.dp)
+                            .align(Alignment.TopEnd)
+                            .offset(x = 32.dp, y = (-32).dp),
                 )
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Row(
-                        modifier = Modifier.clickable(onClick = {
-                            onDeveloperClick(discoveryRepository.repository.owner.login)
-                        }),
+                        modifier =
+                            Modifier.clickable(onClick = {
+                                onDeveloperClick(discoveryRepository.repository.owner.login)
+                            }),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         GitHubStoreImage(
                             imageModel = { discoveryRepository.repository.owner.avatarUrl },
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
+                            modifier =
+                                Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape),
                         )
-
 
                         Text(
                             text = discoveryRepository.repository.owner.login,
@@ -119,7 +123,7 @@ fun RepositoryCard(
                             color = MaterialTheme.colorScheme.outline,
                             maxLines = 1,
                             softWrap = false,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
 
@@ -130,7 +134,7 @@ fun RepositoryCard(
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
 
@@ -138,7 +142,7 @@ fun RepositoryCard(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
                         text = discoveryRepository.repository.name,
@@ -148,7 +152,7 @@ fun RepositoryCard(
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false),
                     )
 
                     if (discoveryRepository.repository.isFork) {
@@ -165,7 +169,7 @@ fun RepositoryCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodyLarge,
-                        softWrap = true
+                        softWrap = true,
                     )
                 }
 
@@ -174,7 +178,7 @@ fun RepositoryCard(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
                         text = "⭐ ${discoveryRepository.repository.stargazersCount}",
@@ -182,7 +186,7 @@ fun RepositoryCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     Text(
@@ -191,7 +195,7 @@ fun RepositoryCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     discoveryRepository.repository.language?.let {
@@ -201,7 +205,7 @@ fun RepositoryCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             softWrap = false,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
@@ -210,7 +214,7 @@ fun RepositoryCard(
                     Spacer(Modifier.height(12.dp))
 
                     InstallStatusBadge(
-                        isUpdateAvailable = discoveryRepository.isUpdateAvailable
+                        isUpdateAvailable = discoveryRepository.isUpdateAvailable,
                     )
                 }
 
@@ -219,7 +223,7 @@ fun RepositoryCard(
 
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         discoveryRepository.repository.availablePlatforms.forEach { platform ->
                             PlatformChip(platform = platform)
@@ -229,13 +233,14 @@ fun RepositoryCard(
 
                 Spacer(Modifier.height(12.dp))
 
-                val releasedAtText = buildAnnotatedString {
-                    if (hasWeekNotPassed(discoveryRepository.repository.updatedAt)) {
-                        append("🔥 ")
-                    }
+                val releasedAtText =
+                    buildAnnotatedString {
+                        if (hasWeekNotPassed(discoveryRepository.repository.updatedAt)) {
+                            append("🔥 ")
+                        }
 
-                    append(formatReleasedAt(discoveryRepository.repository.updatedAt))
-                }
+                        append(formatReleasedAt(discoveryRepository.repository.updatedAt))
+                    }
 
                 Text(
                     text = releasedAtText,
@@ -243,7 +248,7 @@ fun RepositoryCard(
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 1,
                     softWrap = false,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(Modifier.height(24.dp))
@@ -251,20 +256,21 @@ fun RepositoryCard(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     GithubStoreButton(
                         text = stringResource(Res.string.home_view_details),
                         onClick = onClick,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
 
                     IconButton(
                         onClick = onShareClick,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
                         shapes = IconButtonDefaults.shapes(),
                     ) {
                         Icon(
@@ -277,10 +283,11 @@ fun RepositoryCard(
                         onClick = {
                             uriHandler.openUri(discoveryRepository.repository.htmlUrl)
                         },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
                         shapes = IconButtonDefaults.shapes(),
                     ) {
                         Icon(
@@ -297,48 +304,46 @@ fun RepositoryCard(
 @Composable
 fun PlatformChip(
     platform: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Text(
             text = platform,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
         )
     }
 }
 
 @Composable
-fun ForkBadge(
-    modifier: Modifier = Modifier
-) {
+fun ForkBadge(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer
+        color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.CallSplit,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Text(
                 text = stringResource(Res.string.forked_repository),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }
@@ -347,53 +352,57 @@ fun ForkBadge(
 @Composable
 fun InstallStatusBadge(
     isUpdateAvailable: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val backgroundColor = if (isUpdateAvailable) {
-        MaterialTheme.colorScheme.tertiaryContainer
-    } else {
-        MaterialTheme.colorScheme.primaryContainer
-    }
+    val backgroundColor =
+        if (isUpdateAvailable) {
+            MaterialTheme.colorScheme.tertiaryContainer
+        } else {
+            MaterialTheme.colorScheme.primaryContainer
+        }
 
-    val textColor = if (isUpdateAvailable) {
-        MaterialTheme.colorScheme.onTertiaryContainer
-    } else {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    }
+    val textColor =
+        if (isUpdateAvailable) {
+            MaterialTheme.colorScheme.onTertiaryContainer
+        } else {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        }
 
-    val icon = if (isUpdateAvailable) {
-        Icons.Default.Update
-    } else {
-        Icons.Default.CheckCircle
-    }
+    val icon =
+        if (isUpdateAvailable) {
+            Icons.Default.Update
+        } else {
+            Icons.Default.CheckCircle
+        }
 
-    val text = if (isUpdateAvailable) {
-        stringResource(Res.string.update_available)
-    } else {
-        stringResource(Res.string.installed)
-    }
+    val text =
+        if (isUpdateAvailable) {
+            stringResource(Res.string.update_available)
+        } else {
+            stringResource(Res.string.installed)
+        }
 
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = backgroundColor
+        color = backgroundColor,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = textColor
+                tint = textColor,
             )
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
                 color = textColor,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }
@@ -404,35 +413,38 @@ fun InstallStatusBadge(
 fun RepositoryCardPreview() {
     GithubStoreTheme {
         RepositoryCard(
-            discoveryRepository = DiscoveryRepository(
-                repository = GithubRepoSummary(
-                    id = 0L,
-                    name = "Hello",
-                    fullName = "JIFEOJEF",
-                    owner = GithubUser(
-                        id = 0L,
-                        login = "Skydoves",
-                        avatarUrl = "ewfew",
-                        htmlUrl = "grgrre"
-                    ),
-                    description = "Hello wolrd Hello wolrd Hello wolrd Hello wolrd Hello wolrd",
-                    htmlUrl = "",
-                    stargazersCount = 20,
-                    forksCount = 4,
-                    language = "Kotlin",
-                    topics = null,
-                    releasesUrl = "",
-                    updatedAt = "2025-12-01T12:00:00Z",
-                    defaultBranch = ""
+            discoveryRepository =
+                DiscoveryRepository(
+                    repository =
+                        GithubRepoSummary(
+                            id = 0L,
+                            name = "Hello",
+                            fullName = "JIFEOJEF",
+                            owner =
+                                GithubUser(
+                                    id = 0L,
+                                    login = "Skydoves",
+                                    avatarUrl = "ewfew",
+                                    htmlUrl = "grgrre",
+                                ),
+                            description = "Hello wolrd Hello wolrd Hello wolrd Hello wolrd Hello wolrd",
+                            htmlUrl = "",
+                            stargazersCount = 20,
+                            forksCount = 4,
+                            language = "Kotlin",
+                            topics = null,
+                            releasesUrl = "",
+                            updatedAt = "2025-12-01T12:00:00Z",
+                            defaultBranch = "",
+                        ),
+                    isUpdateAvailable = true,
+                    isFavourite = true,
+                    isInstalled = true,
+                    isStarred = false,
                 ),
-                isUpdateAvailable = true,
-                isFavourite = true,
-                isInstalled = true,
-                isStarred = false
-            ),
             onClick = { },
             onShareClick = { },
-            onDeveloperClick = { }
+            onDeveloperClick = { },
         )
     }
 }

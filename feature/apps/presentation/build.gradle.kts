@@ -12,7 +12,6 @@ kotlin {
                 implementation(projects.core.presentation)
                 implementation(projects.feature.apps.domain)
 
-                
                 implementation(libs.androidx.compose.ui.tooling.preview)
                 implementation(compose.components.resources)
 
@@ -23,15 +22,12 @@ kotlin {
 
         androidMain {
             dependencies {
-
             }
         }
 
         jvmMain {
             dependencies {
-
             }
         }
     }
-
 }

@@ -26,26 +26,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.profile.presentation.ProfileAction
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-fun LazyListScope.logout(
-    onAction: (ProfileAction) -> Unit,
-) {
+fun LazyListScope.logout(onAction: (ProfileAction) -> Unit) {
     item {
         Spacer(Modifier.height(8.dp))
 
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            ),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                ),
             shape = RoundedCornerShape(32.dp),
             onClick = {
                 onAction(ProfileAction.OnLogoutClick)
-            }
+            },
         ) {
             AccountItem(
                 icon = Icons.AutoMirrored.Filled.Logout,
@@ -55,9 +54,10 @@ fun LazyListScope.logout(
                         onClick = {
                             onAction(ProfileAction.OnLogoutClick)
                         },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -65,7 +65,7 @@ fun LazyListScope.logout(
                             modifier = Modifier.size(24.dp),
                         )
                     }
-                }
+                },
             )
         }
     }
@@ -77,22 +77,24 @@ private fun AccountItem(
     icon: ImageVector,
     title: String,
     actions: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(
             shapes = IconButtonDefaults.shapes(),
             onClick = { },
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer
-            )
+            colors =
+                IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                ),
         ) {
             Icon(
                 imageVector = icon,
@@ -106,7 +108,7 @@ private fun AccountItem(
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         actions.invoke()

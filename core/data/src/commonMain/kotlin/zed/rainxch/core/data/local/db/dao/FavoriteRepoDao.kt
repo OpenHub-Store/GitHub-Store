@@ -31,20 +31,33 @@ interface FavoriteRepoDao {
     @Query("DELETE FROM favorite_repos WHERE repoId = :repoId")
     suspend fun deleteFavoriteById(repoId: Long)
 
-    @Query("""
+    @Query(
+        """
         UPDATE favorite_repos 
         SET isInstalled = :installed, 
             installedPackageName = :packageName 
         WHERE repoId = :repoId
-    """)
-    suspend fun updateInstallStatus(repoId: Long, installed: Boolean, packageName: String?)
+    """,
+    )
+    suspend fun updateInstallStatus(
+        repoId: Long,
+        installed: Boolean,
+        packageName: String?,
+    )
 
-    @Query("""
+    @Query(
+        """
         UPDATE favorite_repos 
         SET latestVersion = :version,
             latestReleaseUrl = :releaseUrl,
             lastSyncedAt = :timestamp
         WHERE repoId = :repoId
-    """)
-    suspend fun updateLatestVersion(repoId: Long, version: String?, releaseUrl: String?, timestamp: Long)
+    """,
+    )
+    suspend fun updateLatestVersion(
+        repoId: Long,
+        version: String?,
+        releaseUrl: String?,
+        timestamp: Long,
+    )
 }

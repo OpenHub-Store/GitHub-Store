@@ -14,11 +14,11 @@ data class GitHubStarredResponse(
     @SerialName("stargazers_count") val stargazersCount: Int,
     @SerialName("forks_count") val forksCount: Int,
     @SerialName("open_issues_count") val openIssuesCount: Int,
-    @SerialName("starred_at") val starredAt: String? = null
+    @SerialName("starred_at") val starredAt: String? = null,
 ) {
     @Serializable
     data class Owner(
         val login: String,
-        @SerialName("avatar_url") val avatarUrl: String
+        @SerialName("avatar_url") val avatarUrl: String,
     )
 }

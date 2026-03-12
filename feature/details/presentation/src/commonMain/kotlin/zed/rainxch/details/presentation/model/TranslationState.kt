@@ -7,5 +7,5 @@ data class TranslationState(
     val targetLanguageCode: String? = null,
     val targetLanguageDisplayName: String? = null,
     val detectedSourceLanguage: String? = null,
-    val error: String? = null
+    val error: String? = null,
 )

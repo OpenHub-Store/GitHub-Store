@@ -47,7 +47,7 @@ fun LazyListScope.options(
             onClick = {
                 onAction(ProfileAction.OnStarredReposClick)
             },
-            enabled = isUserLoggedIn
+            enabled = isUserLoggedIn,
         )
 
         Spacer(Modifier.height(4.dp))
@@ -58,7 +58,7 @@ fun LazyListScope.options(
             description = stringResource(Res.string.profile_favourites_description),
             onClick = {
                 onAction(ProfileAction.OnFavouriteReposClick)
-            }
+            },
         )
 
         Spacer(Modifier.height(4.dp))
@@ -66,7 +66,7 @@ fun LazyListScope.options(
         SponsorCard(
             onClick = {
                 onAction(ProfileAction.OnSponsorClick)
-            }
+            },
         )
     }
 }
@@ -79,60 +79,63 @@ private fun OptionCard(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = .7f),
-            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .7f),
-        ),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = .7f),
+                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .7f),
+            ),
         onClick = onClick,
         shape = RoundedCornerShape(32.dp),
-        border = BorderStroke(
-            width = .5.dp,
-            color = MaterialTheme.colorScheme.surface
-        ),
-        enabled = enabled
+        border =
+            BorderStroke(
+                width = .5.dp,
+                color = MaterialTheme.colorScheme.surface,
+            ),
+        enabled = enabled,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.secondary,
-                            )
-                        )
-                    )
-                    .padding(6.dp),
-                tint = MaterialTheme.colorScheme.onPrimary
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.secondary,
+                                ),
+                            ),
+                        ).padding(6.dp),
+                tint = MaterialTheme.colorScheme.onPrimary,
             )
 
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(12.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .padding(12.dp),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.Start,
             ) {
                 Text(
                     text = label,
                     maxLines = 1,
                     style = MaterialTheme.typography.titleMedium,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Text(
@@ -140,7 +143,7 @@ private fun OptionCard(
                     maxLines = 2,
                     style = MaterialTheme.typography.bodyLargeEmphasized,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -151,50 +154,53 @@ private fun OptionCard(
 @Composable
 private fun SponsorCard(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
         onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
         shape = RoundedCornerShape(32.dp),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-        )
+        border =
+            BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+            ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = Icons.Default.VolunteerActivism,
                 contentDescription = null,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary,
-                            )
-                        )
-                    )
-                    .padding(6.dp),
-                tint = MaterialTheme.colorScheme.onPrimary
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.tertiary,
+                                ),
+                            ),
+                        ).padding(6.dp),
+                tint = MaterialTheme.colorScheme.onPrimary,
             )
 
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(12.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .padding(12.dp),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.Start,
             ) {
                 Text(
                     text = stringResource(Res.string.sponsor_button),
@@ -202,7 +208,7 @@ private fun SponsorCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
 
                 Text(
@@ -210,7 +216,7 @@ private fun SponsorCard(
                     maxLines = 2,
                     style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                 )
             }
         }

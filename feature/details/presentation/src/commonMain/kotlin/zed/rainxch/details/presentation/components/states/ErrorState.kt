@@ -9,26 +9,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.core.presentation.components.GithubStoreButton
 import zed.rainxch.details.presentation.DetailsAction
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @Composable
 fun ErrorState(
     errorMessage: String,
-    onAction: (DetailsAction) -> Unit
+    onAction: (DetailsAction) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = stringResource(Res.string.error_loading_details),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Text(
@@ -41,7 +41,7 @@ fun ErrorState(
             text = stringResource(Res.string.retry),
             onClick = {
                 onAction(DetailsAction.Retry)
-            }
+            },
         )
     }
 }

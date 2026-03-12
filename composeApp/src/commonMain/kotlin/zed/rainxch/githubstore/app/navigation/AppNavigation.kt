@@ -35,14 +35,12 @@ import zed.rainxch.details.presentation.DetailsRoot
 import zed.rainxch.devprofile.presentation.DeveloperProfileRoot
 import zed.rainxch.favourites.presentation.FavouritesRoot
 import zed.rainxch.home.presentation.HomeRoot
-import zed.rainxch.search.presentation.SearchRoot
 import zed.rainxch.profile.presentation.ProfileRoot
+import zed.rainxch.search.presentation.SearchRoot
 import zed.rainxch.starred.presentation.StarredReposRoot
 
 @Composable
-fun AppNavigation(
-    navController: NavHostController
-) {
+fun AppNavigation(navController: NavHostController) {
     val liquidState = rememberLiquidState()
     var bottomNavigationHeight by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
@@ -52,15 +50,15 @@ fun AppNavigation(
 
     CompositionLocalProvider(
         LocalBottomNavigationLiquid provides liquidState,
-        LocalBottomNavigationHeight provides bottomNavigationHeight
+        LocalBottomNavigationHeight provides bottomNavigationHeight,
     ) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             NavHost(
                 navController = navController,
                 startDestination = GithubStoreGraph.HomeScreen,
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
             ) {
                 composable<GithubStoreGraph.HomeScreen> {
                     HomeRoot(
@@ -76,15 +74,15 @@ fun AppNavigation(
                         onNavigateToDetails = { repo ->
                             navController.navigate(
                                 GithubStoreGraph.DetailsScreen(
-                                    repositoryId = repo.id
-                                )
+                                    repositoryId = repo.id,
+                                ),
                             )
                         },
                         onNavigateToDeveloperProfile = { username ->
                             navController.navigate(
                                 GithubStoreGraph.DeveloperProfileScreen(
-                                    username = username
-                                )
+                                    username = username,
+                                ),
                             )
                         },
                     )
@@ -98,23 +96,23 @@ fun AppNavigation(
                         onNavigateToDetails = { repo ->
                             navController.navigate(
                                 GithubStoreGraph.DetailsScreen(
-                                    repositoryId = repo.id
-                                )
+                                    repositoryId = repo.id,
+                                ),
                             )
                         },
                         onNavigateToDetailsFromLink = { owner, repo ->
                             navController.navigate(
                                 GithubStoreGraph.DetailsScreen(
                                     owner = owner,
-                                    repo = repo
-                                )
+                                    repo = repo,
+                                ),
                             )
                         },
                         onNavigateToDeveloperProfile = { username ->
                             navController.navigate(
                                 GithubStoreGraph.DeveloperProfileScreen(
-                                    username = username
-                                )
+                                    username = username,
+                                ),
                             )
                         },
                     )
@@ -129,20 +127,21 @@ fun AppNavigation(
                         onOpenRepositoryInApp = { repoId ->
                             navController.navigate(
                                 GithubStoreGraph.DetailsScreen(
-                                    repositoryId = repoId
-                                )
+                                    repositoryId = repoId,
+                                ),
                             )
                         },
                         onNavigateToDeveloperProfile = { username ->
                             navController.navigate(
                                 GithubStoreGraph.DeveloperProfileScreen(
-                                    username = username
-                                )
+                                    username = username,
+                                ),
                             )
                         },
-                        viewModel = koinViewModel {
-                            parametersOf(args.repositoryId, args.owner, args.repo, args.isComingFromUpdate)
-                        }
+                        viewModel =
+                            koinViewModel {
+                                parametersOf(args.repositoryId, args.owner, args.repo, args.isComingFromUpdate)
+                            },
                     )
                 }
 
@@ -155,13 +154,14 @@ fun AppNavigation(
                         onNavigateToDetails = { repoId ->
                             navController.navigate(
                                 GithubStoreGraph.DetailsScreen(
-                                    repositoryId = repoId
-                                )
+                                    repositoryId = repoId,
+                                ),
                             )
                         },
-                        viewModel = koinViewModel {
-                            parametersOf(args.username)
-                        }
+                        viewModel =
+                            koinViewModel {
+                                parametersOf(args.username)
+                            },
                     )
                 }
 
@@ -173,7 +173,7 @@ fun AppNavigation(
                                     inclusive = true
                                 }
                             }
-                        }
+                        },
                     )
                 }
 
@@ -188,8 +188,8 @@ fun AppNavigation(
                         onNavigateToDeveloperProfile = { username ->
                             navController.navigate(
                                 GithubStoreGraph.DeveloperProfileScreen(
-                                    username = username
-                                )
+                                    username = username,
+                                ),
                             )
                         },
                     )
@@ -203,20 +203,20 @@ fun AppNavigation(
                         onNavigateToDetails = { repoId ->
                             navController.navigate(
                                 GithubStoreGraph.DetailsScreen(
-                                    repositoryId = repoId
-                                )
+                                    repositoryId = repoId,
+                                ),
                             )
                         },
                         onNavigateToAuthentication = {
                             navController.navigate(
-                                GithubStoreGraph.AuthenticationScreen
+                                GithubStoreGraph.AuthenticationScreen,
                             )
                         },
                         onNavigateToDeveloperProfile = { username ->
                             navController.navigate(
                                 GithubStoreGraph.DeveloperProfileScreen(
-                                    username = username
-                                )
+                                    username = username,
+                                ),
                             )
                         },
                     )
@@ -241,7 +241,7 @@ fun AppNavigation(
                         },
                         onNavigateToSponsor = {
                             navController.navigate(GithubStoreGraph.SponsorScreen)
-                        }
+                        },
                     )
                 }
 
@@ -249,7 +249,7 @@ fun AppNavigation(
                     zed.rainxch.profile.presentation.SponsorScreen(
                         onNavigateBack = {
                             navController.navigateUp()
-                        }
+                        },
                     )
                 }
 
@@ -262,12 +262,12 @@ fun AppNavigation(
                             navController.navigate(
                                 GithubStoreGraph.DetailsScreen(
                                     repositoryId = repoId,
-                                    isComingFromUpdate = true
-                                )
+                                    isComingFromUpdate = true,
+                                ),
                             )
                         },
                         viewModel = appsViewModel,
-                        state = appsState
+                        state = appsState,
                     )
                 }
             }
@@ -288,13 +288,14 @@ fun AppNavigation(
                         }
                     },
                     isUpdateAvailable = appsState.apps.any { it.installedApp.isUpdateAvailable },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
-                        .padding(bottom = 24.dp)
-                        .onGloballyPositioned { coordinates ->
-                             bottomNavigationHeight = with(density) { coordinates.size.height.toDp() }
-                        }
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(bottom = 24.dp)
+                            .onGloballyPositioned { coordinates ->
+                                bottomNavigationHeight = with(density) { coordinates.size.height.toDp() }
+                            },
                 )
             }
         }

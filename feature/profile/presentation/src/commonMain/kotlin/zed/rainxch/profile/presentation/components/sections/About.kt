@@ -28,8 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.profile.presentation.ProfileAction
 import zed.rainxch.profile.presentation.components.SectionHeader
 
@@ -40,19 +40,21 @@ fun LazyListScope.about(
 ) {
     item {
         SectionHeader(
-            text = stringResource(Res.string.section_about)
+            text = stringResource(Res.string.section_about),
         )
 
         Spacer(Modifier.height(8.dp))
 
         ElevatedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            shape = RoundedCornerShape(32.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
+            shape = RoundedCornerShape(32.dp),
         ) {
             AboutItem(
                 icon = Icons.Filled.Info,
@@ -62,9 +64,9 @@ fun LazyListScope.about(
                         text = versionName,
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp),
                     )
-                }
+                },
             )
 
             HorizontalDivider()
@@ -78,9 +80,10 @@ fun LazyListScope.about(
                         onClick = {
                             onAction(ProfileAction.OnHelpClick)
                         },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -88,7 +91,7 @@ fun LazyListScope.about(
                             modifier = Modifier.size(24.dp),
                         )
                     }
-                }
+                },
             )
         }
     }
@@ -100,22 +103,24 @@ private fun AboutItem(
     icon: ImageVector,
     title: String,
     actions: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(
             shapes = IconButtonDefaults.shapes(),
             onClick = { },
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            colors =
+                IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
         ) {
             Icon(
                 imageVector = icon,
@@ -129,7 +134,7 @@ private fun AboutItem(
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         actions.invoke()

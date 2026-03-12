@@ -9,9 +9,9 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.network.UnresolvedAddressException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
-import kotlinx.coroutines.CoroutineScope
 import zed.rainxch.core.data.data_source.TokenStore
 import zed.rainxch.core.data.network.interceptor.RateLimitInterceptor
 import zed.rainxch.core.data.network.interceptor.UnauthorizedInterceptor
@@ -29,12 +29,13 @@ fun createGitHubHttpClient(
     rateLimitRepository: RateLimitRepository,
     authenticationState: AuthenticationState? = null,
     scope: CoroutineScope? = null,
-    proxyConfig: ProxyConfig = ProxyConfig.None
+    proxyConfig: ProxyConfig = ProxyConfig.None,
 ): HttpClient {
-    val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
+    val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
 
     return createPlatformHttpClient(proxyConfig).config {
         install(RateLimitInterceptor) {
@@ -70,8 +71,8 @@ fun createGitHubHttpClient(
             }
             retryOnExceptionIf { _, cause ->
                 cause is HttpRequestTimeoutException ||
-                        cause is UnresolvedAddressException ||
-                        cause is IOException
+                    cause is UnresolvedAddressException ||
+                    cause is IOException
             }
             exponentialDelay()
         }
@@ -84,7 +85,12 @@ fun createGitHubHttpClient(
             header("X-GitHub-Api-Version", "2022-11-28")
             header(HttpHeaders.UserAgent, "GithubStore/1.0 (KMP)")
 
-            val token = tokenStore.blockingCurrentToken()?.accessToken?.trim().orEmpty()
+            val token =
+                tokenStore
+                    .blockingCurrentToken()
+                    ?.accessToken
+                    ?.trim()
+                    .orEmpty()
             if (token.isNotEmpty()) {
                 header(HttpHeaders.Authorization, "Bearer $token")
             }
@@ -92,17 +98,15 @@ fun createGitHubHttpClient(
     }
 }
 
-suspend inline fun <reified T> HttpClient.executeRequest(
-    crossinline block: suspend HttpClient.() -> HttpResponse
-): Result<T> {
-    return try {
+suspend inline fun <reified T> HttpClient.executeRequest(crossinline block: suspend HttpClient.() -> HttpResponse): Result<T> =
+    try {
         val response = block()
 
         if (response.status.isSuccess()) {
             Result.success(response.body<T>())
         } else {
             Result.failure(
-                Exception("HTTP ${response.status.value}: ${response.status.description}")
+                Exception("HTTP ${response.status.value}: ${response.status.description}"),
             )
         }
     } catch (e: RateLimitException) {
@@ -112,4 +116,3 @@ suspend inline fun <reified T> HttpClient.executeRequest(
     } catch (e: Exception) {
         Result.failure(e)
     }
-}

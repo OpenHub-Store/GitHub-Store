@@ -8,13 +8,14 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 
 class CacheManager(
-    val cacheDao: CacheDao
+    val cacheDao: CacheDao,
 ) {
-    val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        encodeDefaults = true
-    }
+    val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            encodeDefaults = true
+        }
 
     val memoryCache = HashMap<String, Pair<Long, String>>()
 
@@ -57,7 +58,11 @@ class CacheManager(
         }
     }
 
-    suspend inline fun <reified T> put(key: String, value: T, ttlMillis: Long) {
+    suspend inline fun <reified T> put(
+        key: String,
+        value: T,
+        ttlMillis: Long,
+    ) {
         val currentTime = now()
         val jsonData = json.encodeToString(serializer<T>(), value)
         val expiresAt = currentTime + ttlMillis
@@ -69,8 +74,8 @@ class CacheManager(
                 key = key,
                 jsonData = jsonData,
                 cachedAt = currentTime,
-                expiresAt = expiresAt
-            )
+                expiresAt = expiresAt,
+            ),
         )
     }
 
@@ -92,9 +97,10 @@ class CacheManager(
 
     suspend fun cleanupExpired() {
         val currentTime = now()
-        val expiredKeys = memoryCache.entries
-            .filter { it.value.first <= currentTime }
-            .map { it.key }
+        val expiredKeys =
+            memoryCache.entries
+                .filter { it.value.first <= currentTime }
+                .map { it.key }
         expiredKeys.forEach { memoryCache.remove(it) }
         cacheDao.deleteExpired(currentTime)
     }

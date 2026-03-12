@@ -8,23 +8,32 @@ interface Installer {
 
     suspend fun ensurePermissionsOrThrow(extOrMime: String)
 
-    suspend fun install(filePath: String, extOrMime: String)
+    suspend fun install(
+        filePath: String,
+        extOrMime: String,
+    )
+
     fun uninstall(packageName: String)
 
     fun isAssetInstallable(assetName: String): Boolean
+
     fun choosePrimaryAsset(assets: List<GithubAsset>): GithubAsset?
+
     fun detectSystemArchitecture(): SystemArchitecture
+
     fun isObtainiumInstalled(): Boolean
+
     fun openInObtainium(
         repoOwner: String,
         repoName: String,
-        onOpenInstaller: () -> Unit
+        onOpenInstaller: () -> Unit,
     )
 
     fun isAppManagerInstalled(): Boolean
+
     fun openInAppManager(
         filePath: String,
-        onOpenInstaller: () -> Unit
+        onOpenInstaller: () -> Unit,
     )
 
     fun getApkInfoExtractor(): InstallerInfoExtractor

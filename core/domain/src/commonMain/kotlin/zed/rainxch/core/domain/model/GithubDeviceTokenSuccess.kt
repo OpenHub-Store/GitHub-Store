@@ -6,5 +6,5 @@ data class GithubDeviceTokenSuccess(
     val expiresIn: Long? = null,
     val scope: String? = null,
     val refreshToken: String? = null,
-    val refreshTokenExpiresIn: Long? = null
+    val refreshTokenExpiresIn: Long? = null,
 )

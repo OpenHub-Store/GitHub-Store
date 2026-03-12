@@ -1,21 +1,26 @@
 package zed.rainxch.core.domain.model
 
 object AssetArchitectureMatcher {
-    private val universalRegex = Regex(
-        pattern = """(^|[^a-z0-9])(universal|noarch|all-arch|fat)([^a-z0-9]|$)"""
-    )
-    private val x86_64Regex = Regex(
-        pattern = """(^|[^a-z0-9])(x86[_-]64|amd64|x64)([^a-z0-9]|$)"""
-    )
-    private val arm64Regex = Regex(
-        pattern = """(^|[^a-z0-9])(aarch64|arm64|arm64-v8a|armv8a|armv8l|armv8|arm-v8|v8a)([^a-z0-9]|$)"""
-    )
-    private val x86Regex = Regex(
-        pattern = """(^|[^a-z0-9])(i386|i686|x86)([^a-z0-9]|$)"""
-    )
-    private val armRegex = Regex(
-        pattern = """(^|[^a-z0-9])(armeabi-v7a|armeabi|armv7a|armv7|arm-v7|v7a|arm)([^a-z0-9]|$)"""
-    )
+    private val universalRegex =
+        Regex(
+            pattern = """(^|[^a-z0-9])(universal|noarch|all-arch|fat)([^a-z0-9]|$)""",
+        )
+    private val x86_64Regex =
+        Regex(
+            pattern = """(^|[^a-z0-9])(x86[_-]64|amd64|x64)([^a-z0-9]|$)""",
+        )
+    private val arm64Regex =
+        Regex(
+            pattern = """(^|[^a-z0-9])(aarch64|arm64|arm64-v8a|armv8a|armv8l|armv8|arm-v8|v8a)([^a-z0-9]|$)""",
+        )
+    private val x86Regex =
+        Regex(
+            pattern = """(^|[^a-z0-9])(i386|i686|x86)([^a-z0-9]|$)""",
+        )
+    private val armRegex =
+        Regex(
+            pattern = """(^|[^a-z0-9])(armeabi-v7a|armeabi|armv7a|armv7|arm-v7|v7a|arm)([^a-z0-9]|$)""",
+        )
 
     fun detectArchitecture(assetName: String): SystemArchitecture? {
         val name = assetName.lowercase().replace('_', '-')
@@ -27,7 +32,10 @@ object AssetArchitectureMatcher {
         return null
     }
 
-    fun isCompatible(assetName: String, systemArch: SystemArchitecture): Boolean {
+    fun isCompatible(
+        assetName: String,
+        systemArch: SystemArchitecture,
+    ): Boolean {
         val assetArch = detectArchitecture(assetName) ?: return true
         return when (systemArch) {
             SystemArchitecture.X86_64 -> assetArch == SystemArchitecture.X86_64 || assetArch == SystemArchitecture.X86
@@ -38,7 +46,10 @@ object AssetArchitectureMatcher {
         }
     }
 
-    fun isExactMatch(assetName: String, systemArch: SystemArchitecture): Boolean {
+    fun isExactMatch(
+        assetName: String,
+        systemArch: SystemArchitecture,
+    ): Boolean {
         val assetArch = detectArchitecture(assetName) ?: return false
         return assetArch == systemArch
     }

@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 internal fun Project.configureAndroidTarget() {
-    extensions.configure<KotlinMultiplatformExtension>{
+    extensions.configure<KotlinMultiplatformExtension> {
         androidTarget {
             compilerOptions {
                 jvmTarget.set(JvmTarget.JVM_17)

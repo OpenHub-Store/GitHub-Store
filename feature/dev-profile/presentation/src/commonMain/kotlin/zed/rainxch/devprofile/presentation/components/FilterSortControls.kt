@@ -36,11 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.devprofile.domain.model.RepoFilterType
 import zed.rainxch.devprofile.domain.model.RepoSortType
 import zed.rainxch.devprofile.presentation.DeveloperProfileAction
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -50,11 +50,11 @@ fun FilterSortControls(
     searchQuery: String,
     repoCount: Int,
     totalCount: Int,
-    onAction: (DeveloperProfileAction) -> Unit
+    onAction: (DeveloperProfileAction) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         OutlinedTextField(
             value = searchQuery,
@@ -74,41 +74,41 @@ fun FilterSortControls(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = stringResource(Res.string.search_repositories),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             },
             trailingIcon = {
                 if (searchQuery.isNotBlank()) {
                     IconButton(
-                        onClick = { onAction(DeveloperProfileAction.OnSearchQueryChange("")) }
+                        onClick = { onAction(DeveloperProfileAction.OnSearchQueryChange("")) },
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = stringResource(Res.string.clear_search),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             SecondaryScrollableTabRow(
                 selectedTabIndex = currentFilter.ordinal,
                 modifier = Modifier.weight(1f),
                 edgePadding = 0.dp,
-                divider = {}
+                divider = {},
             ) {
                 RepoFilterType.entries.forEach { filter ->
                     FilterChipTab(
                         selected = currentFilter == filter,
                         onClick = { onAction(DeveloperProfileAction.OnFilterChange(filter)) },
-                        label = filter.displayName()
+                        label = filter.displayName(),
                     )
                 }
             }
@@ -117,27 +117,29 @@ fun FilterSortControls(
                 currentSort = currentSort,
                 onSortChange = { sort ->
                     onAction(DeveloperProfileAction.OnSortChange(sort))
-                }
+                },
             )
         }
 
         Text(
-            text = if (repoCount == totalCount) {
-                "$repoCount ${
+            text =
+                if (repoCount == totalCount) {
+                    "$repoCount ${
+                        stringResource(
+                            if (repoCount == 1) {
+                                Res.string.repository_singular
+                            } else {
+                                Res.string.repositories
+                            },
+                        )
+                    }"
+                } else {
                     stringResource(
-                        if (repoCount == 1) {
-                            Res.string.repository_singular
-                        } else {
-                            Res.string.repositories
-                        }
+                        resource = Res.string.showing_x_of_y_repositories,
+                        repoCount,
+                        totalCount,
                     )
-                }"
-            } else {
-                stringResource(
-                    resource = Res.string.showing_x_of_y_repositories,
-                    repoCount, totalCount
-                )
-            },
+                },
             maxLines = 1,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -149,21 +151,22 @@ fun FilterSortControls(
 private fun FilterChipTab(
     selected: Boolean,
     onClick: () -> Unit,
-    label: String
+    label: String,
 ) {
     Tab(
         selected = selected,
         onClick = onClick,
-        modifier = Modifier.height(40.dp)
+        modifier = Modifier.height(40.dp),
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (selected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            }
+            color =
+                if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
         )
     }
 }
@@ -172,7 +175,7 @@ private fun FilterChipTab(
 @Composable
 private fun SortMenu(
     currentSort: RepoSortType,
-    onSortChange: (RepoSortType) -> Unit
+    onSortChange: (RepoSortType) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -180,19 +183,19 @@ private fun SortMenu(
         FilledIconButton(
             onClick = { expanded = true },
             modifier = Modifier.size(40.dp),
-            shape = MaterialShapes.Cookie9Sided.toShape()
+            shape = MaterialShapes.Cookie9Sided.toShape(),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Sort,
                 contentDescription = stringResource(Res.string.sort),
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(32.dp)
+            shape = RoundedCornerShape(32.dp),
         ) {
             RepoSortType.entries.forEach { sort ->
                 DropdownMenuItem(
@@ -200,14 +203,14 @@ private fun SortMenu(
                         Row(
                             modifier = Modifier.padding(4.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (currentSort == sort) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.primary,
                                 )
                             } else {
                                 Spacer(modifier = Modifier.size(18.dp))
@@ -217,18 +220,19 @@ private fun SortMenu(
                                 text = sort.displayName(),
                                 maxLines = 1,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (currentSort == sort) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                }
+                                color =
+                                    if (currentSort == sort) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
                             )
                         }
                     },
                     onClick = {
                         onSortChange(sort)
                         expanded = false
-                    }
+                    },
                 )
             }
         }
@@ -236,19 +240,17 @@ private fun SortMenu(
 }
 
 @Composable
-private fun RepoFilterType.displayName(): String {
-    return when (this) {
+private fun RepoFilterType.displayName(): String =
+    when (this) {
         RepoFilterType.WITH_RELEASES -> stringResource(Res.string.filter_with_releases)
         RepoFilterType.INSTALLED -> stringResource(Res.string.filter_installed)
         RepoFilterType.FAVORITES -> stringResource(Res.string.filter_favorites)
     }
-}
 
 @Composable
-private fun RepoSortType.displayName(): String {
-    return when (this) {
+private fun RepoSortType.displayName(): String =
+    when (this) {
         RepoSortType.UPDATED -> stringResource(Res.string.sort_recently_updated)
         RepoSortType.STARS -> stringResource(Res.string.sort_most_stars)
         RepoSortType.NAME -> stringResource(Res.string.sort_name)
     }
-}

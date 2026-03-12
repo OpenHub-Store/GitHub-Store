@@ -6,13 +6,14 @@ import zed.rainxch.core.domain.model.InstalledApp
 
 interface AppsRepository {
     suspend fun getApps(): Flow<List<InstalledApp>>
+
     suspend fun openApp(
         installedApp: InstalledApp,
-        onCantLaunchApp : () -> Unit = { }
+        onCantLaunchApp: () -> Unit = { },
     )
+
     suspend fun getLatestRelease(
         owner: String,
-        repo: String
+        repo: String,
     ): GithubRelease?
-
 }

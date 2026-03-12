@@ -22,7 +22,7 @@ fun rememberMarkdownColors(): MarkdownColors {
         codeBackground = colorScheme.surfaceVariant.copy(alpha = 0.5f),
         inlineCodeBackground = colorScheme.surfaceVariant.copy(alpha = 0.5f),
         dividerColor = colorScheme.outlineVariant,
-        tableBackground = colorScheme.surface
+        tableBackground = colorScheme.surface,
     )
 }
 
@@ -38,33 +38,34 @@ fun rememberMarkdownTypography(): MarkdownTypography {
         h4 = typography.titleSmall.copy(fontWeight = FontWeight.Medium),
         h5 = typography.titleSmall.copy(fontWeight = FontWeight.Normal),
         h6 = typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-
         text = typography.bodyLarge,
-        code = typography.bodyMedium.copy(
-            fontFamily = FontFamily.Monospace,
-            color = colorScheme.onSurfaceVariant
-        ),
-        inlineCode = typography.bodyMedium.copy(
-            fontFamily = FontFamily.Monospace,
-            color = colorScheme.onSurfaceVariant
-        ),
-        quote = typography.bodyLarge.copy(
-            fontStyle = FontStyle.Italic,
-            color = colorScheme.onSurfaceVariant
-        ),
-
+        code =
+            typography.bodyMedium.copy(
+                fontFamily = FontFamily.Monospace,
+                color = colorScheme.onSurfaceVariant,
+            ),
+        inlineCode =
+            typography.bodyMedium.copy(
+                fontFamily = FontFamily.Monospace,
+                color = colorScheme.onSurfaceVariant,
+            ),
+        quote =
+            typography.bodyLarge.copy(
+                fontStyle = FontStyle.Italic,
+                color = colorScheme.onSurfaceVariant,
+            ),
         paragraph = typography.bodyLarge,
-
         ordered = typography.bodyLarge,
         bullet = typography.bodyLarge,
         list = typography.bodyLarge,
-        textLink = TextLinkStyles(
-            style = SpanStyle(
-                color = colorScheme.primary,
-                textDecoration = TextDecoration.Underline
-            )
-        ),
-
-        table = typography.bodyMedium
+        textLink =
+            TextLinkStyles(
+                style =
+                    SpanStyle(
+                        color = colorScheme.primary,
+                        textDecoration = TextDecoration.Underline,
+                    ),
+            ),
+        table = typography.bodyMedium,
     )
 }

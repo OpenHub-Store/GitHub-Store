@@ -1,8 +1,8 @@
 package zed.rainxch.starred.presentation.utils
 
 import androidx.compose.runtime.Composable
-import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlin.time.Clock
 
 @Composable

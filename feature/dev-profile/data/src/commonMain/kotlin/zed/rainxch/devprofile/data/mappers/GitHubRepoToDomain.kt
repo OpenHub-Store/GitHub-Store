@@ -8,7 +8,7 @@ fun GitHubRepoResponse.toDomain(
     hasInstallableAssets: Boolean = false,
     isInstalled: Boolean = false,
     isFavorite: Boolean = false,
-    latestVersion: String? = null
+    latestVersion: String? = null,
 ) = DeveloperRepository(
     id = id,
     name = name,
@@ -25,5 +25,5 @@ fun GitHubRepoResponse.toDomain(
     isFavorite = isFavorite,
     latestVersion = latestVersion,
     updatedAt = updatedAt,
-    pushedAt = pushedAt
+    pushedAt = pushedAt,
 )

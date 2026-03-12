@@ -13,7 +13,6 @@ import zed.rainxch.core.domain.system.PackageMonitor
 import zed.rainxch.githubstore.app.di.initKoin
 
 class GithubStoreApp : Application() {
-
     private var packageEventReceiver: PackageEventReceiver? = null
 
     override fun onCreate() {
@@ -29,22 +28,24 @@ class GithubStoreApp : Application() {
     }
 
     private fun createNotificationChannels() {
-        val channel = NotificationChannel(
-            UPDATES_CHANNEL_ID,
-            "App Updates",
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Notifications when app updates are available"
-        }
+        val channel =
+            NotificationChannel(
+                UPDATES_CHANNEL_ID,
+                "App Updates",
+                NotificationManager.IMPORTANCE_HIGH,
+            ).apply {
+                description = "Notifications when app updates are available"
+            }
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
     }
 
     private fun registerPackageEventReceiver() {
-        val receiver = PackageEventReceiver(
-            installedAppsRepository = get<InstalledAppsRepository>(),
-            packageMonitor = get<PackageMonitor>()
-        )
+        val receiver =
+            PackageEventReceiver(
+                installedAppsRepository = get<InstalledAppsRepository>(),
+                packageMonitor = get<PackageMonitor>(),
+            )
         val filter = PackageEventReceiver.createIntentFilter()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

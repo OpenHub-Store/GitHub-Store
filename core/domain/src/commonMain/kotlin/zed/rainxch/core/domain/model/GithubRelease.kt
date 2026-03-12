@@ -14,5 +14,5 @@ data class GithubRelease(
     val tarballUrl: String,
     val zipballUrl: String,
     val htmlUrl: String,
-    val isPrerelease: Boolean = false
+    val isPrerelease: Boolean = false,
 )

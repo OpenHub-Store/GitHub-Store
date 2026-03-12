@@ -9,12 +9,12 @@ import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ApplyAndroidSystemBars
+import zed.rainxch.githubstore.app.components.RateLimitDialog
+import zed.rainxch.githubstore.app.components.SessionExpiredDialog
 import zed.rainxch.githubstore.app.deeplink.DeepLinkDestination
 import zed.rainxch.githubstore.app.deeplink.DeepLinkParser
 import zed.rainxch.githubstore.app.navigation.AppNavigation
 import zed.rainxch.githubstore.app.navigation.GithubStoreGraph
-import zed.rainxch.githubstore.app.components.RateLimitDialog
-import zed.rainxch.githubstore.app.components.SessionExpiredDialog
 
 @Composable
 fun App(deepLinkUri: String? = null) {
@@ -30,13 +30,13 @@ fun App(deepLinkUri: String? = null) {
                     navBackStack.navigate(
                         GithubStoreGraph.DetailsScreen(
                             owner = destination.owner,
-                            repo = destination.repo
-                        )
+                            repo = destination.repo,
+                        ),
                     )
                 }
 
                 DeepLinkDestination.None -> {
-                    /* ignore unrecognized deep links */
+                    // ignore unrecognized deep links
                 }
             }
         }
@@ -46,7 +46,7 @@ fun App(deepLinkUri: String? = null) {
         fontTheme = state.currentFontTheme,
         appTheme = state.currentColorTheme,
         isAmoledTheme = state.isAmoledTheme,
-        isDarkTheme = state.isDarkTheme ?: isSystemInDarkTheme()
+        isDarkTheme = state.isDarkTheme ?: isSystemInDarkTheme(),
     ) {
         ApplyAndroidSystemBars(state.isDarkTheme)
 
@@ -62,7 +62,7 @@ fun App(deepLinkUri: String? = null) {
                         viewModel.onAction(MainAction.DismissRateLimitDialog)
 
                         navBackStack.navigate(GithubStoreGraph.AuthenticationScreen)
-                    }
+                    },
                 )
             }
         }
@@ -75,12 +75,12 @@ fun App(deepLinkUri: String? = null) {
                 onSignIn = {
                     viewModel.onAction(MainAction.DismissSessionExpiredDialog)
                     navBackStack.navigate(GithubStoreGraph.AuthenticationScreen)
-                }
+                },
             )
         }
 
         AppNavigation(
-            navController = navBackStack
+            navController = navBackStack,
         )
     }
 }

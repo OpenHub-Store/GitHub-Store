@@ -6,7 +6,7 @@ interface TranslationRepository {
     suspend fun translate(
         text: String,
         targetLanguage: String,
-        sourceLanguage: String = "auto"
+        sourceLanguage: String = "auto",
     ): TranslationResult
 
     fun getDeviceLanguageCode(): String

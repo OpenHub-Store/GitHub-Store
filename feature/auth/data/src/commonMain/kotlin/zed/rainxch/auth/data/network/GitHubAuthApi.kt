@@ -24,10 +24,11 @@ import zed.rainxch.core.data.dto.GithubDeviceTokenErrorDto
 import zed.rainxch.core.data.dto.GithubDeviceTokenSuccessDto
 
 object GitHubAuthApi {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
 
     val http by lazy {
         HttpClient {
@@ -47,20 +48,21 @@ object GitHubAuthApi {
         }
     }
 
-    suspend fun startDeviceFlow(clientId: String): GithubDeviceStartDto {
-        return withRetry(maxAttempts = 3, initialDelay = 1000) {
-            val res = http.post("https://github.com/login/device/code") {
-                accept(ContentType.Application.Json)
-                headers.append(HttpHeaders.UserAgent, "GithubStore/1.0 (DeviceFlow)")
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("client_id", clientId)
-                        }
+    suspend fun startDeviceFlow(clientId: String): GithubDeviceStartDto =
+        withRetry(maxAttempts = 3, initialDelay = 1000) {
+            val res =
+                http.post("https://github.com/login/device/code") {
+                    accept(ContentType.Application.Json)
+                    headers.append(HttpHeaders.UserAgent, "GithubStore/1.0 (DeviceFlow)")
+                    contentType(ContentType.Application.FormUrlEncoded)
+                    setBody(
+                        FormDataContent(
+                            Parameters.build {
+                                append("client_id", clientId)
+                            },
+                        ),
                     )
-                )
-            }
+                }
             val status = res.status
             val text = res.bodyAsText()
 
@@ -73,7 +75,7 @@ object GitHubAuthApi {
                         append(status.description)
                         append(". Body: ")
                         append(text.take(300))
-                    }
+                    },
                 )
             }
 
@@ -88,40 +90,40 @@ object GitHubAuthApi {
                 }
             }
         }
-    }
 
     suspend fun pollDeviceToken(
         clientId: String,
-        deviceCode: String
+        deviceCode: String,
     ): Result<GithubDeviceTokenSuccessDto> {
         return try {
-            val res = http.post("https://github.com/login/oauth/access_token") {
-                accept(ContentType.Application.Json)
-                headers.append(HttpHeaders.UserAgent, "GithubStore/1.0 (DeviceFlow)")
-                contentType(ContentType.Application.FormUrlEncoded)
+            val res =
+                http.post("https://github.com/login/oauth/access_token") {
+                    accept(ContentType.Application.Json)
+                    headers.append(HttpHeaders.UserAgent, "GithubStore/1.0 (DeviceFlow)")
+                    contentType(ContentType.Application.FormUrlEncoded)
 
-                timeout {
-                    socketTimeoutMillis = 30_000
-                }
+                    timeout {
+                        socketTimeoutMillis = 30_000
+                    }
 
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("client_id", clientId)
-                            append("device_code", deviceCode)
-                            append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
-                        }
+                    setBody(
+                        FormDataContent(
+                            Parameters.build {
+                                append("client_id", clientId)
+                                append("device_code", deviceCode)
+                                append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+                            },
+                        ),
                     )
-                )
-            }
+                }
             val status = res.status
             val text = res.body<String>()
 
             if (status !in HttpStatusCode.OK..HttpStatusCode.MultipleChoices) {
                 return Result.failure(
                     IllegalStateException(
-                        "GitHub access_token HTTP ${status.value} ${status.description}"
-                    )
+                        "GitHub access_token HTTP ${status.value} ${status.description}",
+                    ),
                 )
             }
 
@@ -130,14 +132,15 @@ object GitHubAuthApi {
                 Result.success(ok)
             } catch (_: Throwable) {
                 val err = json.decodeFromString(GithubDeviceTokenErrorDto.serializer(), text)
-                val message = buildString {
-                    append(err.error)
-                    val desc = err.errorDescription
-                    if (!desc.isNullOrBlank()) {
-                        append(": ")
-                        append(desc)
+                val message =
+                    buildString {
+                        append(err.error)
+                        val desc = err.errorDescription
+                        if (!desc.isNullOrBlank()) {
+                            append(": ")
+                            append(desc)
+                        }
                     }
-                }
                 Result.failure(IllegalStateException(message))
             }
         } catch (e: Exception) {
@@ -150,7 +153,7 @@ object GitHubAuthApi {
         initialDelay: Long = 1000,
         maxDelay: Long = 5000,
         factor: Double = 2.0,
-        block: suspend () -> T
+        block: suspend () -> T,
     ): T {
         var currentDelay = initialDelay
         repeat(maxAttempts - 1) { attempt ->

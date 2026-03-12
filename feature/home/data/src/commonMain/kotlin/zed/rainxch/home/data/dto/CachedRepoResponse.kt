@@ -8,5 +8,5 @@ data class CachedRepoResponse(
     val platform: String,
     val lastUpdated: String,
     val totalCount: Int,
-    val repositories: List<CachedGithubRepoSummary>
+    val repositories: List<CachedGithubRepoSummary>,
 )

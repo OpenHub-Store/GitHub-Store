@@ -96,7 +96,7 @@ fun DetailsRoot(
     onNavigateBack: () -> Unit,
     onNavigateToDeveloperProfile: (username: String) -> Unit,
     onOpenRepositoryInApp: (repoId: Long) -> Unit,
-    viewModel: DetailsViewModel = koinViewModel()
+    viewModel: DetailsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -139,7 +139,7 @@ fun DetailsRoot(
                     viewModel.onAction(action)
                 }
             }
-        }
+        },
     )
 
     state.downgradeWarning?.let { warning ->
@@ -149,16 +149,17 @@ fun DetailsRoot(
             },
             title = {
                 Text(
-                    text = stringResource(Res.string.downgrade_requires_uninstall)
+                    text = stringResource(Res.string.downgrade_requires_uninstall),
                 )
             },
             text = {
                 Text(
-                    text = stringResource(
-                        Res.string.downgrade_warning_message,
-                        warning.targetVersion,
-                        warning.currentVersion
-                    )
+                    text =
+                        stringResource(
+                            Res.string.downgrade_warning_message,
+                            warning.targetVersion,
+                            warning.currentVersion,
+                        ),
                 )
             },
             confirmButton = {
@@ -166,11 +167,11 @@ fun DetailsRoot(
                     onClick = {
                         viewModel.onAction(DetailsAction.OnDismissDowngradeWarning)
                         viewModel.onAction(DetailsAction.UninstallApp)
-                    }
+                    },
                 ) {
                     Text(
                         text = stringResource(Res.string.uninstall_first),
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
@@ -178,13 +179,13 @@ fun DetailsRoot(
                 TextButton(
                     onClick = {
                         viewModel.onAction(DetailsAction.OnDismissDowngradeWarning)
-                    }
+                    },
                 ) {
                     Text(
-                        text = stringResource(Res.string.cancel)
+                        text = stringResource(Res.string.cancel),
                     )
                 }
-            }
+            },
         )
     }
 
@@ -203,7 +204,7 @@ fun DetailsRoot(
                 TextButton(
                     onClick = {
                         viewModel.onAction(DetailsAction.OpenWithExternalInstaller)
-                    }
+                    },
                 ) {
                     Text(text = stringResource(Res.string.open_with_external_installer))
                 }
@@ -212,11 +213,11 @@ fun DetailsRoot(
                 TextButton(
                     onClick = {
                         viewModel.onAction(DetailsAction.DismissExternalInstallerPrompt)
-                    }
+                    },
                 ) {
                     Text(text = stringResource(Res.string.dismiss))
                 }
-            }
+            },
         )
     }
 }
@@ -231,52 +232,58 @@ fun DetailsScreen(
     val liquidTopbarState = rememberLiquidState()
 
     CompositionLocalProvider(
-        value = LocalTopbarLiquidState provides liquidTopbarState
+        value = LocalTopbarLiquidState provides liquidTopbarState,
     ) {
         Scaffold(
             topBar = {
                 DetailsTopbar(
                     state = state,
                     onAction = onAction,
-                    liquidTopbarState = liquidTopbarState
+                    liquidTopbarState = liquidTopbarState,
                 )
             },
             snackbarHost = {
                 SnackbarHost(
-                    hostState = snackbarHostState
+                    hostState = snackbarHostState,
                 )
             },
             containerColor = MaterialTheme.colorScheme.background,
-            modifier = Modifier.liquefiable(liquidTopbarState)
+            modifier = Modifier.liquefiable(liquidTopbarState),
         ) { innerPadding ->
 
             LanguagePicker(
                 isVisible = state.isLanguagePickerVisible,
-                selectedLanguageCode = when (state.languagePickerTarget) {
-                    TranslationTarget.About -> state.aboutTranslation.targetLanguageCode
-                    TranslationTarget.WhatsNew -> state.whatsNewTranslation.targetLanguageCode
-                    null -> null
-                },
+                selectedLanguageCode =
+                    when (state.languagePickerTarget) {
+                        TranslationTarget.About -> state.aboutTranslation.targetLanguageCode
+                        TranslationTarget.WhatsNew -> state.whatsNewTranslation.targetLanguageCode
+                        null -> null
+                    },
                 onLanguageSelected = { language ->
                     when (state.languagePickerTarget) {
-                        TranslationTarget.About -> onAction(DetailsAction.TranslateAbout(language.code))
-                        TranslationTarget.WhatsNew -> onAction(
-                            DetailsAction.TranslateWhatsNew(
-                                language.code
+                        TranslationTarget.About -> {
+                            onAction(DetailsAction.TranslateAbout(language.code))
+                        }
+
+                        TranslationTarget.WhatsNew -> {
+                            onAction(
+                                DetailsAction.TranslateWhatsNew(
+                                    language.code,
+                                ),
                             )
-                        )
+                        }
 
                         null -> {}
                     }
                     onAction(DetailsAction.DismissLanguagePicker)
                 },
-                onDismiss = { onAction(DetailsAction.DismissLanguagePicker) }
+                onDismiss = { onAction(DetailsAction.DismissLanguagePicker) },
             )
 
             if (state.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularWavyProgressIndicator()
                 }
@@ -292,17 +299,18 @@ fun DetailsScreen(
 
             BoxWithConstraints(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 val collapsedSectionHeight = maxHeight * 0.7f
 
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .widthIn(max = 680.dp)
-                        .fillMaxWidth()
-                        .liquefiable(liquidTopbarState)
-                        .padding(innerPadding),
+                    modifier =
+                        Modifier
+                            .fillMaxHeight()
+                            .widthIn(max = 680.dp)
+                            .fillMaxWidth()
+                            .liquefiable(liquidTopbarState)
+                            .padding(innerPadding),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
@@ -397,14 +405,14 @@ fun DetailsScreen(
 
                     state.repository?.let { repository ->
                         reportIssue(
-                            repoUrl = repository.htmlUrl
+                            repoUrl = repository.htmlUrl,
                         )
                     }
 
                     state.userProfile?.let { userProfile ->
                         author(
                             author = userProfile,
-                            onAction = onAction
+                            onAction = onAction,
                         )
                     }
 
@@ -422,7 +430,7 @@ fun DetailsScreen(
 private fun DetailsTopbar(
     state: DetailsState,
     onAction: (DetailsAction) -> Unit,
-    liquidTopbarState: LiquidState
+    liquidTopbarState: LiquidState,
 ) {
     TopAppBar(
         title = { },
@@ -431,49 +439,56 @@ private fun DetailsTopbar(
                 shapes = IconButtonDefaults.shapes(),
                 onClick = {
                     onAction(DetailsAction.OnNavigateBackClick)
-                }
+                },
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(Res.string.navigate_back),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             }
         },
         actions = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (state.repository != null) {
                     IconButton(
                         onClick = {
                             onAction(
                                 DetailsAction.OnMessage(
-                                    messageText = if (state.isStarred) {
-                                        Res.string.unstar_from_github
-                                    } else {
-                                        Res.string.star_from_github
-                                    }
-                                )
+                                    messageText =
+                                        if (state.isStarred) {
+                                            Res.string.unstar_from_github
+                                        } else {
+                                            Res.string.star_from_github
+                                        },
+                                ),
                             )
                         },
                         shapes = IconButtonDefaults.shapes(),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     ) {
                         Icon(
-                            imageVector = if (state.isStarred) {
-                                Icons.Default.Star
-                            } else Icons.Default.StarBorder,
-                            contentDescription = stringResource(
-                                resource = if (state.isStarred) {
-                                    Res.string.repository_starred
+                            imageVector =
+                                if (state.isStarred) {
+                                    Icons.Default.Star
                                 } else {
-                                    Res.string.repository_not_starred
-                                }
-                            ),
+                                    Icons.Default.StarBorder
+                                },
+                            contentDescription =
+                                stringResource(
+                                    resource =
+                                        if (state.isStarred) {
+                                            Res.string.repository_starred
+                                        } else {
+                                            Res.string.repository_not_starred
+                                        },
+                                ),
                         )
                     }
 
@@ -482,21 +497,27 @@ private fun DetailsTopbar(
                             onAction(DetailsAction.OnToggleFavorite)
                         },
                         shapes = IconButtonDefaults.shapes(),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     ) {
                         Icon(
-                            imageVector = if (state.isFavourite) {
-                                Icons.Default.Favorite
-                            } else Icons.Default.FavoriteBorder,
-                            contentDescription = stringResource(
-                                resource = if (state.isFavourite) {
-                                    Res.string.remove_from_favourites
+                            imageVector =
+                                if (state.isFavourite) {
+                                    Icons.Default.Favorite
                                 } else {
-                                    Res.string.add_to_favourites
-                                }
-                            ),
+                                    Icons.Default.FavoriteBorder
+                                },
+                            contentDescription =
+                                stringResource(
+                                    resource =
+                                        if (state.isFavourite) {
+                                            Res.string.remove_from_favourites
+                                        } else {
+                                            Res.string.add_to_favourites
+                                        },
+                                ),
                         )
                     }
 
@@ -505,9 +526,10 @@ private fun DetailsTopbar(
                             onAction(DetailsAction.OnShareClick)
                         },
                         shapes = IconButtonDefaults.shapes(),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
@@ -522,47 +544,51 @@ private fun DetailsTopbar(
                         onClick = {
                             onAction(DetailsAction.OpenRepoInBrowser)
                         },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
+                        colors =
+                            IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.Default.OpenInBrowser,
                             contentDescription = stringResource(Res.string.open_repository),
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent,
-        ),
-        modifier = Modifier
-            .shadow(
-                elevation = 6.dp,
-                ambientColor = MaterialTheme.colorScheme.surfaceTint,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-            )
-            .background(
-                Brush.linearGradient(
-                    0f to MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                    0.5f to MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-                    1f to MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                )
-            )
-            .then(
-                if (isLiquidFrostAvailable()) {
-                    Modifier.liquid(liquidTopbarState) {
-                        this.shape = CutCornerShape(0.dp)
-                        if (isLiquidFrostAvailable()) {
-                            this.frost = 5.dp
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            ),
+        modifier =
+            Modifier
+                .shadow(
+                    elevation = 6.dp,
+                    ambientColor = MaterialTheme.colorScheme.surfaceTint,
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                ).background(
+                    Brush.linearGradient(
+                        0f to MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                        0.5f to MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                        1f to MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                    ),
+                ).then(
+                    if (isLiquidFrostAvailable()) {
+                        Modifier.liquid(liquidTopbarState) {
+                            this.shape = CutCornerShape(0.dp)
+                            if (isLiquidFrostAvailable()) {
+                                this.frost = 5.dp
+                            }
+                            this.curve = .25f
+                            this.refraction = .05f
+                            this.dispersion = .1f
                         }
-                        this.curve = .25f
-                        this.refraction = .05f
-                        this.dispersion = .1f
-                    }
-                } else Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest))
+                    } else {
+                        Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    },
+                ),
     )
 }
 
@@ -571,11 +597,12 @@ private fun DetailsTopbar(
 private fun Preview() {
     GithubStoreTheme {
         DetailsScreen(
-            state = DetailsState(
-                isLoading = false
-            ),
+            state =
+                DetailsState(
+                    isLoading = false,
+                ),
             onAction = {},
-            snackbarHostState = SnackbarHostState()
+            snackbarHostState = SnackbarHostState(),
         )
     }
 }

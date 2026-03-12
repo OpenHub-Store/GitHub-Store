@@ -30,5 +30,5 @@ data class InstalledApp(
     val installedVersionName: String? = null,
     val installedVersionCode: Long = 0L,
     val latestVersionName: String? = null,
-    val latestVersionCode: Long? = null
+    val latestVersionCode: Long? = null,
 )

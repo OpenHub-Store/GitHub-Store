@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.compose.Markdown
-import zed.rainxch.githubstore.core.presentation.res.*
 import io.github.fletchmckee.liquid.liquefiable
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.jetbrains.compose.resources.stringResource
@@ -43,6 +42,7 @@ import zed.rainxch.details.presentation.utils.LocalTopbarLiquidState
 import zed.rainxch.details.presentation.utils.MarkdownImageTransformer
 import zed.rainxch.details.presentation.utils.rememberMarkdownColors
 import zed.rainxch.details.presentation.utils.rememberMarkdownTypography
+import zed.rainxch.githubstore.core.presentation.res.*
 
 fun LazyListScope.whatsNew(
     release: GithubRelease,
@@ -62,9 +62,10 @@ fun LazyListScope.whatsNew(
         Spacer(Modifier.height(16.dp))
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -88,32 +89,34 @@ fun LazyListScope.whatsNew(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-            )
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         release.tagName,
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.liquefiable(liquidState)
+                        modifier = Modifier.liquefiable(liquidState),
                     )
 
                     Text(
                         release.publishedAt.take(10),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.liquefiable(liquidState)
+                        modifier = Modifier.liquefiable(liquidState),
                     )
                 }
 
@@ -125,30 +128,33 @@ fun LazyListScope.whatsNew(
                 val flavour = remember { GFMFlavourDescriptor() }
                 val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
 
-                val displayContent = if (translationState.isShowingTranslation && translationState.translatedText != null) {
-                    translationState.translatedText
-                } else {
-                    release.description ?: stringResource(Res.string.no_release_notes)
-                }
+                val displayContent =
+                    if (translationState.isShowingTranslation && translationState.translatedText != null) {
+                        translationState.translatedText
+                    } else {
+                        release.description ?: stringResource(Res.string.no_release_notes)
+                    }
 
                 val collapsedHeightPx = with(density) { collapsedHeight.toPx() }
                 var contentHeightPx by remember(displayContent, collapsedHeightPx) {
                     mutableFloatStateOf(0f)
                 }
-                val needsExpansion = remember(contentHeightPx, collapsedHeightPx) {
-                    contentHeightPx > collapsedHeightPx && collapsedHeightPx > 0f
-                }
+                val needsExpansion =
+                    remember(contentHeightPx, collapsedHeightPx) {
+                        contentHeightPx > collapsedHeightPx && collapsedHeightPx > 0f
+                    }
 
                 Column(
-                    modifier = Modifier.animateContentSize()
+                    modifier = Modifier.animateContentSize(),
                 ) {
                     Box {
                         Box(
-                            modifier = if (!isExpanded && needsExpansion) {
-                                Modifier.heightIn(max = collapsedHeight).clipToBounds()
-                            } else {
-                                Modifier
-                            }
+                            modifier =
+                                if (!isExpanded && needsExpansion) {
+                                    Modifier.heightIn(max = collapsedHeight).clipToBounds()
+                                } else {
+                                    Modifier
+                                },
                         ) {
                             Markdown(
                                 content = displayContent,
@@ -156,30 +162,32 @@ fun LazyListScope.whatsNew(
                                 typography = typography,
                                 flavour = flavour,
                                 imageTransformer = MarkdownImageTransformer,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .liquefiable(liquidState)
-                                    .onGloballyPositioned { coordinates ->
-                                        val measured = coordinates.size.height.toFloat()
-                                        if (measured > contentHeightPx) {
-                                            contentHeightPx = measured
-                                        }
-                                    },
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .liquefiable(liquidState)
+                                        .onGloballyPositioned { coordinates ->
+                                            val measured = coordinates.size.height.toFloat()
+                                            if (measured > contentHeightPx) {
+                                                contentHeightPx = measured
+                                            }
+                                        },
                             )
                         }
 
                         if (!isExpanded && needsExpansion) {
                             Box(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .background(
-                                        Brush.verticalGradient(
-                                            0f to cardColor.copy(alpha = 0f),
-                                            1f to cardColor
-                                        )
-                                    )
+                                modifier =
+                                    Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .background(
+                                            Brush.verticalGradient(
+                                                0f to cardColor.copy(alpha = 0f),
+                                                1f to cardColor,
+                                            ),
+                                        ),
                             )
                         }
                     }
@@ -187,16 +195,17 @@ fun LazyListScope.whatsNew(
                     if (needsExpansion) {
                         TextButton(
                             onClick = onToggleExpanded,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
                         ) {
                             Text(
-                                text = if (isExpanded) {
-                                    stringResource(Res.string.show_less)
-                                } else {
-                                    stringResource(Res.string.read_more)
-                                },
+                                text =
+                                    if (isExpanded) {
+                                        stringResource(Res.string.show_less)
+                                    } else {
+                                        stringResource(Res.string.read_more)
+                                    },
                                 style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }

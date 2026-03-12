@@ -10,25 +10,24 @@ import zed.rainxch.core.domain.utils.AppLauncher
 
 class AndroidAppLauncher(
     private val context: Context,
-    private val logger: GitHubStoreLogger
+    private val logger: GitHubStoreLogger,
 ) : AppLauncher {
-
     override suspend fun launchApp(installedApp: InstalledApp): Result<Unit> =
         withContext(Dispatchers.Main) {
             runCatching {
                 val packageManager = context.packageManager
 
                 val launchIntent = packageManager.getLaunchIntentForPackage(installedApp.packageName)
-                
+
                 if (launchIntent != null) {
                     launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(launchIntent)
-                    logger.debug ("Launched app: ${installedApp.packageName}")
+                    logger.debug("Launched app: ${installedApp.packageName}")
                 } else {
                     throw Exception("No launch intent found for ${installedApp.packageName}")
                 }
             }.onFailure { error ->
-                logger.error ("Failed to launch app ${installedApp.packageName}: ${error.message}")
+                logger.error("Failed to launch app ${installedApp.packageName}: ${error.message}")
             }
         }
 

@@ -22,7 +22,7 @@ import zed.rainxch.core.data.local.db.entities.UpdateHistoryEntity
         CacheEntryEntity::class,
     ],
     version = 4,
-    exportSchema = true
+    exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract val installedAppDao: InstalledAppDao

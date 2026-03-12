@@ -6,7 +6,7 @@ interface LocalizationManager {
      * Can include region code if available (e.g., "zh-CN", "pt-BR")
      */
     fun getCurrentLanguageCode(): String
-    
+
     /**
      * Returns the primary language code without region (e.g., "zh" from "zh-CN")
      */

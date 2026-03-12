@@ -1,7 +1,5 @@
 package zed.rainxch.search.presentation.components
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +12,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.domain.model.SortBy
@@ -32,7 +32,7 @@ fun SortByBottomSheet(
     onSortBySelected: (SortBy) -> Unit,
     onSortOrderSelected: (SortOrder) -> Unit,
     onDismissRequest: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -45,13 +45,13 @@ fun SortByBottomSheet(
         title = {
             Text(
                 text = stringResource(Res.string.sort_by),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
         },
         text = {
             Column(
                 modifier = modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 sortByOptions.forEach { option ->
                     val isSelected = option == selectedSortBy
@@ -59,12 +59,12 @@ fun SortByBottomSheet(
                         onClick = {
                             onSortBySelected(option)
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
                             text = stringResource(option.label()) + if (isSelected) "  ✓" else "",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -76,7 +76,7 @@ fun SortByBottomSheet(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     SortOrder.entries.forEach { order ->
                         FilterChip(
@@ -85,13 +85,13 @@ fun SortByBottomSheet(
                             label = {
                                 Text(
                                     text = stringResource(order.label()),
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
-                            }
+                            },
                         )
                     }
                 }
             }
-        }
+        },
     )
 }

@@ -10,5 +10,4 @@ interface AuthenticationRepository {
     suspend fun startDeviceFlow(): GithubDeviceStart
 
     suspend fun awaitDeviceToken(start: GithubDeviceStart): GithubDeviceTokenSuccess
-
 }

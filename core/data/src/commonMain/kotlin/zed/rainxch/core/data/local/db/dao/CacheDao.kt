@@ -9,13 +9,19 @@ import zed.rainxch.core.data.local.db.entities.CacheEntryEntity
 @Dao
 interface CacheDao {
     @Query("SELECT * FROM cache_entries WHERE `key` = :key AND expiresAt > :now LIMIT 1")
-    suspend fun getValid(key: String, now: Long): CacheEntryEntity?
+    suspend fun getValid(
+        key: String,
+        now: Long,
+    ): CacheEntryEntity?
 
     @Query("SELECT * FROM cache_entries WHERE `key` = :key LIMIT 1")
     suspend fun getAny(key: String): CacheEntryEntity?
 
     @Query("SELECT * FROM cache_entries WHERE `key` LIKE :prefix || '%' AND expiresAt > :now")
-    suspend fun getValidByPrefix(prefix: String, now: Long): List<CacheEntryEntity>
+    suspend fun getValidByPrefix(
+        prefix: String,
+        now: Long,
+    ): List<CacheEntryEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun put(entry: CacheEntryEntity)

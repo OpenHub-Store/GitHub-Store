@@ -1,7 +1,11 @@
 package zed.rainxch.githubstore.app.deeplink
 
 sealed interface DeepLinkDestination {
-    data class Repository(val owner: String, val repo: String) : DeepLinkDestination
+    data class Repository(
+        val owner: String,
+        val repo: String,
+    ) : DeepLinkDestination
+
     data object None : DeepLinkDestination
 }
 
@@ -10,14 +14,41 @@ object DeepLinkParser {
 
     private val FORBIDDEN_PATTERNS = listOf("..", "~", "\u0000")
 
-    private val EXCLUDED_PATHS = setOf(
-        "about", "account", "admin", "api", "apps", "articles",
-        "blog", "business", "collections", "contact", "dashboard",
-        "enterprises", "events", "explore", "features", "home",
-        "issues", "marketplace", "new", "notifications", "orgs",
-        "pricing", "pulls", "search", "security", "settings",
-        "showcases", "site", "sponsors", "topics", "trending", "team"
-    )
+    private val EXCLUDED_PATHS =
+        setOf(
+            "about",
+            "account",
+            "admin",
+            "api",
+            "apps",
+            "articles",
+            "blog",
+            "business",
+            "collections",
+            "contact",
+            "dashboard",
+            "enterprises",
+            "events",
+            "explore",
+            "features",
+            "home",
+            "issues",
+            "marketplace",
+            "new",
+            "notifications",
+            "orgs",
+            "pricing",
+            "pulls",
+            "search",
+            "security",
+            "settings",
+            "showcases",
+            "site",
+            "sponsors",
+            "topics",
+            "trending",
+            "team",
+        )
 
     fun parse(uri: String): DeepLinkDestination {
         return when {
@@ -28,9 +59,11 @@ object DeepLinkParser {
             }
 
             uri.startsWith("https://github.com/") -> {
-                val path = uri.removePrefix("https://github.com/")
-                    .substringBefore('?')
-                    .substringBefore('#')
+                val path =
+                    uri
+                        .removePrefix("https://github.com/")
+                        .substringBefore('?')
+                        .substringBefore('#')
                 val decoded = urlDecode(path)
 
                 val parts = decoded.split("/").filter { it.isNotEmpty() }
@@ -51,7 +84,9 @@ object DeepLinkParser {
                 } ?: DeepLinkDestination.None
             }
 
-            else -> DeepLinkDestination.None
+            else -> {
+                DeepLinkDestination.None
+            }
         }
     }
 
@@ -59,8 +94,8 @@ object DeepLinkParser {
      * URL-decode a string, handling percent-encoded characters.
      * Returns the original string if decoding fails.
      */
-    private fun urlDecode(value: String): String {
-        return try {
+    private fun urlDecode(value: String): String =
+        try {
             val result = StringBuilder()
             var i = 0
             while (i < value.length) {
@@ -78,10 +113,12 @@ object DeepLinkParser {
                         result.append(c)
                         i++
                     }
+
                     '+' -> {
                         result.append(' ')
                         i++
                     }
+
                     else -> {
                         result.append(c)
                         i++
@@ -92,7 +129,6 @@ object DeepLinkParser {
         } catch (_: Exception) {
             value
         }
-    }
 
     private fun parseOwnerRepo(path: String): DeepLinkDestination {
         val parts = path.split("/").filter { it.isNotEmpty() }
@@ -120,7 +156,10 @@ object DeepLinkParser {
      * - Names that exceed GitHub's length limits
      * - Names that don't start with alphanumeric characters
      */
-    private fun isStrictlyValidOwnerRepo(owner: String, repo: String): Boolean {
+    private fun isStrictlyValidOwnerRepo(
+        owner: String,
+        repo: String,
+    ): Boolean {
         if (owner.isEmpty() || repo.isEmpty()) {
             return false
         }
@@ -131,8 +170,9 @@ object DeepLinkParser {
 
         if (FORBIDDEN_PATTERNS.any { pattern ->
                 owner.contains(pattern, ignoreCase = true) ||
-                        repo.contains(pattern, ignoreCase = true)
-            }) {
+                    repo.contains(pattern, ignoreCase = true)
+            }
+        ) {
             return false
         }
 
@@ -159,7 +199,10 @@ object DeepLinkParser {
         return true
     }
 
-    private fun extractQueryParam(uri: String, key: String): String? {
+    private fun extractQueryParam(
+        uri: String,
+        key: String,
+    ): String? {
         val queryStart = uri.indexOf('?')
         if (queryStart == -1) return null
 
@@ -176,7 +219,10 @@ object DeepLinkParser {
     }
 
     fun extractSupportedUrl(text: String): String? {
-        val regex = """https?://(?:www\.)?(?:github\.com|github-store\.org)(?=[/\s?#]|$)[^\s<>"')\],;.!]*""".toRegex(RegexOption.IGNORE_CASE)
+        val regex =
+            """https?://(?:www\.)?(?:github\.com|github-store\.org)(?=[/\s?#]|$)[^\s<>"')\],;.!]*""".toRegex(
+                RegexOption.IGNORE_CASE,
+            )
         return regex.find(text)?.value
     }
 }

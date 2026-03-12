@@ -20,9 +20,10 @@ class DefaultTokenStore(
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun save(token: GithubDeviceTokenSuccessDto) {
-        val stamped = token.copy(
-            savedAtEpochMillis = token.savedAtEpochMillis ?: Clock.System.now().toEpochMilliseconds()
-        )
+        val stamped =
+            token.copy(
+                savedAtEpochMillis = token.savedAtEpochMillis ?: Clock.System.now().toEpochMilliseconds(),
+            )
         val jsonString = json.encodeToString(GithubDeviceTokenSuccessDto.serializer(), stamped)
         dataStore.edit { preferences ->
             preferences[TOKEN_KEY] = jsonString
@@ -46,13 +47,14 @@ class DefaultTokenStore(
         }.getOrNull()
     }
 
-    override fun blockingCurrentToken(): GithubDeviceTokenSuccessDto? = runBlocking {
-        val preferences = dataStore.data.first()
-        val raw = preferences[TOKEN_KEY] ?: return@runBlocking null
-        runCatching {
-            json.decodeFromString(GithubDeviceTokenSuccessDto.serializer(), raw)
-        }.getOrNull()
-    }
+    override fun blockingCurrentToken(): GithubDeviceTokenSuccessDto? =
+        runBlocking {
+            val preferences = dataStore.data.first()
+            val raw = preferences[TOKEN_KEY] ?: return@runBlocking null
+            runCatching {
+                json.decodeFromString(GithubDeviceTokenSuccessDto.serializer(), raw)
+            }.getOrNull()
+        }
 
     override suspend fun clear() {
         dataStore.edit { it.remove(TOKEN_KEY) }

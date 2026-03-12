@@ -25,46 +25,39 @@ import kotlin.time.Instant
 @OptIn(ExperimentalTime::class)
 class CachedRepositoriesDataSourceImpl(
     private val platform: Platform,
-    private val logger: GitHubStoreLogger
+    private val logger: GitHubStoreLogger,
 ) : CachedRepositoriesDataSource {
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
-
-    private val httpClient = HttpClient {
-        install(HttpTimeout) {
-            requestTimeoutMillis = 10_000
-            connectTimeoutMillis = 5_000
-            socketTimeoutMillis = 10_000
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
         }
-        expectSuccess = false
-    }
+
+    private val httpClient =
+        HttpClient {
+            install(HttpTimeout) {
+                requestTimeoutMillis = 10_000
+                connectTimeoutMillis = 5_000
+                socketTimeoutMillis = 10_000
+            }
+            expectSuccess = false
+        }
 
     private val cacheMutex = Mutex()
     private val memoryCache = mutableMapOf<HomeCategory, CacheEntry>()
 
     private data class CacheEntry(
         val data: CachedRepoResponse,
-        val fetchedAt: Instant
+        val fetchedAt: Instant,
     )
 
-    override suspend fun getCachedTrendingRepos(): CachedRepoResponse? {
-        return fetchCachedReposForCategory(HomeCategory.TRENDING)
-    }
+    override suspend fun getCachedTrendingRepos(): CachedRepoResponse? = fetchCachedReposForCategory(HomeCategory.TRENDING)
 
-    override suspend fun getCachedHotReleaseRepos(): CachedRepoResponse? {
-        return fetchCachedReposForCategory(HomeCategory.HOT_RELEASE)
-    }
+    override suspend fun getCachedHotReleaseRepos(): CachedRepoResponse? = fetchCachedReposForCategory(HomeCategory.HOT_RELEASE)
 
-    override suspend fun getCachedMostPopularRepos(): CachedRepoResponse? {
-        return fetchCachedReposForCategory(HomeCategory.MOST_POPULAR)
-    }
+    override suspend fun getCachedMostPopularRepos(): CachedRepoResponse? = fetchCachedReposForCategory(HomeCategory.MOST_POPULAR)
 
-    private suspend fun fetchCachedReposForCategory(
-        category: HomeCategory
-    ): CachedRepoResponse? {
+    private suspend fun fetchCachedReposForCategory(category: HomeCategory): CachedRepoResponse? {
         val cached = cacheMutex.withLock { memoryCache[category] }
         if (cached != null) {
             val age = Clock.System.now() - cached.fetchedAt
@@ -77,24 +70,27 @@ class CachedRepositoriesDataSourceImpl(
         }
 
         return withContext(Dispatchers.IO) {
-            val platformName = when (platform) {
-                Platform.ANDROID -> "android"
-                Platform.WINDOWS -> "windows"
-                Platform.MACOS -> "macos"
-                Platform.LINUX -> "linux"
-            }
+            val platformName =
+                when (platform) {
+                    Platform.ANDROID -> "android"
+                    Platform.WINDOWS -> "windows"
+                    Platform.MACOS -> "macos"
+                    Platform.LINUX -> "linux"
+                }
 
-            val path = when (category) {
-                HomeCategory.TRENDING -> "cached-data/trending/$platformName.json"
-                HomeCategory.HOT_RELEASE -> "cached-data/new-releases/$platformName.json"
-                HomeCategory.MOST_POPULAR -> "cached-data/most-popular/$platformName.json"
-            }
+            val path =
+                when (category) {
+                    HomeCategory.TRENDING -> "cached-data/trending/$platformName.json"
+                    HomeCategory.HOT_RELEASE -> "cached-data/new-releases/$platformName.json"
+                    HomeCategory.MOST_POPULAR -> "cached-data/most-popular/$platformName.json"
+                }
 
-            val mirrorUrls = listOf(
-                "https://raw.githubusercontent.com/OpenHub-Store/api/main/$path",
-                "https://cdn.jsdelivr.net/gh/OpenHub-Store/api@main/$path",
-                "https://cdn.statically.io/gh/OpenHub-Store/api/main/$path"
-            )
+            val mirrorUrls =
+                listOf(
+                    "https://raw.githubusercontent.com/OpenHub-Store/api/main/$path",
+                    "https://cdn.jsdelivr.net/gh/OpenHub-Store/api@main/$path",
+                    "https://cdn.statically.io/gh/OpenHub-Store/api/main/$path",
+                )
 
             for (url in mirrorUrls) {
                 try {
@@ -106,10 +102,11 @@ class CachedRepositoriesDataSourceImpl(
                         val parsed = json.decodeFromString<CachedRepoResponse>(responseText)
 
                         cacheMutex.withLock {
-                            memoryCache[category] = CacheEntry(
-                                data = parsed,
-                                fetchedAt = Clock.System.now()
-                            )
+                            memoryCache[category] =
+                                CacheEntry(
+                                    data = parsed,
+                                    fetchedAt = Clock.System.now(),
+                                )
                         }
 
                         return@withContext parsed

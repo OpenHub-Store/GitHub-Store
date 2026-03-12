@@ -3,8 +3,8 @@ package zed.rainxch.core.data.mappers
 import zed.rainxch.core.data.local.db.entities.InstalledAppEntity
 import zed.rainxch.core.domain.model.InstalledApp
 
-fun InstalledApp.toEntity(): InstalledAppEntity {
-    return InstalledAppEntity(
+fun InstalledApp.toEntity(): InstalledAppEntity =
+    InstalledAppEntity(
         packageName = packageName,
         repoId = repoId,
         repoName = repoName,
@@ -34,12 +34,11 @@ fun InstalledApp.toEntity(): InstalledAppEntity {
         installedVersionName = installedVersionName,
         installedVersionCode = installedVersionCode,
         latestVersionName = latestVersionName,
-        latestVersionCode = latestVersionCode
+        latestVersionCode = latestVersionCode,
     )
-}
 
-fun InstalledAppEntity.toDomain(): InstalledApp {
-    return InstalledApp(
+fun InstalledAppEntity.toDomain(): InstalledApp =
+    InstalledApp(
         packageName = packageName,
         repoId = repoId,
         repoName = repoName,
@@ -69,6 +68,5 @@ fun InstalledAppEntity.toDomain(): InstalledApp {
         installedVersionName = installedVersionName,
         installedVersionCode = installedVersionCode,
         latestVersionName = latestVersionName,
-        latestVersionCode = latestVersionCode
+        latestVersionCode = latestVersionCode,
     )
-}

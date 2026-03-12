@@ -10,6 +10,6 @@ fun LazyListScope.settings(
 ) {
     appearanceSection(
         state = state,
-        onAction = onAction
+        onAction = onAction,
     )
 }

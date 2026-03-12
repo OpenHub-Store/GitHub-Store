@@ -16,17 +16,17 @@ import zed.rainxch.core.data.cache.CacheManager.CacheTtl.RELEASES
 import zed.rainxch.core.data.cache.CacheManager.CacheTtl.REPO_DETAILS
 import zed.rainxch.core.data.cache.CacheManager.CacheTtl.REPO_STATS
 import zed.rainxch.core.data.cache.CacheManager.CacheTtl.USER_PROFILE
-import zed.rainxch.core.data.network.executeRequest
-import zed.rainxch.core.data.services.LocalizationManager
-import zed.rainxch.core.domain.model.GithubRelease
-import zed.rainxch.core.domain.model.GithubRepoSummary
-import zed.rainxch.core.domain.model.GithubUser
 import zed.rainxch.core.data.dto.ReleaseNetwork
 import zed.rainxch.core.data.dto.RepoByIdNetwork
 import zed.rainxch.core.data.dto.RepoInfoNetwork
 import zed.rainxch.core.data.dto.UserProfileNetwork
-import zed.rainxch.core.domain.logging.GitHubStoreLogger
 import zed.rainxch.core.data.mappers.toDomain
+import zed.rainxch.core.data.network.executeRequest
+import zed.rainxch.core.data.services.LocalizationManager
+import zed.rainxch.core.domain.logging.GitHubStoreLogger
+import zed.rainxch.core.domain.model.GithubRelease
+import zed.rainxch.core.domain.model.GithubRepoSummary
+import zed.rainxch.core.domain.model.GithubUser
 import zed.rainxch.core.domain.model.GithubUserProfile
 import zed.rainxch.details.data.utils.ReadmeLocalizationHelper
 import zed.rainxch.details.data.utils.preprocessMarkdown
@@ -37,40 +37,39 @@ class DetailsRepositoryImpl(
     private val httpClient: HttpClient,
     private val localizationManager: LocalizationManager,
     private val logger: GitHubStoreLogger,
-    private val cacheManager: CacheManager
+    private val cacheManager: CacheManager,
 ) : DetailsRepository {
-
     @Serializable
     private data class CachedReadme(
         val content: String,
         val languageCode: String?,
-        val path: String
+        val path: String,
     )
 
     private val readmeHelper = ReadmeLocalizationHelper(localizationManager)
 
-    private fun RepoByIdNetwork.toGithubRepoSummary(): GithubRepoSummary {
-        return GithubRepoSummary(
+    private fun RepoByIdNetwork.toGithubRepoSummary(): GithubRepoSummary =
+        GithubRepoSummary(
             id = id,
             name = name,
             fullName = fullName,
-            owner = GithubUser(
-                id = owner.id,
-                login = owner.login,
-                avatarUrl = owner.avatarUrl,
-                htmlUrl = owner.htmlUrl
-            ),
+            owner =
+                GithubUser(
+                    id = owner.id,
+                    login = owner.login,
+                    avatarUrl = owner.avatarUrl,
+                    htmlUrl = owner.htmlUrl,
+                ),
             description = description,
             htmlUrl = htmlUrl,
             stargazersCount = stars,
             forksCount = forks,
             language = language,
             topics = topics,
-            releasesUrl = "https://api.github.com/repos/${owner.login}/${name}/releases{/id}",
+            releasesUrl = "https://api.github.com/repos/${owner.login}/$name/releases{/id}",
             updatedAt = updatedAt,
-            defaultBranch = defaultBranch
+            defaultBranch = defaultBranch,
         )
-    }
 
     override suspend fun getRepositoryById(id: Long): GithubRepoSummary {
         val cacheKey = "details:repo_id:$id"
@@ -81,11 +80,14 @@ class DetailsRepositoryImpl(
         }
 
         return try {
-            val result = httpClient.executeRequest<RepoByIdNetwork> {
-                get("/repositories/$id") {
-                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                }
-            }.getOrThrow().toGithubRepoSummary()
+            val result =
+                httpClient
+                    .executeRequest<RepoByIdNetwork> {
+                        get("/repositories/$id") {
+                            header(HttpHeaders.Accept, "application/vnd.github+json")
+                        }
+                    }.getOrThrow()
+                    .toGithubRepoSummary()
             cacheManager.put(cacheKey, result, REPO_DETAILS)
             result
         } catch (e: Exception) {
@@ -95,12 +97,11 @@ class DetailsRepositoryImpl(
             }
             throw e
         }
-
     }
 
     override suspend fun getRepositoryByOwnerAndName(
         owner: String,
-        name: String
+        name: String,
     ): GithubRepoSummary {
         val cacheKey = "details:repo:$owner/$name"
 
@@ -110,11 +111,14 @@ class DetailsRepositoryImpl(
         }
 
         return try {
-            val result = httpClient.executeRequest<RepoByIdNetwork> {
-                get("/repos/$owner/$name") {
-                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                }
-            }.getOrThrow().toGithubRepoSummary()
+            val result =
+                httpClient
+                    .executeRequest<RepoByIdNetwork> {
+                        get("/repos/$owner/$name") {
+                            header(HttpHeaders.Accept, "application/vnd.github+json")
+                        }
+                    }.getOrThrow()
+                    .toGithubRepoSummary()
 
             cacheManager.put(cacheKey, result, REPO_DETAILS)
             result
@@ -130,7 +134,7 @@ class DetailsRepositoryImpl(
     override suspend fun getLatestPublishedRelease(
         owner: String,
         repo: String,
-        defaultBranch: String
+        defaultBranch: String,
     ): GithubRelease? {
         val cacheKey = "details:latest_release:$owner/$repo"
 
@@ -140,22 +144,27 @@ class DetailsRepositoryImpl(
         }
 
         return try {
-            val releases = httpClient.executeRequest<List<ReleaseNetwork>> {
-                get("/repos/$owner/$repo/releases") {
-                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                    parameter("per_page", 10)
-                }
-            }.getOrNull() ?: return null
+            val releases =
+                httpClient
+                    .executeRequest<List<ReleaseNetwork>> {
+                        get("/repos/$owner/$repo/releases") {
+                            header(HttpHeaders.Accept, "application/vnd.github+json")
+                            parameter("per_page", 10)
+                        }
+                    }.getOrNull() ?: return null
 
-            val latest = releases
-                .asSequence()
-                .filter { (it.draft != true) && (it.prerelease != true) }
-                .maxByOrNull { it.publishedAt ?: it.createdAt ?: "" }
-                ?: return null
+            val latest =
+                releases
+                    .asSequence()
+                    .filter { (it.draft != true) && (it.prerelease != true) }
+                    .maxByOrNull { it.publishedAt ?: it.createdAt ?: "" }
+                    ?: return null
 
-            val result = latest.copy(
-                body = processReleaseBody(latest.body, owner, repo, defaultBranch)
-            ).toDomain()
+            val result =
+                latest
+                    .copy(
+                        body = processReleaseBody(latest.body, owner, repo, defaultBranch),
+                    ).toDomain()
 
             cacheManager.put(cacheKey, result, RELEASES)
             result
@@ -171,7 +180,7 @@ class DetailsRepositoryImpl(
     override suspend fun getAllReleases(
         owner: String,
         repo: String,
-        defaultBranch: String
+        defaultBranch: String,
     ): List<GithubRelease> {
         val cacheKey = "details:releases:$owner/$repo"
 
@@ -183,21 +192,24 @@ class DetailsRepositoryImpl(
         }
 
         return try {
-            val releases = httpClient.executeRequest<List<ReleaseNetwork>> {
-                get("/repos/$owner/$repo/releases") {
-                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                    parameter("per_page", 30)
-                }
-            }.getOrNull() ?: return emptyList()
+            val releases =
+                httpClient
+                    .executeRequest<List<ReleaseNetwork>> {
+                        get("/repos/$owner/$repo/releases") {
+                            header(HttpHeaders.Accept, "application/vnd.github+json")
+                            parameter("per_page", 30)
+                        }
+                    }.getOrNull() ?: return emptyList()
 
-            val result = releases
-                .filter { it.draft != true }
-                .map { release ->
-                    release.copy(
-                        body = processReleaseBody(release.body, owner, repo, defaultBranch)
-                    ).toDomain()
-                }
-                .sortedByDescending { it.publishedAt }
+            val result =
+                releases
+                    .filter { it.draft != true }
+                    .map { release ->
+                        release
+                            .copy(
+                                body = processReleaseBody(release.body, owner, repo, defaultBranch),
+                            ).toDomain()
+                    }.sortedByDescending { it.publishedAt }
 
             if (result.isNotEmpty()) {
                 cacheManager.put(cacheKey, result, RELEASES)
@@ -216,9 +228,10 @@ class DetailsRepositoryImpl(
         body: String?,
         owner: String,
         repo: String,
-        defaultBranch: String
-    ): String? {
-        return body?.replace("<details>", "")
+        defaultBranch: String,
+    ): String? =
+        body
+            ?.replace("<details>", "")
             ?.replace("</details>", "")
             ?.replace("<summary>", "")
             ?.replace("</summary>", "")
@@ -226,16 +239,14 @@ class DetailsRepositoryImpl(
             ?.let { rawMarkdown ->
                 preprocessMarkdown(
                     markdown = rawMarkdown,
-                    baseUrl = "https://raw.githubusercontent.com/$owner/$repo/${defaultBranch}/"
+                    baseUrl = "https://raw.githubusercontent.com/$owner/$repo/$defaultBranch/",
                 )
             }
-    }
-
 
     override suspend fun getReadme(
         owner: String,
         repo: String,
-        defaultBranch: String
+        defaultBranch: String,
     ): Triple<String, String?, String>? {
         val cacheKey = "details:readme:$owner/$repo"
 
@@ -247,11 +258,12 @@ class DetailsRepositoryImpl(
         val result = fetchReadmeFromApi(owner, repo, defaultBranch)
 
         if (result != null) {
-            val cachedReadme = CachedReadme(
-                content = result.first,
-                languageCode = result.second,
-                path = result.third
-            )
+            val cachedReadme =
+                CachedReadme(
+                    content = result.first,
+                    languageCode = result.second,
+                    path = result.third,
+                )
             cacheManager.put(cacheKey, cachedReadme, README)
         }
 
@@ -261,118 +273,131 @@ class DetailsRepositoryImpl(
     private suspend fun fetchReadmeFromApi(
         owner: String,
         repo: String,
-        defaultBranch: String
+        defaultBranch: String,
     ): Triple<String, String?, String>? {
         val attempts = readmeHelper.generateReadmeAttempts()
         val baseUrl = "https://raw.githubusercontent.com/$owner/$repo/$defaultBranch/"
         val primaryLang = localizationManager.getPrimaryLanguageCode()
 
         logger.debug(
-            "Attempting to fetch README for language preference: ${localizationManager.getCurrentLanguageCode()}"
+            "Attempting to fetch README for language preference: ${localizationManager.getCurrentLanguageCode()}",
         )
 
-        val foundReadmes = coroutineScope {
-            attempts.map { attempt ->
-                async(start = CoroutineStart.LAZY) {
-                    try {
-                        logger.debug("Trying ${attempt.path} (priority: ${attempt.priority})...")
+        val foundReadmes =
+            coroutineScope {
+                attempts
+                    .map { attempt ->
+                        async(start = CoroutineStart.LAZY) {
+                            try {
+                                logger.debug("Trying ${attempt.path} (priority: ${attempt.priority})...")
 
-                        val rawMarkdown = httpClient.executeRequest<String> {
-                            get("$baseUrl${attempt.path}")
-                        }.getOrNull()
+                                val rawMarkdown =
+                                    httpClient
+                                        .executeRequest<String> {
+                                            get("$baseUrl${attempt.path}")
+                                        }.getOrNull()
 
-                        if (rawMarkdown != null) {
-                            logger.debug("Successfully fetched ${attempt.path}")
+                                if (rawMarkdown != null) {
+                                    logger.debug("Successfully fetched ${attempt.path}")
 
-                            val processed = preprocessMarkdown(
-                                markdown = rawMarkdown,
-                                baseUrl = baseUrl
-                            )
+                                    val processed =
+                                        preprocessMarkdown(
+                                            markdown = rawMarkdown,
+                                            baseUrl = baseUrl,
+                                        )
 
-                            val detectedLang = readmeHelper.detectReadmeLanguage(processed)
-                            logger.debug("Detected language: ${detectedLang ?: "unknown"} for ${attempt.path}")
+                                    val detectedLang = readmeHelper.detectReadmeLanguage(processed)
+                                    logger.debug("Detected language: ${detectedLang ?: "unknown"} for ${attempt.path}")
 
-                            attempt to Pair(processed, detectedLang)
-                        } else {
-                            null
+                                    attempt to Pair(processed, detectedLang)
+                                } else {
+                                    null
+                                }
+                            } catch (e: Throwable) {
+                                logger.debug("Failed to fetch ${attempt.path}: ${e.message}")
+                                null
+                            }
                         }
-                    } catch (e: Throwable) {
-                        logger.debug("Failed to fetch ${attempt.path}: ${e.message}")
-                        null
-                    }
-                }
-            }.also { asyncTasks ->
-                asyncTasks.take(6).forEach { it.start() }
-            }.awaitAll()
-                .filterNotNull()
-                .associateBy({ it.first }, { it.second })
-        }
+                    }.also { asyncTasks ->
+                        asyncTasks.take(6).forEach { it.start() }
+                    }.awaitAll()
+                    .filterNotNull()
+                    .associateBy({ it.first }, { it.second })
+            }
 
         if (foundReadmes.isEmpty()) {
             logger.error("Failed to fetch any README variant.")
             return null
         }
 
-        foundReadmes.entries.firstOrNull { (attempt, content) ->
-            attempt.filename != "README.md" && content.second == primaryLang
-        }?.let { (attempt, content) ->
-            logger.debug("Found localized README matching user language: ${attempt.path}")
-            return Triple(content.first, content.second, attempt.path)
-        }
+        foundReadmes.entries
+            .firstOrNull { (attempt, content) ->
+                attempt.filename != "README.md" && content.second == primaryLang
+            }?.let { (attempt, content) ->
+                logger.debug("Found localized README matching user language: ${attempt.path}")
+                return Triple(content.first, content.second, attempt.path)
+            }
 
-        foundReadmes.entries.firstOrNull { (attempt, _) ->
-            attempt.filename.contains(".${primaryLang}.", ignoreCase = true) ||
+        foundReadmes.entries
+            .firstOrNull { (attempt, _) ->
+                attempt.filename.contains(".$primaryLang.", ignoreCase = true) ||
                     attempt.filename.contains("-${primaryLang.uppercase()}.", ignoreCase = true)
-        }?.let { (attempt, content) ->
-            logger.debug("Found explicit language file for user: ${attempt.path}")
-            return Triple(content.first, content.second ?: primaryLang, attempt.path)
-        }
-
-        foundReadmes.entries.firstOrNull { (attempt, content) ->
-            attempt.filename == "README.md" && content.second == primaryLang
-        }?.let { (attempt, content) ->
-            logger.debug("Default README matches user language: ${attempt.path}")
-            return Triple(content.first, content.second, attempt.path)
-        }
-
-        if (primaryLang == "en") {
-            foundReadmes.entries.firstOrNull { (_, content) ->
-                content.second == "en"
             }?.let { (attempt, content) ->
-                logger.debug("Found English README for English user: ${attempt.path}")
+                logger.debug("Found explicit language file for user: ${attempt.path}")
+                return Triple(content.first, content.second ?: primaryLang, attempt.path)
+            }
+
+        foundReadmes.entries
+            .firstOrNull { (attempt, content) ->
+                attempt.filename == "README.md" && content.second == primaryLang
+            }?.let { (attempt, content) ->
+                logger.debug("Default README matches user language: ${attempt.path}")
                 return Triple(content.first, content.second, attempt.path)
             }
-        }
-
-        foundReadmes.entries.firstOrNull { (_, content) ->
-            content.second == primaryLang
-        }?.let { (attempt, content) ->
-            logger.debug("Fallback: Using README matching user language: ${attempt.path}")
-            return Triple(content.first, content.second, attempt.path)
-        }
 
         if (primaryLang == "en") {
-            foundReadmes.entries.firstOrNull { (_, content) ->
-                content.second == "en"
+            foundReadmes.entries
+                .firstOrNull { (_, content) ->
+                    content.second == "en"
+                }?.let { (attempt, content) ->
+                    logger.debug("Found English README for English user: ${attempt.path}")
+                    return Triple(content.first, content.second, attempt.path)
+                }
+        }
+
+        foundReadmes.entries
+            .firstOrNull { (_, content) ->
+                content.second == primaryLang
             }?.let { (attempt, content) ->
-                logger.debug("Fallback: Using English README: ${attempt.path}")
+                logger.debug("Fallback: Using README matching user language: ${attempt.path}")
                 return Triple(content.first, content.second, attempt.path)
             }
+
+        if (primaryLang == "en") {
+            foundReadmes.entries
+                .firstOrNull { (_, content) ->
+                    content.second == "en"
+                }?.let { (attempt, content) ->
+                    logger.debug("Fallback: Using English README: ${attempt.path}")
+                    return Triple(content.first, content.second, attempt.path)
+                }
         }
 
-        foundReadmes.entries.firstOrNull { (attempt, _) ->
-            attempt.path == "README.md"
-        }?.let { (attempt, content) ->
-            logger.debug("Fallback: Using root README.md (language: ${content.second}): ${attempt.path}")
-            return Triple(content.first, content.second, attempt.path)
-        }
+        foundReadmes.entries
+            .firstOrNull { (attempt, _) ->
+                attempt.path == "README.md"
+            }?.let { (attempt, content) ->
+                logger.debug("Fallback: Using root README.md (language: ${content.second}): ${attempt.path}")
+                return Triple(content.first, content.second, attempt.path)
+            }
 
-        foundReadmes.entries.firstOrNull { (attempt, _) ->
-            attempt.path.startsWith(".github/")
-        }?.let { (attempt, content) ->
-            logger.debug("Fallback: Using .github README: ${attempt.path}")
-            return Triple(content.first, content.second, attempt.path)
-        }
+        foundReadmes.entries
+            .firstOrNull { (attempt, _) ->
+                attempt.path.startsWith(".github/")
+            }?.let { (attempt, content) ->
+                logger.debug("Fallback: Using .github README: ${attempt.path}")
+                return Triple(content.first, content.second, attempt.path)
+            }
 
         foundReadmes.entries.minByOrNull { it.key.priority }?.let { (attempt, content) ->
             logger.debug("Fallback: Using highest priority README: ${attempt.path}")
@@ -382,7 +407,10 @@ class DetailsRepositoryImpl(
         return null
     }
 
-    override suspend fun getRepoStats(owner: String, repo: String): RepoStats {
+    override suspend fun getRepoStats(
+        owner: String,
+        repo: String,
+    ): RepoStats {
         val cacheKey = "details:stats:$owner/$repo"
 
         cacheManager.get<RepoStats>(cacheKey)?.let { cached ->
@@ -391,17 +419,20 @@ class DetailsRepositoryImpl(
         }
 
         return try {
-            val info = httpClient.executeRequest<RepoInfoNetwork> {
-                get("/repos/$owner/$repo") {
-                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                }
-            }.getOrThrow()
+            val info =
+                httpClient
+                    .executeRequest<RepoInfoNetwork> {
+                        get("/repos/$owner/$repo") {
+                            header(HttpHeaders.Accept, "application/vnd.github+json")
+                        }
+                    }.getOrThrow()
 
-            val result = RepoStats(
-                stars = info.stars,
-                forks = info.forks,
-                openIssues = info.openIssues,
-            )
+            val result =
+                RepoStats(
+                    stars = info.stars,
+                    forks = info.forks,
+                    openIssues = info.openIssues,
+                )
 
             cacheManager.put(cacheKey, result, REPO_STATS)
             result
@@ -423,27 +454,30 @@ class DetailsRepositoryImpl(
         }
 
         return try {
-            val user = httpClient.executeRequest<UserProfileNetwork> {
-                get("/users/$username") {
-                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                }
-            }.getOrThrow()
+            val user =
+                httpClient
+                    .executeRequest<UserProfileNetwork> {
+                        get("/users/$username") {
+                            header(HttpHeaders.Accept, "application/vnd.github+json")
+                        }
+                    }.getOrThrow()
 
-            val result = GithubUserProfile(
-                id = user.id,
-                login = user.login,
-                name = user.name,
-                bio = user.bio,
-                avatarUrl = user.avatarUrl,
-                htmlUrl = user.htmlUrl,
-                followers = user.followers,
-                following = user.following,
-                publicRepos = user.publicRepos,
-                location = user.location,
-                company = user.company,
-                blog = user.blog,
-                twitterUsername = user.twitterUsername
-            )
+            val result =
+                GithubUserProfile(
+                    id = user.id,
+                    login = user.login,
+                    name = user.name,
+                    bio = user.bio,
+                    avatarUrl = user.avatarUrl,
+                    htmlUrl = user.htmlUrl,
+                    followers = user.followers,
+                    following = user.following,
+                    publicRepos = user.publicRepos,
+                    location = user.location,
+                    company = user.company,
+                    blog = user.blog,
+                    twitterUsername = user.twitterUsername,
+                )
 
             cacheManager.put(cacheKey, result, USER_PROFILE)
             result

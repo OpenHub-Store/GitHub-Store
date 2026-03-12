@@ -13,5 +13,5 @@ data class AppsState(
     val updateAllButtonEnabled: Boolean = true,
     val isCheckingForUpdates: Boolean = false,
     val lastCheckedTimestamp: Long? = null,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
 )

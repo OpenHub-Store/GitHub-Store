@@ -41,14 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.starred.presentation.components.StarredRepositoryItem
 import zed.rainxch.starred.presentation.utils.formatRelativeTime
 import kotlin.time.ExperimentalTime
@@ -59,7 +59,7 @@ fun StarredReposRoot(
     onNavigateToDetails: (repoId: Long) -> Unit,
     onNavigateToDeveloperProfile: (username: String) -> Unit,
     onNavigateToAuthentication: () -> Unit,
-    viewModel: StarredReposViewModel = koinViewModel()
+    viewModel: StarredReposViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -73,7 +73,7 @@ fun StarredReposRoot(
                 StarredReposAction.OnSignInClick -> onNavigateToAuthentication()
                 else -> viewModel.onAction(action)
             }
-        }
+        },
     )
 }
 
@@ -90,15 +90,16 @@ fun StarredScreen(
             StarredTopBar(
                 lastSyncTime = state.lastSyncTime,
                 isSyncing = state.isSyncing,
-                onAction = onAction
+                onAction = onAction,
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             when {
                 !state.isAuthenticated -> {
@@ -110,13 +111,13 @@ fun StarredScreen(
                         onActionClick = {
                             onAction(StarredReposAction.OnSignInClick)
                         },
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
 
                 state.isLoading -> {
                     CircularWavyProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
 
@@ -126,12 +127,15 @@ fun StarredScreen(
                         message = stringResource(Res.string.star_repos_hint),
                         icon = Icons.Default.Star,
                         actionText = if (state.errorMessage != null) stringResource(Res.string.retry) else null,
-                        onActionClick = if (state.errorMessage != null) {
-                            {
-                                onAction(StarredReposAction.OnRetrySync)
-                            }
-                        } else null,
-                        modifier = Modifier.align(Alignment.Center)
+                        onActionClick =
+                            if (state.errorMessage != null) {
+                                {
+                                    onAction(StarredReposAction.OnRetrySync)
+                                }
+                            } else {
+                                null
+                            },
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
 
@@ -142,18 +146,18 @@ fun StarredScreen(
                             onAction(StarredReposAction.OnRefresh)
                         },
                         state = pullRefreshState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     ) {
                         LazyVerticalStaggeredGrid(
                             columns = StaggeredGridCells.Adaptive(350.dp),
                             verticalItemSpacing = 12.dp,
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
                         ) {
                             items(
                                 items = state.starredRepositories,
-                                key = { it.repoId }
+                                key = { it.repoId },
                             ) { repo ->
                                 StarredRepositoryItem(
                                     repository = repo,
@@ -166,7 +170,7 @@ fun StarredScreen(
                                     onDevProfileClick = {
                                         onAction(StarredReposAction.OnDeveloperProfileClick(repo.repoOwner))
                                     },
-                                    modifier = Modifier.animateItem()
+                                    modifier = Modifier.animateItem(),
                                 )
                             }
                         }
@@ -176,17 +180,18 @@ fun StarredScreen(
 
             state.errorMessage?.let { message ->
                 Snackbar(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp),
                     action = {
                         TextButton(
                             onClick = {
                                 onAction(StarredReposAction.OnRetrySync)
-                            }
+                            },
                         ) {
                             Text(
-                                text = stringResource(Res.string.retry)
+                                text = stringResource(Res.string.retry),
                             )
                         }
                     },
@@ -194,19 +199,19 @@ fun StarredScreen(
                         IconButton(
                             onClick = {
                                 onAction(StarredReposAction.OnDismissError)
-                            }
+                            },
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(Res.string.dismiss)
+                                contentDescription = stringResource(Res.string.dismiss),
                             )
                         }
-                    }
+                    },
                 ) {
                     Text(
                         text = message,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -229,15 +234,16 @@ private fun StarredTopBar(
                         text = stringResource(Res.string.starred_repositories),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     if (lastSyncTime != null && !isSyncing) {
                         Text(
-                            text = "${stringResource(Res.string.last_synced)}:" +
+                            text =
+                                "${stringResource(Res.string.last_synced)}:" +
                                     " ${formatRelativeTime(lastSyncTime)}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -245,25 +251,26 @@ private fun StarredTopBar(
             navigationIcon = {
                 IconButton(
                     shapes = IconButtonDefaults.shapes(),
-                    onClick = { onAction(StarredReposAction.OnNavigateBackClick) }
+                    onClick = { onAction(StarredReposAction.OnNavigateBackClick) },
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(Res.string.navigate_back),
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             },
             actions = {
                 if (isSyncing) {
                     CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(end = 12.dp),
-                        strokeWidth = 2.dp
+                        modifier =
+                            Modifier
+                                .size(24.dp)
+                                .padding(end = 12.dp),
+                        strokeWidth = 2.dp,
                     )
                 }
-            }
+            },
         )
     }
 }
@@ -275,18 +282,18 @@ private fun EmptyStateContent(
     icon: ImageVector,
     modifier: Modifier = Modifier,
     actionText: String? = null,
-    onActionClick: (() -> Unit)? = null
+    onActionClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -295,7 +302,7 @@ private fun EmptyStateContent(
             text = title,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -304,7 +311,7 @@ private fun EmptyStateContent(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         if (actionText != null && onActionClick != null) {
@@ -322,11 +329,12 @@ private fun EmptyStateContent(
 private fun PreviewStarred() {
     GithubStoreTheme {
         StarredScreen(
-            state = StarredReposState(
-                starredRepositories = persistentListOf(),
-                isAuthenticated = true
-            ),
-            onAction = {}
+            state =
+                StarredReposState(
+                    starredRepositories = persistentListOf(),
+                    isAuthenticated = true,
+                ),
+            onAction = {},
         )
     }
 }

@@ -6,9 +6,9 @@ import kotlinx.coroutines.withContext
 import zed.rainxch.core.data.model.LinuxPackageType
 import zed.rainxch.core.data.model.LinuxTerminal
 import zed.rainxch.core.domain.model.AssetArchitectureMatcher
-import zed.rainxch.core.domain.model.SystemArchitecture
 import zed.rainxch.core.domain.model.GithubAsset
 import zed.rainxch.core.domain.model.Platform
+import zed.rainxch.core.domain.model.SystemArchitecture
 import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.system.InstallerInfoExtractor
 import java.awt.Desktop
@@ -21,9 +21,8 @@ import kotlin.getValue
 
 class DesktopInstaller(
     private val platform: Platform,
-    private val installerInfoExtractor: InstallerInfoExtractor
+    private val installerInfoExtractor: InstallerInfoExtractor,
 ) : Installer {
-
     private val linuxPackageType: LinuxPackageType by lazy {
         determineLinuxPackageType()
     }
@@ -32,28 +31,25 @@ class DesktopInstaller(
         determineSystemArchitecture()
     }
 
-    override fun getApkInfoExtractor(): InstallerInfoExtractor {
-        return installerInfoExtractor
-    }
+    override fun getApkInfoExtractor(): InstallerInfoExtractor = installerInfoExtractor
 
     override fun detectSystemArchitecture(): SystemArchitecture = systemArchitecture
-    override fun isObtainiumInstalled(): Boolean {
-        return false
+
+    override fun isObtainiumInstalled(): Boolean = false
+
+    override fun openInObtainium(
+        repoOwner: String,
+        repoName: String,
+        onOpenInstaller: () -> Unit,
+    ) {
     }
 
-    override fun openInObtainium(repoOwner: String, repoName: String, onOpenInstaller: () -> Unit) {
-
-    }
-
-    override fun isAppManagerInstalled(): Boolean {
-        return false
-    }
+    override fun isAppManagerInstalled(): Boolean = false
 
     override fun openInAppManager(
         filePath: String,
-        onOpenInstaller: () -> Unit
+        onOpenInstaller: () -> Unit,
     ) {
-
     }
 
     override fun openApp(packageName: String): Boolean {
@@ -69,14 +65,24 @@ class DesktopInstaller(
     override fun isAssetInstallable(assetName: String): Boolean {
         val name = assetName.lowercase()
 
-        val hasValidExtension = when (platform) {
-            Platform.ANDROID -> name.endsWith(".apk")
-            Platform.WINDOWS -> name.endsWith(".msi") || name.endsWith(".exe")
-            Platform.MACOS -> name.endsWith(".dmg") || name.endsWith(".pkg")
-            Platform.LINUX -> {
-                name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
+        val hasValidExtension =
+            when (platform) {
+                Platform.ANDROID -> {
+                    name.endsWith(".apk")
+                }
+
+                Platform.WINDOWS -> {
+                    name.endsWith(".msi") || name.endsWith(".exe")
+                }
+
+                Platform.MACOS -> {
+                    name.endsWith(".dmg") || name.endsWith(".pkg")
+                }
+
+                Platform.LINUX -> {
+                    name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
+                }
             }
-        }
 
         if (!hasValidExtension) return false
 
@@ -86,46 +92,53 @@ class DesktopInstaller(
     override fun choosePrimaryAsset(assets: List<GithubAsset>): GithubAsset? {
         if (assets.isEmpty()) return null
 
-        val priority = when (platform) {
-            Platform.ANDROID -> listOf(".apk")
-            Platform.WINDOWS -> listOf(".msi", ".exe")
-            Platform.MACOS -> listOf(".dmg", ".pkg")
-            Platform.LINUX -> {
-                when (linuxPackageType) {
-                    LinuxPackageType.DEB -> listOf(".appimage", ".deb", ".rpm")
-                    LinuxPackageType.RPM -> listOf(".appimage", ".rpm", ".deb")
-                    LinuxPackageType.UNIVERSAL -> listOf(".appimage", ".deb", ".rpm")
+        val priority =
+            when (platform) {
+                Platform.ANDROID -> {
+                    listOf(".apk")
+                }
+
+                Platform.WINDOWS -> {
+                    listOf(".msi", ".exe")
+                }
+
+                Platform.MACOS -> {
+                    listOf(".dmg", ".pkg")
+                }
+
+                Platform.LINUX -> {
+                    when (linuxPackageType) {
+                        LinuxPackageType.DEB -> listOf(".appimage", ".deb", ".rpm")
+                        LinuxPackageType.RPM -> listOf(".appimage", ".rpm", ".deb")
+                        LinuxPackageType.UNIVERSAL -> listOf(".appimage", ".deb", ".rpm")
+                    }
                 }
             }
-        }
 
-
-        val compatibleAssets = assets.filter { asset ->
-            isArchitectureCompatible(asset.name.lowercase(), systemArchitecture)
-        }
-
+        val compatibleAssets =
+            assets.filter { asset ->
+                isArchitectureCompatible(asset.name.lowercase(), systemArchitecture)
+            }
 
         val assetsToConsider = compatibleAssets.ifEmpty { assets }
-
 
         return assetsToConsider.maxByOrNull { asset ->
             val name = asset.name.lowercase()
 
-
             val extensionIdx = priority.indexOfFirst { name.endsWith(it) }
-            val extensionScore = if (extensionIdx == -1) {
-                -100000
-            } else {
-                (priority.size - extensionIdx) * 10000
-            }
+            val extensionScore =
+                if (extensionIdx == -1) {
+                    -100000
+                } else {
+                    (priority.size - extensionIdx) * 10000
+                }
 
-
-            val archScore = if (isExactArchitectureMatch(name, systemArchitecture)) {
-                1000
-            } else {
-                0
-            }
-
+            val archScore =
+                if (isExactArchitectureMatch(name, systemArchitecture)) {
+                    1000
+                } else {
+                    0
+                }
 
             val sizeScore = (asset.size / 1000000).coerceAtMost(100)
 
@@ -137,7 +150,11 @@ class DesktopInstaller(
         if (platform == Platform.MACOS) {
             try {
                 val process = ProcessBuilder("uname", "-m").start()
-                val output = process.inputStream.bufferedReader().readText().trim()
+                val output =
+                    process.inputStream
+                        .bufferedReader()
+                        .readText()
+                        .trim()
                 process.waitFor()
 
                 return when (output) {
@@ -157,12 +174,10 @@ class DesktopInstaller(
         if (platform != Platform.LINUX) return LinuxPackageType.UNIVERSAL
 
         return try {
-
             val osRelease = tryReadOsRelease()
             if (osRelease != null) {
                 val idLike = osRelease["ID_LIKE"]?.lowercase() ?: ""
                 val id = osRelease["ID"]?.lowercase() ?: ""
-
 
                 if (id in listOf("debian", "ubuntu", "linuxmint", "pop", "elementary") ||
                     idLike.contains("debian") || idLike.contains("ubuntu")
@@ -171,15 +186,15 @@ class DesktopInstaller(
                     return LinuxPackageType.DEB
                 }
 
-
-                if (id in listOf(
+                if (id in
+                    listOf(
                         "fedora",
                         "rhel",
                         "centos",
                         "rocky",
                         "almalinux",
                         "opensuse",
-                        "suse"
+                        "suse",
                     ) ||
                     idLike.contains("fedora") || idLike.contains("rhel") ||
                     idLike.contains("suse") || idLike.contains("centos")
@@ -188,7 +203,6 @@ class DesktopInstaller(
                     return LinuxPackageType.RPM
                 }
             }
-
 
             if (commandExists("apt") || commandExists("apt-get")) {
                 Logger.d { "Detected package manager: apt" }
@@ -219,10 +233,11 @@ class DesktopInstaller(
     }
 
     private fun tryReadOsRelease(): Map<String, String>? {
-        val osReleaseFiles = listOf(
-            "/etc/os-release",
-            "/usr/lib/os-release"
-        )
+        val osReleaseFiles =
+            listOf(
+                "/etc/os-release",
+                "/usr/lib/os-release",
+            )
 
         for (filePath in osReleaseFiles) {
             try {
@@ -254,16 +269,18 @@ class DesktopInstaller(
         return result
     }
 
-    private fun commandExists(command: String): Boolean {
-        return try {
+    private fun commandExists(command: String): Boolean =
+        try {
             val process = ProcessBuilder("which", command).start()
             process.waitFor() == 0
         } catch (_: Exception) {
             false
         }
-    }
 
-    private fun isArchitectureCompatible(assetName: String, systemArch: SystemArchitecture): Boolean {
+    private fun isArchitectureCompatible(
+        assetName: String,
+        systemArch: SystemArchitecture,
+    ): Boolean {
         val name = assetName.lowercase()
 
         if (platform == Platform.MACOS) {
@@ -281,9 +298,10 @@ class DesktopInstaller(
         return AssetArchitectureMatcher.isCompatible(name, systemArch)
     }
 
-    private fun isExactArchitectureMatch(assetName: String, systemArch: SystemArchitecture): Boolean {
-        return AssetArchitectureMatcher.isExactMatch(assetName, systemArch)
-    }
+    private fun isExactArchitectureMatch(
+        assetName: String,
+        systemArch: SystemArchitecture,
+    ): Boolean = AssetArchitectureMatcher.isExactMatch(assetName, systemArch)
 
     override suspend fun isSupported(extOrMime: String): Boolean {
         val ext = extOrMime.lowercase().removePrefix(".")
@@ -295,60 +313,66 @@ class DesktopInstaller(
         }
     }
 
-    override suspend fun ensurePermissionsOrThrow(extOrMime: String) = withContext(Dispatchers.IO) {
-        val ext = extOrMime.lowercase().removePrefix(".")
+    override suspend fun ensurePermissionsOrThrow(extOrMime: String) =
+        withContext(Dispatchers.IO) {
+            val ext = extOrMime.lowercase().removePrefix(".")
 
-        if (platform == Platform.LINUX && ext == "appimage") {
-            try {
-                val tempFile = File.createTempFile("appimage_perm_test", ".tmp")
+            if (platform == Platform.LINUX && ext == "appimage") {
                 try {
-                    val canSetExecutable = tempFile.setExecutable(true)
-                    if (!canSetExecutable) {
-                        throw IllegalStateException(
-                            "Unable to set executable permissions. AppImage installation requires " +
-                                    "the ability to make files executable."
-                        )
+                    val tempFile = File.createTempFile("appimage_perm_test", ".tmp")
+                    try {
+                        val canSetExecutable = tempFile.setExecutable(true)
+                        if (!canSetExecutable) {
+                            throw IllegalStateException(
+                                "Unable to set executable permissions. AppImage installation requires " +
+                                    "the ability to make files executable.",
+                            )
+                        }
+                    } finally {
+                        tempFile.delete()
                     }
-                } finally {
-                    tempFile.delete()
+                } catch (e: IOException) {
+                    throw IllegalStateException(
+                        "Failed to verify permission capabilities for AppImage installation: ${e.message}",
+                        e,
+                    )
+                } catch (e: SecurityException) {
+                    throw IllegalStateException(
+                        "Security restrictions prevent setting executable permissions for AppImage files.",
+                        e,
+                    )
                 }
-            } catch (e: IOException) {
-                throw IllegalStateException(
-                    "Failed to verify permission capabilities for AppImage installation: ${e.message}",
-                    e
-                )
-            } catch (e: SecurityException) {
-                throw IllegalStateException(
-                    "Security restrictions prevent setting executable permissions for AppImage files.",
-                    e
-                )
             }
         }
-    }
 
     override fun uninstall(packageName: String) {
         // Desktop doesn't have a unified uninstall mechanism
         Logger.d { "Uninstall not supported on desktop for: $packageName" }
     }
 
-    override suspend fun install(filePath: String, extOrMime: String) =
-        withContext(Dispatchers.IO) {
-            val file = File(filePath)
-            if (!file.exists()) {
-                throw IllegalStateException("File not found: $filePath")
-            }
-
-            val ext = extOrMime.lowercase().removePrefix(".")
-
-            when (platform) {
-                Platform.WINDOWS -> installWindows(file, ext)
-                Platform.MACOS -> installMacOS(file, ext)
-                Platform.LINUX -> installLinux(file, ext)
-                else -> throw UnsupportedOperationException("Installation not supported on $platform")
-            }
+    override suspend fun install(
+        filePath: String,
+        extOrMime: String,
+    ) = withContext(Dispatchers.IO) {
+        val file = File(filePath)
+        if (!file.exists()) {
+            throw IllegalStateException("File not found: $filePath")
         }
 
-    private fun installWindows(file: File, ext: String) {
+        val ext = extOrMime.lowercase().removePrefix(".")
+
+        when (platform) {
+            Platform.WINDOWS -> installWindows(file, ext)
+            Platform.MACOS -> installMacOS(file, ext)
+            Platform.LINUX -> installLinux(file, ext)
+            else -> throw UnsupportedOperationException("Installation not supported on $platform")
+        }
+    }
+
+    private fun installWindows(
+        file: File,
+        ext: String,
+    ) {
         when (ext) {
             "msi" -> {
                 val pb = ProcessBuilder("msiexec", "/i", file.absolutePath)
@@ -364,11 +388,16 @@ class DesktopInstaller(
                 }
             }
 
-            else -> throw IllegalArgumentException("Unsupported Windows installer: .$ext")
+            else -> {
+                throw IllegalArgumentException("Unsupported Windows installer: .$ext")
+            }
         }
     }
 
-    private fun installMacOS(file: File, ext: String) {
+    private fun installMacOS(
+        file: File,
+        ext: String,
+    ) {
         when (ext) {
             "dmg" -> {
                 val pb = ProcessBuilder("open", file.absolutePath)
@@ -376,15 +405,16 @@ class DesktopInstaller(
 
                 tryShowNotification(
                     title = "Installation Started",
-                    message = "Please drag the application to your Applications folder"
+                    message = "Please drag the application to your Applications folder",
                 )
             }
 
             "pkg" -> {
                 try {
-                    val script = """
-                    do shell script "installer -pkg '${file.absolutePath}' -target /" with administrator privileges
-                """.trimIndent()
+                    val script =
+                        """
+                        do shell script "installer -pkg '${file.absolutePath}' -target /" with administrator privileges
+                        """.trimIndent()
 
                     val pb = ProcessBuilder("osascript", "-e", script)
                     val process = pb.start()
@@ -401,16 +431,22 @@ class DesktopInstaller(
                 }
             }
 
-            else -> throw IllegalArgumentException("Unsupported macOS installer: .$ext")
+            else -> {
+                throw IllegalArgumentException("Unsupported macOS installer: .$ext")
+            }
         }
     }
 
-    private fun tryShowNotification(title: String, message: String) {
+    private fun tryShowNotification(
+        title: String,
+        message: String,
+    ) {
         if (platform == Platform.MACOS) {
             try {
-                val script = """
-                display notification "$message" with title "$title"
-            """.trimIndent()
+                val script =
+                    """
+                    display notification "$message" with title "$title"
+                    """.trimIndent()
                 ProcessBuilder("osascript", "-e", script).start()
             } catch (e: Exception) {
                 Logger.w { "Could not show macOS notification: ${e.message}" }
@@ -421,8 +457,10 @@ class DesktopInstaller(
                     "notify-send",
                     title,
                     message,
-                    "-u", "critical",
-                    "-t", "10000"
+                    "-u",
+                    "critical",
+                    "-t",
+                    "10000",
                 ).start()
             } catch (e: Exception) {
                 Logger.w { "Could not show notification: ${e.message}" }
@@ -430,7 +468,10 @@ class DesktopInstaller(
         }
     }
 
-    private fun installLinux(file: File, ext: String) {
+    private fun installLinux(
+        file: File,
+        ext: String,
+    ) {
         when (ext) {
             "appimage" -> {
                 installAppImage(file)
@@ -444,13 +485,14 @@ class DesktopInstaller(
                 installRpmPackage(file)
             }
 
-            else -> throw IllegalArgumentException("Unsupported Linux installer: .$ext")
+            else -> {
+                throw IllegalArgumentException("Unsupported Linux installer: .$ext")
+            }
         }
     }
 
     private fun installDebPackage(file: File) {
         Logger.d { "Installing DEB package: ${file.absolutePath}" }
-
 
         if (linuxPackageType == LinuxPackageType.RPM) {
             Logger.i { "Detected DEB package on RPM system. Initiating conversion flow." }
@@ -458,19 +500,13 @@ class DesktopInstaller(
             return
         }
 
-        val installMethods = listOf(
-
-            listOf("pkexec", "apt", "install", "-y", file.absolutePath),
-
-
-            listOf("pkexec", "sh", "-c", "dpkg -i '${file.absolutePath}' || apt-get install -f -y"),
-
-
-            listOf("gdebi-gtk", file.absolutePath),
-
-
-            null
-        )
+        val installMethods =
+            listOf(
+                listOf("pkexec", "apt", "install", "-y", file.absolutePath),
+                listOf("pkexec", "sh", "-c", "dpkg -i '${file.absolutePath}' || apt-get install -f -y"),
+                listOf("gdebi-gtk", file.absolutePath),
+                null,
+            )
 
         for (method in installMethods) {
             if (method == null) {
@@ -507,93 +543,86 @@ class DesktopInstaller(
             Logger.e { "No terminal emulator found for conversion" }
             tryShowNotification(
                 "Conversion Required",
-                "Please install 'alien', convert '$filePath' to RPM, and install manually."
+                "Please install 'alien', convert '$filePath' to RPM, and install manually.",
             )
             throw IOException("No terminal found to run Alien conversion.")
         }
 
-        val command = buildString {
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo 'DEB Package on RPM System Detected'; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo ''; ")
-            append("echo 'This package will be converted to RPM format.'; ")
-            append("echo 'This requires the \"alien\" tool.'; ")
-            append("echo ''; ")
+        val command =
+            buildString {
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo 'DEB Package on RPM System Detected'; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo ''; ")
+                append("echo 'This package will be converted to RPM format.'; ")
+                append("echo 'This requires the \"alien\" tool.'; ")
+                append("echo ''; ")
 
+                append("if ! command -v alien &> /dev/null; then ")
+                append("echo 'Installing alien and rpm-build...'; ")
+                append("sudo dnf install -y alien rpm-build 2>/dev/null || ")
+                append("sudo yum install -y alien rpm-build 2>/dev/null || ")
+                append("sudo zypper install -y alien rpm-build 2>/dev/null; ")
+                append("fi; ")
 
-            append("if ! command -v alien &> /dev/null; then ")
-            append("echo 'Installing alien and rpm-build...'; ")
-            append("sudo dnf install -y alien rpm-build 2>/dev/null || ")
-            append("sudo yum install -y alien rpm-build 2>/dev/null || ")
-            append("sudo zypper install -y alien rpm-build 2>/dev/null; ")
-            append("fi; ")
+                append("if ! command -v alien &> /dev/null; then ")
+                append("echo ''; ")
+                append("echo 'ERROR: Failed to install alien.'; ")
+                append("echo 'Please install it manually: sudo dnf install alien rpm-build'; ")
+                append("echo ''; ")
+                append("echo 'Press Enter to close...'; read; exit 1; ")
+                append("fi; ")
 
+                append("echo ''; ")
+                append("echo 'Converting to RPM (this may take a minute)...'; ")
+                append("TMPDIR=/tmp/alien_install_$; ")
+                append($$"mkdir -p \"$TMPDIR\" && cd \"$TMPDIR\" || exit 1; ")
+                append("cp '$filePath' ./package.deb; ")
+                append("sudo alien -r -c package.deb; ")
 
-            append("if ! command -v alien &> /dev/null; then ")
-            append("echo ''; ")
-            append("echo 'ERROR: Failed to install alien.'; ")
-            append("echo 'Please install it manually: sudo dnf install alien rpm-build'; ")
-            append("echo ''; ")
-            append("echo 'Press Enter to close...'; read; exit 1; ")
-            append("fi; ")
+                append("if [ ! -f *.rpm ]; then ")
+                append("echo ''; ")
+                append("echo 'ERROR: Conversion failed.'; ")
+                append($$"cd .. && rm -rf \"$TMPDIR\"; ")
+                append("echo 'Press Enter to close...'; read; exit 1; ")
+                append("fi; ")
 
+                append("echo ''; ")
+                append("echo 'Installing converted RPM...'; ")
+                append("INSTALL_SUCCESS=0; ")
 
-            append("echo ''; ")
-            append("echo 'Converting to RPM (this may take a minute)...'; ")
-            append("TMPDIR=/tmp/alien_install_$; ")
-            append($$"mkdir -p \"$TMPDIR\" && cd \"$TMPDIR\" || exit 1; ")
-            append("cp '$filePath' ./package.deb; ")
-            append("sudo alien -r -c package.deb; ")
+                append("if sudo dnf install -y ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
+                append("elif sudo yum install -y ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
+                append("elif sudo zypper install -y --allow-unsigned-rpm ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
+                append("elif sudo rpm -ivh --nodeps --force ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
+                append("fi; ")
 
+                append("echo ''; ")
+                append($$"if [ $INSTALL_SUCCESS -eq 1 ]; then ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo 'Installation Complete!'; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("else ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo 'Installation Failed!'; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo ''; ")
+                append("echo 'The RPM was created but installation failed.'; ")
+                append("echo 'This usually happens due to file conflicts.'; ")
+                append("echo ''; ")
+                append("echo 'The converted RPM is located at:'; ")
+                append($$"echo \"$TMPDIR/\"*.rpm; ")
+                append("echo ''; ")
+                append("echo 'You can try installing it manually with:'; ")
+                append($$"echo \"sudo rpm -ivh --force $TMPDIR/\"*.rpm; ")
+                append("echo ''; ")
+                append("echo 'Or open the file with your software manager.'; ")
+                append("fi; ")
 
-            append("if [ ! -f *.rpm ]; then ")
-            append("echo ''; ")
-            append("echo 'ERROR: Conversion failed.'; ")
-            append($$"cd .. && rm -rf \"$TMPDIR\"; ")
-            append("echo 'Press Enter to close...'; read; exit 1; ")
-            append("fi; ")
-
-
-            append("echo ''; ")
-            append("echo 'Installing converted RPM...'; ")
-            append("INSTALL_SUCCESS=0; ")
-
-
-            append("if sudo dnf install -y ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
-            append("elif sudo yum install -y ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
-            append("elif sudo zypper install -y --allow-unsigned-rpm ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
-            append("elif sudo rpm -ivh --nodeps --force ./*.rpm 2>&1; then INSTALL_SUCCESS=1; ")
-            append("fi; ")
-
-
-            append("echo ''; ")
-            append($$"if [ $INSTALL_SUCCESS -eq 1 ]; then ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo 'Installation Complete!'; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("else ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo 'Installation Failed!'; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo ''; ")
-            append("echo 'The RPM was created but installation failed.'; ")
-            append("echo 'This usually happens due to file conflicts.'; ")
-            append("echo ''; ")
-            append("echo 'The converted RPM is located at:'; ")
-            append($$"echo \"$TMPDIR/\"*.rpm; ")
-            append("echo ''; ")
-            append("echo 'You can try installing it manually with:'; ")
-            append($$"echo \"sudo rpm -ivh --force $TMPDIR/\"*.rpm; ")
-            append("echo ''; ")
-            append("echo 'Or open the file with your software manager.'; ")
-            append("fi; ")
-
-
-            append($$"cd .. && rm -rf \"$TMPDIR\"; ")
-            append("echo ''; ")
-            append("echo 'Press Enter to close...'; read")
-        }
+                append($$"cd .. && rm -rf \"$TMPDIR\"; ")
+                append("echo ''; ")
+                append("echo 'Press Enter to close...'; read")
+            }
 
         runCommandInTerminal(command, availableTerminals)
     }
@@ -601,22 +630,14 @@ class DesktopInstaller(
     private fun installRpmPackage(file: File) {
         Logger.d { "Installing RPM package: ${file.absolutePath}" }
 
-        val installMethods = listOf(
-
-            listOf("pkexec", "dnf", "install", "-y", "--nogpgcheck", file.absolutePath),
-
-
-            listOf("pkexec", "yum", "install", "-y", "--nogpgcheck", file.absolutePath),
-
-
-            listOf("pkexec", "zypper", "install", "-y", "--no-gpg-checks", file.absolutePath),
-
-
-            listOf("pkexec", "rpm", "-ivh", "--nosignature", file.absolutePath),
-
-
-            null
-        )
+        val installMethods =
+            listOf(
+                listOf("pkexec", "dnf", "install", "-y", "--nogpgcheck", file.absolutePath),
+                listOf("pkexec", "yum", "install", "-y", "--nogpgcheck", file.absolutePath),
+                listOf("pkexec", "zypper", "install", "-y", "--no-gpg-checks", file.absolutePath),
+                listOf("pkexec", "rpm", "-ivh", "--nosignature", file.absolutePath),
+                null,
+            )
 
         for (method in installMethods) {
             if (method == null) {
@@ -645,25 +666,26 @@ class DesktopInstaller(
     }
 
     private fun openTerminalForDebInstall(filePath: String) {
-        val command = buildString {
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo 'Installing DEB Package'; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo ''; ")
-            append("sudo dpkg -i '$filePath' && sudo apt-get install -f -y; ")
-            append("echo ''; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo 'Installation Complete!'; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo ''; ")
-            append("echo 'Press Enter to close...'; read")
-        }
+        val command =
+            buildString {
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo 'Installing DEB Package'; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo ''; ")
+                append("sudo dpkg -i '$filePath' && sudo apt-get install -f -y; ")
+                append("echo ''; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo 'Installation Complete!'; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo ''; ")
+                append("echo 'Press Enter to close...'; read")
+            }
 
         val availableTerminals = detectAvailableTerminals()
         if (availableTerminals.isEmpty()) {
             tryShowNotification(
                 "Installation Required",
-                "Please install manually using your file manager"
+                "Please install manually using your file manager",
             )
             tryCopyToClipboard("sudo dpkg -i '$filePath' && sudo apt-get install -f -y")
             throw IOException("No terminal emulator found.")
@@ -673,28 +695,29 @@ class DesktopInstaller(
     }
 
     private fun openTerminalForRpmInstall(filePath: String) {
-        val command = buildString {
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo 'Installing RPM Package'; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo ''; ")
-            append("sudo dnf install -y --nogpgcheck '$filePath' 2>/dev/null || ")
-            append("sudo yum install -y --nogpgcheck '$filePath' 2>/dev/null || ")
-            append("sudo zypper install -y --no-gpg-checks '$filePath' 2>/dev/null || ")
-            append("sudo rpm -ivh --nosignature '$filePath'; ")
-            append("echo ''; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo 'Installation Complete!'; ")
-            append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
-            append("echo ''; ")
-            append("echo 'Press Enter to close...'; read")
-        }
+        val command =
+            buildString {
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo 'Installing RPM Package'; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo ''; ")
+                append("sudo dnf install -y --nogpgcheck '$filePath' 2>/dev/null || ")
+                append("sudo yum install -y --nogpgcheck '$filePath' 2>/dev/null || ")
+                append("sudo zypper install -y --no-gpg-checks '$filePath' 2>/dev/null || ")
+                append("sudo rpm -ivh --nosignature '$filePath'; ")
+                append("echo ''; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo 'Installation Complete!'; ")
+                append("echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ")
+                append("echo ''; ")
+                append("echo 'Press Enter to close...'; read")
+            }
 
         val availableTerminals = detectAvailableTerminals()
         if (availableTerminals.isEmpty()) {
             tryShowNotification(
                 "Installation Required",
-                "Please install manually using your file manager"
+                "Please install manually using your file manager",
             )
             tryCopyToClipboard("sudo dnf install -y --nogpgcheck '$filePath'")
             throw IOException("No terminal emulator found.")
@@ -703,43 +726,88 @@ class DesktopInstaller(
         runCommandInTerminal(command, availableTerminals)
     }
 
-    private fun runCommandInTerminal(command: String, terminals: List<LinuxTerminal>) {
+    private fun runCommandInTerminal(
+        command: String,
+        terminals: List<LinuxTerminal>,
+    ) {
         for (terminal in terminals) {
             try {
                 Logger.d { "Trying terminal: ${terminal.name}" }
-                val processBuilder = when (terminal) {
-                    LinuxTerminal.GNOME_TERMINAL -> ProcessBuilder(
-                        "gnome-terminal", "--", "bash", "-c", command
-                    )
+                val processBuilder =
+                    when (terminal) {
+                        LinuxTerminal.GNOME_TERMINAL -> {
+                            ProcessBuilder(
+                                "gnome-terminal",
+                                "--",
+                                "bash",
+                                "-c",
+                                command,
+                            )
+                        }
 
-                    LinuxTerminal.KONSOLE -> ProcessBuilder(
-                        "konsole", "-e", "bash", "-c", command
-                    )
+                        LinuxTerminal.KONSOLE -> {
+                            ProcessBuilder(
+                                "konsole",
+                                "-e",
+                                "bash",
+                                "-c",
+                                command,
+                            )
+                        }
 
-                    LinuxTerminal.XTERM -> ProcessBuilder(
-                        "xterm", "-e", "bash", "-c", command
-                    )
+                        LinuxTerminal.XTERM -> {
+                            ProcessBuilder(
+                                "xterm",
+                                "-e",
+                                "bash",
+                                "-c",
+                                command,
+                            )
+                        }
 
-                    LinuxTerminal.XFCE4_TERMINAL -> ProcessBuilder(
-                        "xfce4-terminal", "-e", "bash -c \"$command\""
-                    )
+                        LinuxTerminal.XFCE4_TERMINAL -> {
+                            ProcessBuilder(
+                                "xfce4-terminal",
+                                "-e",
+                                "bash -c \"$command\"",
+                            )
+                        }
 
-                    LinuxTerminal.ALACRITTY -> ProcessBuilder(
-                        "alacritty", "-e", "bash", "-c", command
-                    )
+                        LinuxTerminal.ALACRITTY -> {
+                            ProcessBuilder(
+                                "alacritty",
+                                "-e",
+                                "bash",
+                                "-c",
+                                command,
+                            )
+                        }
 
-                    LinuxTerminal.KITTY -> ProcessBuilder(
-                        "kitty", "bash", "-c", command
-                    )
+                        LinuxTerminal.KITTY -> {
+                            ProcessBuilder(
+                                "kitty",
+                                "bash",
+                                "-c",
+                                command,
+                            )
+                        }
 
-                    LinuxTerminal.TILIX -> ProcessBuilder(
-                        "tilix", "-e", "bash -c \"$command\""
-                    )
+                        LinuxTerminal.TILIX -> {
+                            ProcessBuilder(
+                                "tilix",
+                                "-e",
+                                "bash -c \"$command\"",
+                            )
+                        }
 
-                    LinuxTerminal.MATE_TERMINAL -> ProcessBuilder(
-                        "mate-terminal", "-e", "bash -c \"$command\""
-                    )
-                }
+                        LinuxTerminal.MATE_TERMINAL -> {
+                            ProcessBuilder(
+                                "mate-terminal",
+                                "-e",
+                                "bash -c \"$command\"",
+                            )
+                        }
+                    }
 
                 processBuilder.start()
                 Logger.d { "Terminal opened successfully: ${terminal.name}" }
@@ -754,16 +822,17 @@ class DesktopInstaller(
     private fun detectAvailableTerminals(): List<LinuxTerminal> {
         val availableTerminals = mutableListOf<LinuxTerminal>()
 
-        val terminalCommands = mapOf(
-            LinuxTerminal.GNOME_TERMINAL to "gnome-terminal",
-            LinuxTerminal.KONSOLE to "konsole",
-            LinuxTerminal.XFCE4_TERMINAL to "xfce4-terminal",
-            LinuxTerminal.ALACRITTY to "alacritty",
-            LinuxTerminal.KITTY to "kitty",
-            LinuxTerminal.TILIX to "tilix",
-            LinuxTerminal.MATE_TERMINAL to "mate-terminal",
-            LinuxTerminal.XTERM to "xterm"
-        )
+        val terminalCommands =
+            mapOf(
+                LinuxTerminal.GNOME_TERMINAL to "gnome-terminal",
+                LinuxTerminal.KONSOLE to "konsole",
+                LinuxTerminal.XFCE4_TERMINAL to "xfce4-terminal",
+                LinuxTerminal.ALACRITTY to "alacritty",
+                LinuxTerminal.KITTY to "kitty",
+                LinuxTerminal.TILIX to "tilix",
+                LinuxTerminal.MATE_TERMINAL to "mate-terminal",
+                LinuxTerminal.XTERM to "xterm",
+            )
 
         for ((terminal, command) in terminalCommands) {
             if (commandExists(command)) {
@@ -811,30 +880,30 @@ class DesktopInstaller(
             Logger.d { "AppImage is now executable" }
 
             Logger.d { "Launching AppImage..." }
-            val process = ProcessBuilder(installedFile.absolutePath)
-                .inheritIO()
-                .start()
+            val process =
+                ProcessBuilder(installedFile.absolutePath)
+                    .inheritIO()
+                    .start()
 
             Logger.d { "AppImage launched successfully (PID: ${process.pid()})" }
 
             showInstallationNotification(installedFile)
 
             Logger.d { "AppImage installation completed successfully" }
-
         } catch (e: IOException) {
             Logger.e { "Failed to install AppImage: ${e.message}" }
             e.printStackTrace()
             throw IllegalStateException(
                 "Failed to install AppImage: ${e.message}. " +
-                        "Please ensure you have write permissions to ~/Applications folder.",
-                e
+                    "Please ensure you have write permissions to ~/Applications folder.",
+                e,
             )
         } catch (e: SecurityException) {
             Logger.e { "Security exception: ${e.message}" }
             e.printStackTrace()
             throw IllegalStateException(
                 "Security restrictions prevent installing AppImage.",
-                e
+                e,
             )
         } catch (e: Exception) {
             Logger.e { "Unexpected error: ${e.message}" }
@@ -863,12 +932,13 @@ class DesktopInstaller(
         }
 
         val destinationFile = File(applicationsDir, file.name)
-        val finalDestination = if (destinationFile.exists()) {
-            Logger.d { "File already exists in ~/Applications, generating unique name" }
-            generateUniqueFileName(applicationsDir, file.name)
-        } else {
-            destinationFile
-        }
+        val finalDestination =
+            if (destinationFile.exists()) {
+                Logger.d { "File already exists in ~/Applications, generating unique name" }
+                generateUniqueFileName(applicationsDir, file.name)
+            } else {
+                destinationFile
+            }
 
         Logger.d { "Moving from: ${file.absolutePath}" }
         Logger.d { "Moving to: ${finalDestination.absolutePath}" }
@@ -895,17 +965,20 @@ class DesktopInstaller(
 
             ProcessBuilder(
                 "notify-send",
-                "-i", "application-x-executable",
+                "-i",
+                "application-x-executable",
                 "AppImage Installed",
-                "Installed to ~/Applications\n\nYou can find it at:\n${file.name}"
+                "Installed to ~/Applications\n\nYou can find it at:\n${file.name}",
             ).start()
-
         } catch (e: Exception) {
             Logger.d { "Could not show notification: ${e.message}" }
         }
     }
 
-    private fun generateUniqueFileName(directory: File, originalName: String): File {
+    private fun generateUniqueFileName(
+        directory: File,
+        originalName: String,
+    ): File {
         val nameWithoutExtension = originalName.substringBeforeLast(".")
         val extension = originalName.substringAfterLast(".", "")
 
@@ -913,11 +986,12 @@ class DesktopInstaller(
         var candidateFile: File
 
         do {
-            val newName = if (extension.isNotEmpty()) {
-                "${nameWithoutExtension}_$counter.$extension"
-            } else {
-                "${nameWithoutExtension}_$counter"
-            }
+            val newName =
+                if (extension.isNotEmpty()) {
+                    "${nameWithoutExtension}_$counter.$extension"
+                } else {
+                    "${nameWithoutExtension}_$counter"
+                }
             candidateFile = File(directory, newName)
             counter++
         } while (candidateFile.exists() && counter < 1000)
@@ -928,5 +1002,4 @@ class DesktopInstaller(
 
         return candidateFile
     }
-
 }

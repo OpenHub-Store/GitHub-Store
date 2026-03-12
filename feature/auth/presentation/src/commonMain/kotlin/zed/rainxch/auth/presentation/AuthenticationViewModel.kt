@@ -2,7 +2,6 @@ package zed.rainxch.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,15 +23,15 @@ import zed.rainxch.core.domain.logging.GitHubStoreLogger
 import zed.rainxch.core.domain.model.GithubDeviceStart
 import zed.rainxch.core.domain.utils.BrowserHelper
 import zed.rainxch.core.domain.utils.ClipboardHelper
+import zed.rainxch.githubstore.core.presentation.res.*
 
 class AuthenticationViewModel(
     private val authenticationRepository: AuthenticationRepository,
     private val browserHelper: BrowserHelper,
     private val clipboardHelper: ClipboardHelper,
     private val scope: CoroutineScope,
-    private val logger: GitHubStoreLogger
+    private val logger: GitHubStoreLogger,
 ) : ViewModel() {
-
     private var hasLoadedInitialData = false
     private var countdownJob: Job? = null
 
@@ -42,47 +41,64 @@ class AuthenticationViewModel(
     private val _events = Channel<AuthenticationEvents>(capacity = Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                scope.launch {
-                    authenticationRepository.accessTokenFlow.collect { token ->
-                        _state.update {
-                            it.copy(
-                                loginState = if (token.isNullOrEmpty()) {
-                                    AuthLoginState.LoggedOut
-                                } else {
-                                    _events.trySend(AuthenticationEvents.OnNavigateToMain)
-                                    AuthLoginState.LoggedIn
-                                }
-                            )
+    val state =
+        _state
+            .onStart {
+                if (!hasLoadedInitialData) {
+                    scope.launch {
+                        authenticationRepository.accessTokenFlow.collect { token ->
+                            _state.update {
+                                it.copy(
+                                    loginState =
+                                        if (token.isNullOrEmpty()) {
+                                            AuthLoginState.LoggedOut
+                                        } else {
+                                            _events.trySend(AuthenticationEvents.OnNavigateToMain)
+                                            AuthLoginState.LoggedIn
+                                        },
+                                )
+                            }
                         }
                     }
-                }
 
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = AuthenticationState()
-        )
+                    hasLoadedInitialData = true
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000L),
+                initialValue = AuthenticationState(),
+            )
 
     fun onAction(action: AuthenticationAction) {
         when (action) {
-            is AuthenticationAction.StartLogin -> startLogin()
-            is AuthenticationAction.CopyCode -> copyCode(action.start)
-            is AuthenticationAction.OpenGitHub -> openGitHub(action.start)
-            AuthenticationAction.MarkLoggedIn -> _state.update { it.copy(loginState = AuthLoginState.LoggedIn) }
-            AuthenticationAction.MarkLoggedOut -> _state.update { it.copy(loginState = AuthLoginState.LoggedOut) }
+            is AuthenticationAction.StartLogin -> {
+                startLogin()
+            }
+
+            is AuthenticationAction.CopyCode -> {
+                copyCode(action.start)
+            }
+
+            is AuthenticationAction.OpenGitHub -> {
+                openGitHub(action.start)
+            }
+
+            AuthenticationAction.MarkLoggedIn -> {
+                _state.update { it.copy(loginState = AuthLoginState.LoggedIn) }
+            }
+
+            AuthenticationAction.MarkLoggedOut -> {
+                _state.update { it.copy(loginState = AuthLoginState.LoggedOut) }
+            }
+
             is AuthenticationAction.OnInfo -> {
                 _state.update {
                     it.copy(
-                        info = action.message
+                        info = action.message,
                     )
                 }
             }
+
             AuthenticationAction.SkipLogin -> {
                 _events.trySend(AuthenticationEvents.OnNavigateToMain)
             }
@@ -91,48 +107,52 @@ class AuthenticationViewModel(
 
     private fun startCountdown(start: GithubDeviceStart) {
         countdownJob?.cancel()
-        countdownJob = viewModelScope.launch {
-            var remaining = start.expiresInSec
-            while (remaining > 0) {
-                _state.update { currentState ->
-                    val loginState = currentState.loginState
-                    if (loginState is AuthLoginState.DevicePrompt) {
-                        currentState.copy(
-                            loginState = loginState.copy(remainingSeconds = remaining)
-                        )
-                    } else {
-                        return@launch
+        countdownJob =
+            viewModelScope.launch {
+                var remaining = start.expiresInSec
+                while (remaining > 0) {
+                    _state.update { currentState ->
+                        val loginState = currentState.loginState
+                        if (loginState is AuthLoginState.DevicePrompt) {
+                            currentState.copy(
+                                loginState = loginState.copy(remainingSeconds = remaining),
+                            )
+                        } else {
+                            return@launch
+                        }
                     }
+                    delay(1000L)
+                    remaining--
                 }
-                delay(1000L)
-                remaining--
-            }
-            _state.update {
-                it.copy(
-                    loginState = AuthLoginState.Error(
-                        message = getString(Res.string.auth_error_code_expired),
-                        recoveryHint = getString(Res.string.auth_hint_try_again)
+                _state.update {
+                    it.copy(
+                        loginState =
+                            AuthLoginState.Error(
+                                message = getString(Res.string.auth_error_code_expired),
+                                recoveryHint = getString(Res.string.auth_hint_try_again),
+                            ),
                     )
-                )
+                }
             }
-        }
     }
 
     private fun startLogin() {
         viewModelScope.launch {
             try {
-                val start = withContext(Dispatchers.IO) {
-                    authenticationRepository.startDeviceFlow()
-                }
+                val start =
+                    withContext(Dispatchers.IO) {
+                        authenticationRepository.startDeviceFlow()
+                    }
 
                 withContext(Dispatchers.Main.immediate) {
                     _state.update {
                         it.copy(
-                            loginState = AuthLoginState.DevicePrompt(
-                                start = start,
-                                remainingSeconds = start.expiresInSec
-                            ),
-                            copied = false
+                            loginState =
+                                AuthLoginState.DevicePrompt(
+                                    start = start,
+                                    remainingSeconds = start.expiresInSec,
+                                ),
+                            copied = false,
                         )
                     }
 
@@ -141,7 +161,7 @@ class AuthenticationViewModel(
                     try {
                         clipboardHelper.copy(
                             label = getString(Res.string.enter_code_on_github),
-                            text = start.userCode
+                            text = start.userCode,
                         )
                         _state.update { it.copy(copied = true) }
                     } catch (e: Exception) {
@@ -159,7 +179,6 @@ class AuthenticationViewModel(
                     _state.update { it.copy(loginState = AuthLoginState.LoggedIn) }
                     _events.trySend(AuthenticationEvents.OnNavigateToMain)
                 }
-
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
@@ -168,10 +187,11 @@ class AuthenticationViewModel(
                 withContext(Dispatchers.Main.immediate) {
                     _state.update {
                         it.copy(
-                            loginState = AuthLoginState.Error(
-                                message = message,
-                                recoveryHint = hint
-                            )
+                            loginState =
+                                AuthLoginState.Error(
+                                    message = message,
+                                    recoveryHint = hint,
+                                ),
                         )
                     }
                 }
@@ -183,15 +203,25 @@ class AuthenticationViewModel(
         val msg = t.message ?: return getString(Res.string.error_unknown) to null
         val lowerMsg = msg.lowercase()
         return when {
-            "timeout" in lowerMsg || "timed out" in lowerMsg ->
+            "timeout" in lowerMsg || "timed out" in lowerMsg -> {
                 msg to getString(Res.string.auth_hint_check_connection)
-            "network" in lowerMsg || "unresolvedaddress" in lowerMsg || "connect" in lowerMsg ->
+            }
+
+            "network" in lowerMsg || "unresolvedaddress" in lowerMsg || "connect" in lowerMsg -> {
                 msg to getString(Res.string.auth_hint_check_connection)
-            "expired" in lowerMsg || "expire" in lowerMsg ->
+            }
+
+            "expired" in lowerMsg || "expire" in lowerMsg -> {
                 msg to getString(Res.string.auth_hint_try_again)
-            "denied" in lowerMsg || "access_denied" in lowerMsg ->
+            }
+
+            "denied" in lowerMsg || "access_denied" in lowerMsg -> {
                 msg to getString(Res.string.auth_hint_denied)
-            else -> msg to null
+            }
+
+            else -> {
+                msg to null
+            }
         }
     }
 
@@ -216,7 +246,7 @@ class AuthenticationViewModel(
             try {
                 clipboardHelper.copy(
                     label = "GitHub Code",
-                    text = start.userCode
+                    text = start.userCode,
                 )
 
                 _state.update {
@@ -224,7 +254,7 @@ class AuthenticationViewModel(
 
                     it.copy(
                         loginState = AuthLoginState.DevicePrompt(start, currentRemaining),
-                        copied = true
+                        copied = true,
                     )
                 }
             } catch (e: Exception) {
@@ -234,7 +264,7 @@ class AuthenticationViewModel(
 
                     it.copy(
                         loginState = AuthLoginState.DevicePrompt(start, currentRemaining),
-                        copied = false
+                        copied = false,
                     )
                 }
             }

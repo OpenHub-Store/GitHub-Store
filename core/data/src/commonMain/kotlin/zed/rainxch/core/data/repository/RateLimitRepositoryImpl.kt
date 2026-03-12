@@ -10,7 +10,6 @@ import zed.rainxch.core.domain.repository.RateLimitRepository
 import kotlin.time.Clock
 
 class RateLimitRepositoryImpl : RateLimitRepository {
-    
     private val _rateLimitState = MutableStateFlow<RateLimitInfo?>(null)
     override val rateLimitState: StateFlow<RateLimitInfo?> = _rateLimitState.asStateFlow()
 
@@ -24,9 +23,7 @@ class RateLimitRepositoryImpl : RateLimitRepository {
         }
     }
 
-    override fun getCurrentRateLimit(): RateLimitInfo? {
-        return _rateLimitState.value
-    }
+    override fun getCurrentRateLimit(): RateLimitInfo? = _rateLimitState.value
 
     override fun isCurrentlyLimited(): Boolean {
         val info = getCurrentRateLimit() ?: return false

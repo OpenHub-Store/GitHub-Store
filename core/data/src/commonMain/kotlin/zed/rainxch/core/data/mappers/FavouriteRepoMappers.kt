@@ -3,8 +3,8 @@ package zed.rainxch.core.data.mappers
 import zed.rainxch.core.data.local.db.entities.FavoriteRepoEntity
 import zed.rainxch.core.domain.model.FavoriteRepo
 
-fun FavoriteRepo.toEntity(): FavoriteRepoEntity {
-    return FavoriteRepoEntity(
+fun FavoriteRepo.toEntity(): FavoriteRepoEntity =
+    FavoriteRepoEntity(
         repoId = repoId,
         repoName = repoName,
         repoOwner = repoOwner,
@@ -17,11 +17,11 @@ fun FavoriteRepo.toEntity(): FavoriteRepoEntity {
         latestVersion = latestVersion,
         latestReleaseUrl = latestReleaseUrl,
         addedAt = addedAt,
-        lastSyncedAt = lastSyncedAt
+        lastSyncedAt = lastSyncedAt,
     )
-}
-fun FavoriteRepoEntity.toDomain(): FavoriteRepo {
-    return FavoriteRepo(
+
+fun FavoriteRepoEntity.toDomain(): FavoriteRepo =
+    FavoriteRepo(
         repoId = repoId,
         repoName = repoName,
         repoOwner = repoOwner,
@@ -34,6 +34,5 @@ fun FavoriteRepoEntity.toDomain(): FavoriteRepo {
         latestVersion = latestVersion,
         latestReleaseUrl = latestReleaseUrl,
         addedAt = addedAt,
-        lastSyncedAt = lastSyncedAt
+        lastSyncedAt = lastSyncedAt,
     )
-}

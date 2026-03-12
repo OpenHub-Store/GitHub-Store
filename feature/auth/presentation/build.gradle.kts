@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.convention.cmp.feature)
-
 }
 
 kotlin {
@@ -13,7 +12,6 @@ kotlin {
                 implementation(projects.core.presentation)
                 implementation(projects.feature.auth.domain)
 
-                
                 implementation(libs.androidx.compose.ui.tooling.preview)
                 implementation(compose.components.resources)
             }
@@ -21,15 +19,12 @@ kotlin {
 
         androidMain {
             dependencies {
-
             }
         }
 
         jvmMain {
             dependencies {
-
             }
         }
     }
-
 }

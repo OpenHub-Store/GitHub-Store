@@ -9,7 +9,6 @@ import java.net.ServerSocket
 import java.net.Socket
 
 object DesktopDeepLink {
-
     private const val SINGLE_INSTANCE_PORT = 47632
     private const val SCHEME = "githubstore"
     private const val DESKTOP_FILE_NAME = "github-store-deeplink"
@@ -28,28 +27,53 @@ object DesktopDeepLink {
     }
 
     private fun registerWindows() {
-        val checkResult = runCommand(
-            "reg", "query", "HKCU\\SOFTWARE\\Classes\\$SCHEME", "/ve"
-        )
+        val checkResult =
+            runCommand(
+                "reg",
+                "query",
+                "HKCU\\SOFTWARE\\Classes\\$SCHEME",
+                "/ve",
+            )
         if (checkResult != null && checkResult.contains("URL:")) return
 
         val exePath = resolveExePath() ?: return
 
         runCommand(
-            "reg", "add", "HKCU\\SOFTWARE\\Classes\\$SCHEME",
-            "/ve", "/d", "URL:GitHub Store Protocol", "/f"
+            "reg",
+            "add",
+            "HKCU\\SOFTWARE\\Classes\\$SCHEME",
+            "/ve",
+            "/d",
+            "URL:GitHub Store Protocol",
+            "/f",
         )
         runCommand(
-            "reg", "add", "HKCU\\SOFTWARE\\Classes\\$SCHEME",
-            "/v", "URL Protocol", "/d", "", "/f"
+            "reg",
+            "add",
+            "HKCU\\SOFTWARE\\Classes\\$SCHEME",
+            "/v",
+            "URL Protocol",
+            "/d",
+            "",
+            "/f",
         )
         runCommand(
-            "reg", "add", "HKCU\\SOFTWARE\\Classes\\$SCHEME\\DefaultIcon",
-            "/ve", "/d", "\"$exePath\",1", "/f"
+            "reg",
+            "add",
+            "HKCU\\SOFTWARE\\Classes\\$SCHEME\\DefaultIcon",
+            "/ve",
+            "/d",
+            "\"$exePath\",1",
+            "/f",
         )
         runCommand(
-            "reg", "add", "HKCU\\SOFTWARE\\Classes\\$SCHEME\\shell\\open\\command",
-            "/ve", "/d", "\"$exePath\" \"%1\"", "/f"
+            "reg",
+            "add",
+            "HKCU\\SOFTWARE\\Classes\\$SCHEME\\shell\\open\\command",
+            "/ve",
+            "/d",
+            "\"$exePath\" \"%1\"",
+            "/f",
         )
     }
 
@@ -72,7 +96,7 @@ object DesktopDeepLink {
             Terminal=false
             MimeType=x-scheme-handler/$SCHEME;
             NoDisplay=true
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         runCommand("xdg-mime", "default", "$DESKTOP_FILE_NAME.desktop", "x-scheme-handler/$SCHEME")
@@ -83,8 +107,8 @@ object DesktopDeepLink {
      * @return `true` if the URI was forwarded (this instance should exit),
      *         `false` if no existing instance is running.
      */
-    fun tryForwardToRunningInstance(uri: String): Boolean {
-        return try {
+    fun tryForwardToRunningInstance(uri: String): Boolean =
+        try {
             Socket("127.0.0.1", SINGLE_INSTANCE_PORT).use { socket ->
                 PrintWriter(socket.getOutputStream(), true).println(uri)
             }
@@ -92,62 +116,61 @@ object DesktopDeepLink {
         } catch (_: Exception) {
             false
         }
-    }
 
     /**
      * Start listening for URIs forwarded from new instances.
      * Calls [onUri] on the main thread when a URI is received.
      */
     fun startInstanceListener(onUri: (String) -> Unit) {
-        val thread = Thread({
-            try {
-                val server = ServerSocket(SINGLE_INSTANCE_PORT, 50, InetAddress.getLoopbackAddress())
-                while (true) {
-                    val client = server.accept()
-                    try {
-                        val reader = BufferedReader(InputStreamReader(client.getInputStream()))
-                        val uri = reader.readLine()
-                        if (!uri.isNullOrBlank()) {
-                            onUri(uri.trim())
+        val thread =
+            Thread({
+                try {
+                    val server = ServerSocket(SINGLE_INSTANCE_PORT, 50, InetAddress.getLoopbackAddress())
+                    while (true) {
+                        val client = server.accept()
+                        try {
+                            val reader = BufferedReader(InputStreamReader(client.getInputStream()))
+                            val uri = reader.readLine()
+                            if (!uri.isNullOrBlank()) {
+                                onUri(uri.trim())
+                            }
+                        } catch (_: Exception) {
+                        } finally {
+                            client.close()
                         }
-                    } catch (_: Exception) {
-                    } finally {
-                        client.close()
                     }
+                } catch (_: Exception) {
                 }
-            } catch (_: Exception) {
-            }
-        }, "DeepLinkListener")
+            }, "DeepLinkListener")
         thread.isDaemon = true
         thread.start()
     }
 
-    private fun isWindows(): Boolean {
-        return System.getProperty("os.name")?.lowercase()?.contains("win") == true
-    }
+    private fun isWindows(): Boolean = System.getProperty("os.name")?.lowercase()?.contains("win") == true
 
-    private fun isLinux(): Boolean {
-        return System.getProperty("os.name")?.lowercase()?.contains("linux") == true
-    }
+    private fun isLinux(): Boolean = System.getProperty("os.name")?.lowercase()?.contains("linux") == true
 
-    private fun resolveExePath(): String? {
-        return try {
-            ProcessHandle.current().info().command().orElse(null)
+    private fun resolveExePath(): String? =
+        try {
+            ProcessHandle
+                .current()
+                .info()
+                .command()
+                .orElse(null)
         } catch (_: Exception) {
             null
         }
-    }
 
-    private fun runCommand(vararg cmd: String): String? {
-        return try {
-            val process = ProcessBuilder(*cmd)
-                .redirectErrorStream(true)
-                .start()
+    private fun runCommand(vararg cmd: String): String? =
+        try {
+            val process =
+                ProcessBuilder(*cmd)
+                    .redirectErrorStream(true)
+                    .start()
             val output = process.inputStream.bufferedReader().readText()
             process.waitFor()
             output
         } catch (_: Exception) {
             null
         }
-    }
 }

@@ -17,5 +17,5 @@ data class UserProfileNetwork(
     @SerialName("location") val location: String? = null,
     @SerialName("company") val company: String? = null,
     @SerialName("blog") val blog: String? = null,
-    @SerialName("twitter_username") val twitterUsername: String? = null
+    @SerialName("twitter_username") val twitterUsername: String? = null,
 )

@@ -3,8 +3,8 @@ package zed.rainxch.core.data.mappers
 import zed.rainxch.core.data.local.db.entities.StarredRepositoryEntity
 import zed.rainxch.core.domain.model.StarredRepository
 
-fun StarredRepository.toEntity(): StarredRepositoryEntity {
-    return StarredRepositoryEntity(
+fun StarredRepository.toEntity(): StarredRepositoryEntity =
+    StarredRepositoryEntity(
         repoId = repoId,
         repoName = repoName,
         repoOwner = repoOwner,
@@ -21,11 +21,11 @@ fun StarredRepository.toEntity(): StarredRepositoryEntity {
         latestReleaseUrl = latestReleaseUrl,
         starredAt = starredAt,
         addedAt = addedAt,
-        lastSyncedAt = lastSyncedAt
+        lastSyncedAt = lastSyncedAt,
     )
-}
-fun StarredRepositoryEntity.toDomain(): StarredRepository {
-    return StarredRepository(
+
+fun StarredRepositoryEntity.toDomain(): StarredRepository =
+    StarredRepository(
         repoId = repoId,
         repoName = repoName,
         repoOwner = repoOwner,
@@ -42,6 +42,5 @@ fun StarredRepositoryEntity.toDomain(): StarredRepository {
         latestReleaseUrl = latestReleaseUrl,
         starredAt = starredAt,
         addedAt = addedAt,
-        lastSyncedAt = lastSyncedAt
+        lastSyncedAt = lastSyncedAt,
     )
-}
