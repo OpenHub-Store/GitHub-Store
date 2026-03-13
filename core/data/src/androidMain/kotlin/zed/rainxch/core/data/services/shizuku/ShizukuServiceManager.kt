@@ -189,7 +189,7 @@ class ShizukuServiceManager(
 
                 continuation.invokeOnCancellation {
                     try {
-                        Shizuku.unbindUserService(args, connection)
+                        Shizuku.unbindUserService(args, connection, true)
                     } catch (_: Exception) {}
                 }
             }

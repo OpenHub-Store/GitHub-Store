@@ -1,13 +1,12 @@
 package zed.rainxch.core.data.services.shizuku
 
-import android.content.pm.IPackageInstaller
-import android.content.pm.IPackageInstallerSession
+import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageInstaller
-import android.content.pm.PackageManager
-import android.content.pm.VersionedPackage
 import android.net.LocalServerSocket
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
+import android.os.Bundle
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
@@ -16,6 +15,8 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Proxy
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -27,6 +28,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * This class runs in Shizuku's process, NOT in the app's process.
  * It has shell-level (UID 2000) or root-level (UID 0) privileges.
  *
+ * Uses reflection to access hidden Android framework APIs, since their method
+ * signatures vary across Android versions and hidden-api-stub versions.
+ *
  * MUST have a default no-arg constructor for Shizuku's UserService framework.
  */
 class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
@@ -35,7 +39,6 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
         private const val INSTALL_TIMEOUT_SECONDS = 120L
         private const val UNINSTALL_TIMEOUT_SECONDS = 60L
 
-        // PackageInstaller status codes
         private const val STATUS_SUCCESS = 0
         private const val STATUS_FAILURE = -1
         private const val STATUS_FAILURE_ABORTED = -2
@@ -47,10 +50,20 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
         private const val STATUS_FAILURE_TIMEOUT = -8
     }
 
-    private fun getPackageInstaller(): IPackageInstaller {
+    /**
+     * Obtains the system IPackageInstaller binder via IPackageManager (reflection).
+     */
+    private fun getPackageInstallerBinder(): Any {
         val binder: IBinder = SystemServiceHelper.getSystemService("package")
-        val pm = android.content.pm.IPackageManager.Stub.asInterface(binder)
-        return pm.packageInstaller
+
+        // IPackageManager.Stub.asInterface(binder)
+        val ipmClass = Class.forName("android.content.pm.IPackageManager\$Stub")
+        val asInterface = ipmClass.getMethod("asInterface", IBinder::class.java)
+        val pm = asInterface.invoke(null, binder)
+
+        // pm.getPackageInstaller()
+        val getInstaller = pm.javaClass.getMethod("getPackageInstaller")
+        return getInstaller.invoke(pm)!!
     }
 
     override fun installPackage(apkPath: String): Int {
@@ -58,22 +71,35 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
         if (!file.exists()) return STATUS_FAILURE_INVALID
 
         return try {
-            val installer = getPackageInstaller()
+            val installer = getPackageInstallerBinder()
+            val installerClass = installer.javaClass
+
             val params = PackageInstaller.SessionParams(
                 PackageInstaller.SessionParams.MODE_FULL_INSTALL
             )
             params.setSize(file.length())
 
-            val installerPackageName = "com.android.shell"
-            val sessionId = installer.createSession(params, installerPackageName, null, android.os.Process.myUid())
+            // createSession — try various signatures across Android versions
+            val sessionId = createSession(installer, installerClass, params)
 
-            val session = IPackageInstallerSession.Stub.asInterface(
-                installer.openSession(sessionId)
-            )
+            // openSession returns an IBinder for the session
+            val openSessionMethod = installerClass.getMethod("openSession", Int::class.javaPrimitiveType)
+            val sessionBinder = openSessionMethod.invoke(installer, sessionId)
+
+            // IPackageInstallerSession.Stub.asInterface(binder)
+            val sessionStubClass = Class.forName("android.content.pm.IPackageInstallerSession\$Stub")
+            val sessionAsInterface = sessionStubClass.getMethod("asInterface", IBinder::class.java)
+            val session = sessionAsInterface.invoke(null, sessionBinder as IBinder)
+            val sessionClass = session.javaClass
 
             // Write APK to session
-            val sizeBytes = file.length()
-            val pfd = session.openWrite("base.apk", 0, sizeBytes)
+            val openWrite = sessionClass.getMethod(
+                "openWrite",
+                String::class.java,
+                Long::class.javaPrimitiveType,
+                Long::class.javaPrimitiveType
+            )
+            val pfd = openWrite.invoke(session, "base.apk", 0L, file.length()) as ParcelFileDescriptor
             val output = ParcelFileDescriptor.AutoCloseOutputStream(pfd)
 
             FileInputStream(file).use { input ->
@@ -83,23 +109,21 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
                 }
             }
 
-            // Commit session with a status receiver via LocalSocket
+            // Set up LocalSocket for synchronous result callback
             val resultCode = AtomicInteger(STATUS_FAILURE_TIMEOUT)
             val latch = CountDownLatch(1)
-
             val socketName = "shizuku_install_${SystemClock.elapsedRealtimeNanos()}"
             val serverSocket = LocalServerSocket(socketName)
 
-            // Use a thread to listen for the result
             val listenerThread = Thread {
                 try {
                     val client = serverSocket.accept()
-                    val input = DataInputStream(client.inputStream)
-                    val status = input.readInt()
+                    val dis = DataInputStream(client.inputStream)
+                    val status = dis.readInt()
                     resultCode.set(mapInstallStatus(status))
-                    input.close()
+                    dis.close()
                     client.close()
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     resultCode.set(STATUS_FAILURE)
                 } finally {
                     try { serverSocket.close() } catch (_: Exception) {}
@@ -109,11 +133,16 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
             listenerThread.isDaemon = true
             listenerThread.start()
 
-            // Create an IntentSender using a LocalSocket-based approach
             val statusReceiver = createStatusReceiver(socketName)
-            session.commit(statusReceiver, false)
 
-            // Wait for result
+            // session.commit(intentSender, false)
+            val commitMethod = sessionClass.getMethod(
+                "commit",
+                IntentSender::class.java,
+                Boolean::class.javaPrimitiveType
+            )
+            commitMethod.invoke(session, statusReceiver, false)
+
             if (!latch.await(INSTALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                 resultCode.set(STATUS_FAILURE_TIMEOUT)
                 try { serverSocket.close() } catch (_: Exception) {}
@@ -127,23 +156,23 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
 
     override fun uninstallPackage(packageName: String): Int {
         return try {
-            val installer = getPackageInstaller()
+            val installer = getPackageInstallerBinder()
+            val installerClass = installer.javaClass
 
             val resultCode = AtomicInteger(STATUS_FAILURE_TIMEOUT)
             val latch = CountDownLatch(1)
-
             val socketName = "shizuku_uninstall_${SystemClock.elapsedRealtimeNanos()}"
             val serverSocket = LocalServerSocket(socketName)
 
             val listenerThread = Thread {
                 try {
                     val client = serverSocket.accept()
-                    val input = DataInputStream(client.inputStream)
-                    val status = input.readInt()
+                    val dis = DataInputStream(client.inputStream)
+                    val status = dis.readInt()
                     resultCode.set(mapInstallStatus(status))
-                    input.close()
+                    dis.close()
                     client.close()
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     resultCode.set(STATUS_FAILURE)
                 } finally {
                     try { serverSocket.close() } catch (_: Exception) {}
@@ -154,14 +183,9 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
             listenerThread.start()
 
             val statusReceiver = createStatusReceiver(socketName)
-            val versionedPackage = VersionedPackage(packageName, PackageManager.VERSION_CODE_HIGHEST)
-            installer.uninstall(
-                versionedPackage,
-                "com.android.shell",
-                0,
-                statusReceiver,
-                0
-            )
+
+            // Try uninstall via reflection — signature varies by Android version
+            performUninstall(installer, installerClass, packageName, statusReceiver)
 
             if (!latch.await(UNINSTALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                 resultCode.set(STATUS_FAILURE_TIMEOUT)
@@ -175,44 +199,139 @@ class ShizukuInstallerServiceImpl() : IShizukuInstallerService.Stub() {
     }
 
     /**
-     * Creates an IntentSender that reports the install/uninstall status
-     * back to the given local socket. This is the standard approach for
-     * getting synchronous results from PackageInstaller in a Shizuku UserService.
+     * Calls IPackageInstaller.createSession with the correct signature for the
+     * current Android version. Tries multiple overloads.
      */
-    private fun createStatusReceiver(socketName: String): android.content.IntentSender {
-        // Use a Binder-based callback approach since we're in a privileged process.
-        // We create a lightweight Intent with an IIntentSender that writes the result
-        // to a LocalSocket.
-        val binder = object : android.content.IIntentSender.Stub() {
-            override fun send(
-                code: Int,
-                intent: android.content.Intent?,
-                resolvedType: String?,
-                whitelistToken: IBinder?,
-                finishedReceiver: android.content.IIntentReceiver?,
-                requiredPermission: String?,
-                options: android.os.Bundle?
-            ) {
-                val status = intent?.getIntExtra(
-                    PackageInstaller.EXTRA_STATUS,
-                    PackageInstaller.STATUS_FAILURE
-                ) ?: PackageInstaller.STATUS_FAILURE
+    private fun createSession(
+        installer: Any,
+        installerClass: Class<*>,
+        params: PackageInstaller.SessionParams
+    ): Int {
+        val callerPackage = "com.android.shell"
+        val uid = android.os.Process.myUid()
 
-                try {
-                    val socket = LocalSocket()
-                    socket.connect(LocalSocketAddress(socketName, LocalSocketAddress.Namespace.ABSTRACT))
-                    val output = DataOutputStream(socket.outputStream)
-                    output.writeInt(status)
-                    output.flush()
-                    output.close()
-                    socket.close()
-                } catch (_: Exception) {
-                    // Socket may already be closed
+        // API 33+: createSession(SessionParams, String, String, int)
+        try {
+            val method = installerClass.getMethod(
+                "createSession",
+                PackageInstaller.SessionParams::class.java,
+                String::class.java,
+                String::class.java,
+                Int::class.javaPrimitiveType
+            )
+            return method.invoke(installer, params, callerPackage, null, uid) as Int
+        } catch (_: NoSuchMethodException) {}
+
+        // API 26-32: createSession(SessionParams, String, String)
+        try {
+            val method = installerClass.getMethod(
+                "createSession",
+                PackageInstaller.SessionParams::class.java,
+                String::class.java,
+                String::class.java
+            )
+            return method.invoke(installer, params, callerPackage, null) as Int
+        } catch (_: NoSuchMethodException) {}
+
+        throw IllegalStateException("Could not find createSession method")
+    }
+
+    /**
+     * Calls IPackageInstaller.uninstall with the correct signature for the
+     * current Android version. Tries multiple overloads.
+     */
+    private fun performUninstall(
+        installer: Any,
+        installerClass: Class<*>,
+        packageName: String,
+        statusReceiver: IntentSender
+    ) {
+        val versionedPackageClass = Class.forName("android.content.pm.VersionedPackage")
+        val versionedPackage = versionedPackageClass
+            .getConstructor(String::class.java, Int::class.javaPrimitiveType)
+            .newInstance(packageName, -1) // VERSION_CODE_HIGHEST = -1
+
+        val callerPackage = "com.android.shell"
+
+        // API 33+: uninstall(VersionedPackage, String, int, IntentSender, int)
+        try {
+            val method = installerClass.getMethod(
+                "uninstall",
+                versionedPackageClass,
+                String::class.java,
+                Int::class.javaPrimitiveType,
+                IntentSender::class.java,
+                Int::class.javaPrimitiveType
+            )
+            method.invoke(installer, versionedPackage, callerPackage, 0, statusReceiver, 0)
+            return
+        } catch (_: NoSuchMethodException) {}
+
+        // API 26-32: uninstall(VersionedPackage, String, int, IntentSender)
+        try {
+            val method = installerClass.getMethod(
+                "uninstall",
+                versionedPackageClass,
+                String::class.java,
+                Int::class.javaPrimitiveType,
+                IntentSender::class.java
+            )
+            method.invoke(installer, versionedPackage, callerPackage, 0, statusReceiver)
+            return
+        } catch (_: NoSuchMethodException) {}
+
+        throw IllegalStateException("Could not find uninstall method")
+    }
+
+    /**
+     * Creates an IntentSender that reports install/uninstall status back
+     * through a LocalSocket. Uses reflection to construct IntentSender
+     * from an IIntentSender proxy, since these are hidden APIs.
+     */
+    private fun createStatusReceiver(socketName: String): IntentSender {
+        val iIntentSenderClass = Class.forName("android.content.IIntentSender")
+
+        // Create a dynamic proxy for IIntentSender that writes result to LocalSocket
+        val proxy = Proxy.newProxyInstance(
+            iIntentSenderClass.classLoader,
+            arrayOf(iIntentSenderClass)
+        ) { _, method, args ->
+            when (method.name) {
+                "send" -> {
+                    // Extract the Intent argument (second param in all known signatures)
+                    val intent = args?.filterIsInstance<Intent>()?.firstOrNull()
+                    val status = intent?.getIntExtra(
+                        PackageInstaller.EXTRA_STATUS,
+                        PackageInstaller.STATUS_FAILURE
+                    ) ?: PackageInstaller.STATUS_FAILURE
+
+                    try {
+                        val socket = LocalSocket()
+                        socket.connect(
+                            LocalSocketAddress(socketName, LocalSocketAddress.Namespace.ABSTRACT)
+                        )
+                        val dos = DataOutputStream(socket.outputStream)
+                        dos.writeInt(status)
+                        dos.flush()
+                        dos.close()
+                        socket.close()
+                    } catch (_: Exception) {}
+
+                    // Return 0 if method returns int, null otherwise
+                    if (method.returnType == Int::class.javaPrimitiveType) 0 else null
                 }
+                "asBinder" -> {
+                    // Return the proxy itself as a binder stand-in
+                    null
+                }
+                else -> null
             }
         }
 
-        return android.content.IntentSender(binder)
+        // IntentSender(IIntentSender) — hidden constructor, use reflection
+        val constructor = IntentSender::class.java.getDeclaredConstructor(iIntentSenderClass)
+        constructor.isAccessible = true
+        return constructor.newInstance(proxy)
     }
 
     private fun mapInstallStatus(status: Int): Int {
