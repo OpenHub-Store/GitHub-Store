@@ -1,6 +1,6 @@
 <div align="center">
 </br>
-<img src="../composeApp/src/commonMain/composeResources/drawable/app-icon.png" width="200" />
+<img src="../media-resources/app_icon.png" width="200" />
 
 </div>
 
@@ -13,17 +13,18 @@
 </br>
 
 <p align="center">
-  <img alt="API" src="https://img.shields.io/badge/Api%2024+-50f270?logo=android&logoColor=black&style=for-the-badge"/></a>
-  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Multiplatform-a503fc?logo=kotlin&logoColor=white&style=for-the-badge"/></a>
-  <img alt="Compose Multiplatform" src="https://img.shields.io/static/v1?style=for-the-badge&message=Compose+Multiplatform&color=4285F4&logo=Jetpack+Compose&logoColor=FFFFFF&label="/></a>
-  <img alt="material" src="https://custom-icon-badges.demolab.com/badge/material%20you-lightblue?style=for-the-badge&logoColor=333&logo=material-you"/></a>
-  </br>
-  </br>
+  <img alt="API" src="https://img.shields.io/badge/Api%2024+-50f270?logo=android&logoColor=black&style=for-the-badge"/>
+  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Multiplatform-a503fc?logo=kotlin&logoColor=white&style=for-the-badge"/>
+  <img alt="Compose Multiplatform" src="https://img.shields.io/static/v1?style=for-the-badge&message=Compose+Multiplatform&color=4285F4&logo=Jetpack+Compose&logoColor=FFFFFF&label="/> 
+  <img alt="material" src="https://custom-icon-badges.demolab.com/badge/material%20you-lightblue?style=for-the-badge&logoColor=333&logo=material-you"/>
 
-<img src="https://img.shields.io/github/downloads/rainxchzed/GitHub-Store/total?color=aeff4d&style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPmRvd25sb2FkPC90aXRsZT48cGF0aCBkPSJNNSwyMEgxOVYxOEg1TTE5LDlIMTVWM0g5VjlINUwxMiwxNkwxOSw5WiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+&label=Downloads&labelColor=4b731a"/>
+</br>
+</br>
 
-<a href="https://github.com/rainxchzed/Github-Store/stargazers">
-<img src="https://img.shields.io/github/stars/rainxchzed/Github-Store?color=ffff00&style=for-the-badge&labelColor=a1a116&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPnN0YXI8L3RpdGxlPjxwYXRoIGQ9Ik0xMiwxNy4yN0wxOC4xOCwyMUwxNi41NCwxMy45N0wyMiw5LjI0TDE0LjgxLDguNjJMMTIsMkw5LjE5LDguNjJMMiw5LjI0TDcuNDUsMTMuOTdMNS44MiwyMUwxMiwxNy4yN1oiIGZpbGw9IndoaXRlIiAvPjwvc3ZnPg=="/>
+<img src="https://img.shields.io/github/downloads/OpenHub-Store/GitHub-Store/total?color=aeff4d&style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPmRvd25sb2FkPC90aXRsZT48cGF0aCBkPSJNNSwyMEgxOVYxOEg1TTE5LDlIMTVWM0g5VjlINUwxMiwxNkwxOSw5WiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+&label=Downloads&labelColor=4b731a"/>
+
+<a href="https://github.com/OpenHub-Store/GitHub-Store/stargazers">
+<img src="https://img.shields.io/github/stars/OpenHub-Store/GitHub-Store?color=ffff00&style=for-the-badge&labelColor=a1a116&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPnN0YXI8L3RpdGxlPjxwYXRoIGQ9Ik0xMiwxNy4yN0wxOC4xOCwyMUwxNi41NCwxMy45N0wyMiw5LjI0TDE0LjgxLDguNjJMMTIsMkw5LjE5LDguNjJMMiw5LjI0TDcuNDUsMTMuOTdMNS44MiwyMUwxMiwxNy4yN1oiIGZpbGw9IndoaXRlIiAvPjwvc3ZnPg=="/>
 </a>
 
 <img src="https://img.shields.io/badge/65K+-Users-8ce2ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPmFjY291bnQtZ3JvdXA8L3RpdGxlPjxwYXRoIGQ9Ik0xMiwxMi43NUM3LDEyLjc1IDMsMTMuMzUgMywxNi4yNVYxOEgyMVYxNi4yNUMyMSwxMy4zNSAxNywxMi43NSAxMiwxMi43NU0xNyw3QTE3LDE3IDAgMCwxIDE3LDdNMjEsMTYuMjVWMThIMjRWMTYuMjVDMjQsMTQuNDMgMjEuNSwxMy44NyAxOSwxMy41QzIwLjEyLDE0LjEgMjEsMTUgMjEsMTYuMjVNMiw3QTIsMiAwIDAsMSA0LDVIMjBBMiwyIDAgMCwxIDIyLDdBMiwyIDAgMCwxIDIwLDlINEEyLDIgMCAwLDEgMiw3TTEyLDEwQTMsMyAwIDAsMSA5LDdBMywzIDAgMCwxIDEyLDRBMywzIDAgMCwxIDE1LDdBMywzIDAgMCwxIDEyLDEwWiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+&labelColor=0782ab"/>
@@ -31,8 +32,8 @@
 </br>
 </br>
 
-<a href="https://github.com/rainxchzed/Github-Store/releases/latest">
-  <img src="https://img.shields.io/github/v/release/rainxchzed/Github-Store?color=a1168e&include_prereleases&logo=github&style=for-the-badge&labelColor=700f63"/>
+<a href="https://github.com/OpenHub-Store/GitHub-Store/releases/latest">
+  <img src="https://img.shields.io/github/v/release/OpenHub-Store/GitHub-Store?color=a1168e&include_prereleases&logo=github&style=for-the-badge&labelColor=700f63"/>
 </a>
 
 <a href="https://f-droid.org/packages/zed.rainxch.githubstore">
@@ -43,18 +44,14 @@
 </br>
 
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/15655" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15655" alt="rainxchzed%2FGithub-Store | Trendshift" style="width: 250px; height: 54px;" width="250" height="55" />
+<p align="center"> 
+ <a href="https://trendshift.io/repositories/22313" target="_blank"><img src="https://trendshift.io/api/badge/repositories/22313" alt="OpenHub-Store%2FGitHub-Store | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
-<a href="https://hellogithub.com/en/repository/rainxchzed/Github-Store" target="_blank">
-  <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=rainxchzed%2FGithub-Store&claim_uid=&theme=dark" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" />
+<a href="https://hellogithub.com/en/repository/OpenHub-Store/GitHub-Store" target="_blank">
+  <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=OpenHub-Store%2FGitHub-Store&claim_uid=&theme=dark" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" />
 </a>
 </p>
 
-</p>
-
-<p align="center">
-<a href="/README.md">English</a> | <a href="/docs/README-ES.md"><b>Español</b></a> | <a href="/docs/README-FR.md">Français</a> | <a href="/docs/README-IT.md">Italiano</a> | <a href="/docs/README-RU.md">Русский</a> | <a href="/docs/README-PL.md">Polski</a> | <a href="/docs/README-TR.md">Türkçe</a> | <a href="/docs/README-ZH.md">中文</a> | <a href="/docs/README-JA.md">日本語</a> | <a href="/docs/README-KR.md">한국어</a> | <a href="/docs/README-BN.md">বাংলা</a> | <a href="/docs/README-HI.md">हिन्दी</a>
 </p>
 
 <div align="center">
@@ -72,18 +69,18 @@ Construida con Kotlin Multiplatform y Compose Multiplatform para plataformas And
 
 <p align="middle">
     <img src="../media-resources/banner.jpeg" width="99%" />
-    <img src="../media-resources/01.jpg" width="18%" />
-    <img src="../media-resources/02.jpg" width="18%" />
-    <img src="../media-resources/03.jpg" width="18%" />
-    <img src="../media-resources/04.jpg" width="18%" />
-    <img src="../media-resources/05.jpg" width="18%" />
+    <img src="../media-resources/screenshots/mobile/01.jpg" width="18%" />
+    <img src="../media-resources/screenshots/mobile/02.jpg" width="18%" />
+    <img src="../media-resources/screenshots/mobile/03.jpg" width="18%" />
+    <img src="../media-resources/screenshots/mobile/04.jpg" width="18%" />
+    <img src="../media-resources/screenshots/mobile/05.jpg" width="18%" />
 </p>
 
 <div align="center">
 
 # 📔 Wiki y Recursos
 
-Consulta la [Wiki](https://github.com/rainxchzed/Github-Store/wiki) de GitHub Store para preguntas frecuentes e informacion util
+Consulta la [Wiki](https://github.com/OpenHub-Store/GitHub-Store/wiki) de GitHub Store para preguntas frecuentes e informacion util
 
 🌐 **Sitio web:** [github-store.org](https://github-store.org)
 💬 **Discord:** [Unete a la comunidad](https://discord.gg/x9Cvh2Z9qS)
@@ -97,35 +94,36 @@ Consulta la [Wiki](https://github.com/rainxchzed/Github-Store/wiki) de GitHub St
 
 ### 📋 Aviso Legal
 
-GitHub Store es un proyecto independiente de codigo abierto, no afiliado a GitHub, Inc.
-El nombre describe la funcionalidad de la aplicacion (descubrir releases de GitHub) y no implica propiedad de marca registrada.
+GitHub Store es un proyecto independiente de codigo abierto, no afiliado a GitHub, Inc.  
+El nombre describe la funcionalidad de la aplicacion (descubrir releases de GitHub) y no implica propiedad de marca registrada.  
 GitHub® es una marca registrada de GitHub, Inc.
 
 </div>
 
 ---
 
-<div align="center">
+<p align="center">
 
 # 🔃 Descarga
-
-</div>
+</p>
 
 <p align="center">
-<a href="https://github.com/rainxchzed/Github-Store/releases">
-   <img src="https://i.ibb.co/q0mdc4Z/get-it-on-github.png" height="80"/>
+<a href="https://github.com/OpenHub-Store/GitHub-Store/releases">
+   <img src="https://i.ibb.co/q0mdc4Z/get-it-on-github.png" height="70"/>
 </a>
+
 <a href="https://f-droid.org/en/packages/zed.rainxch.githubstore/">
    <img src="https://f-droid.org/badge/get-it-on.png" height="80"/>
-</a>
-<a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/rainxchzed/Github-Store/">
-  <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" height="60" alt="Get it on Obtainium">
 </a>
 </p>
 
 <p align="center">
-  <a href="https://discord.gg/x9Cvh2Z9qS">
-  <img src="https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord">
+<a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/OpenHub-Store/GitHub-Store/">
+  <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" height="60" alt="Get it on Obtainium">
+</a>
+
+<a href="https://github-store.org/app?repo=OpenHub-Store/GitHub-Store">
+  <img src="../media-resources/ghs_download_badge.png" alt="Get it on GitHub Store" height="64">
 </a>
 </p>
 
@@ -134,12 +132,10 @@ GitHub® es una marca registrada de GitHub, Inc.
 
 ---
 
-<div align="center">
+<p align="center">
 
 # 🏆 Destacado en
-
-</div>
-
+</p>
 <p align="center">
 <a href="https://www.youtube.com/@howtomen">
   <img src="https://img.shields.io/badge/HowToMen-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Destacado por HowToMen">
@@ -147,7 +143,7 @@ GitHub® es una marca registrada de GitHub, Inc.
 </br>
 <strong>HowToMen:</strong> <a href="https://www.youtube.com/watch?v=7favc9MDedQ">Top 20 Mejores Apps para Android 2026</a> | <a href="https://www.youtube.com/watch?v=VR-MEwPDw4k">Top 12 Tiendas de Apps Mejores que Google Play Store</a>
 </br>
-<strong>HelloGitHub:</strong> <a href="https://hellogithub.com/en/repository/rainxchzed/Github-Store">Proyecto Destacado</a>
+<strong>HelloGitHub:</strong> <a href="https://hellogithub.com/en/repository/OpenHub-Store/GitHub-Store">Proyecto Destacado</a>
 </p>
 
 ---
@@ -167,7 +163,7 @@ GitHub® es una marca registrada de GitHub, Inc.
     - Opcion de instalacion manual con comprobaciones de compatibilidad automaticas.
 
 - **Pantalla de detalles enriquecida**
-    - Nombre de la app, version, boton "Instalar ultima version" y accion de compartir.
+    - Nombre de la app, version y accion de compartir.
     - Estrellas, forks, issues abiertos.
     - Contenido del README renderizado ("Acerca de esta app").
     - Notas de la release con formato de Markdown para cualquier release seleccionada.
@@ -187,16 +183,11 @@ GitHub® es una marca registrada de GitHub, Inc.
     - Soporte de proxy dinamico para enrutamiento de red configurable.
     - Sistema de cache mejorado para una carga mas rapida y menor uso de la API.
 
-- **Experiencia de usuario multiplataforma**
-    - Android: pantalla de inicio nativa, manejo de expiracion de sesion e icono adaptativo.
-    - Escritorio: soporte de AppImage en Linux priorizado junto con los formatos DEB y RPM.
-    - Localizado en 12 idiomas: ingles, espanol, frances, japones, coreano, polaco, ruso, chino, bengali, hindi, italiano y turco.
-
 ---
 
 ## 🔍 ¿Como aparece mi aplicacion en GitHub Store?
 
-GitHub Store no utiliza ningun tipo de indexacion privada ni reglas de curacion manual.
+GitHub Store no utiliza ningun tipo de indexacion privada ni reglas de curacion manual.  
 Tu proyecto puede aparecer automaticamente si cumple estas condiciones:
 
 1. **Repositorio publico en GitHub**
@@ -224,36 +215,6 @@ automaticamente, sin necesidad de envio manual.
 
 ---
 
-## 🧭 Como funciona GitHub Store (vision general)
-
-1. **Busqueda**
-    - Usa el endpoint `/search/repositories` de GitHub con consultas adaptadas a la plataforma.
-    - Aplica una puntuacion simple basada en topics, lenguaje y descripcion.
-    - Filtra repositorios archivados y aquellos con pocas senales.
-
-2. **Comprobacion de releases y archivos**
-    - Para los repositorios candidatos, llama a `/repos/{owner}/{repo}/releases/latest`.
-    - Verifica el array `assets` en busca de extensiones de archivo especificas de la plataforma.
-    - Si no se encuentra ningun archivo adecuado, el repositorio se excluye de los resultados.
-    - Los usuarios tambien pueden explorar todas las releases mediante el selector de releases.
-
-3. **Pantalla de detalles**
-    - Informacion del repositorio: nombre, propietario, descripcion, estrellas, forks, issues.
-    - Explorador de releases: navega por cualquier release con su etiqueta, fecha, changelog y archivos.
-    - README: cargado desde la rama principal y renderizado como "Acerca de esta app".
-    - Enlace al perfil del desarrollador y accion de compartir.
-    - Accesible mediante enlaces profundos para navegacion directa.
-
-4. **Proceso de instalacion**
-    - Cuando el usuario toca "Instalar ultima version" o selecciona un release especifico:
-        - Selecciona el archivo mas adecuado para la plataforma actual (con coincidencia de arquitectura en Android).
-        - Transmite la descarga con soporte de cache.
-        - Delega al instalador del sistema operativo (instalador de APK en Android, manejador predeterminado en escritorio).
-        - En Android, registra la instalacion en una base de datos local y usa monitoreo de paquetes para mantener la lista de apps instaladas sincronizada.
-        - Soporta acciones de abrir, desinstalar y degradar para las apps gestionadas.
-
----
-
 ## ✅ Ventajas / ¿Por que usar GitHub Store?
 
 - **No mas busquedas en los releases de GitHub**
@@ -266,10 +227,7 @@ automaticamente, sin necesidad de envio manual.
   Las instalaciones usan por defecto el ultimo release publicado, con la opcion de explorar e instalar desde
   cualquier release anterior mediante el selector de releases.
 
-- **Experiencia uniforme en todas las plataformas**
-  La misma interfaz y logica para Android y escritorio, con comportamiento de instalacion nativo de la plataforma.
-
-- **Codigo abierto y extensible**
+- **Codigo abierto y extensible**  
   Escrito en KMP con una separacion clara entre red, logica de dominio e interfaz de usuario — facil de bifurcar,
   extender o adaptar.
 
@@ -333,13 +291,10 @@ Sincroniza el proyecto y ejecuta la app. Ahora deberias poder iniciar sesion con
 
 ## ☕ Apoya el proyecto
 
-**GitHub Store** ha alcanzado **mas de 48.000 usuarios activos** y **mas de 5.500 estrellas en GitHub** — y es **100% gratuito** sin anuncios, sin rastreo y sin funciones premium.
+GitHub Store esta construido y mantenido por un estudiante de instituto. Tu apoyo le ayuda a:
 
-Lo construi y lo mantengo completamente solo mientras termino el instituto. Tu apoyo (incluso $3) me ayuda a:
-
-✅ **Mantener la app libre de errores** — responder a issues y enviar correcciones rapidamente
+✅ **Mantener la app libre de errores** — responder a issues y enviar correcciones rapidamente  
 ✅ **Anadir funciones solicitadas por la comunidad** — implementar lo que los usuarios realmente necesitan
-✅ **Mantener la infraestructura** — servidores, APIs y costos de despliegue
 
 ### 💖 Formas de Apoyar
 
@@ -354,7 +309,7 @@ Lo construi y lo mantengo completamente solo mientras termino el instituto. Tu a
 **¿No puedes patrocinar ahora mismo?** ¡No pasa nada! Tambien puedes ayudar:
 - ⭐ **Dando una estrella a este repositorio** — ayuda a otros a descubrir GitHub Store
 - 🐛 **Reportando errores** — mejora la app para todos
-- 📢 **Compartiendolo con amigos** — difunde la palabra entre otros desarrolladores
+- 📢 **Compartiendolo con amigos** — difunde la palabra entre otros desarrolladores y amigos!
 - 💬 **Uniendote a nuestro [Discord](https://discord.gg/x9Cvh2Z9qS)** — tus comentarios moldean la hoja de ruta
 
 Cada forma de apoyo — financiera o no — significa mucho y mantiene este proyecto vivo. ¡Gracias!
@@ -364,12 +319,12 @@ Cada forma de apoyo — financiera o no — significa mucho y mantiene este proy
 ## ⚠️ Descargo de Responsabilidad
 
 GitHub Store solo te ayuda a descubrir y descargar archivos de releases que ya estan publicados en
-GitHub por desarrolladores externos.
+GitHub por desarrolladores externos.  
 Los contenidos, la seguridad y el comportamiento de esas descargas son responsabilidad exclusiva de sus
 respectivos autores y distribuidores, no de este proyecto.
 
 Al usar GitHub Store, entiendes y aceptas que instalas y ejecutas cualquier software descargado
-bajo tu propia responsabilidad.
+bajo tu propia responsabilidad.  
 Este proyecto no revisa, valida ni garantiza que ningun instalador sea seguro, este libre de malware o
 sea adecuado para ningun proposito en particular.
 
@@ -377,11 +332,11 @@ sea adecuado para ningun proposito en particular.
 
 ## Historial de Estrellas
 
-<a href="https://www.star-history.com/#rainxchzed/Github-Store&type=timeline&legend=top-left">
+<a href="https://www.star-history.com/#OpenHub-Store/GitHub-Store&type=timeline&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=rainxchzed/Github-Store&type=timeline&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=rainxchzed/Github-Store&type=timeline&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=rainxchzed/Github-Store&type=timeline&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=OpenHub-Store/GitHub-Store&type=timeline&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=OpenHub-Store/GitHub-Store&type=timeline&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OpenHub-Store/GitHub-Store&type=timeline&legend=top-left" />
  </picture>
 </a>
 

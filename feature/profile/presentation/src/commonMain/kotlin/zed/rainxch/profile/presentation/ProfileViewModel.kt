@@ -199,7 +199,7 @@ class ProfileViewModel(
         when (action) {
             ProfileAction.OnHelpClick -> {
                 browserHelper.openUrl(
-                    url = "https://github.com/rainxchzed/Github-Store/issues",
+                    url = "https://github.com/OpenHub-Store/GitHub-Store/issues",
                 )
             }
 
