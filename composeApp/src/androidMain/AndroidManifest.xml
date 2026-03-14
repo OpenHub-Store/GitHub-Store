@@ -125,6 +125,12 @@
             </intent-filter>
         </receiver>
 
+        <!-- WorkManager foreground service declaration for update workers -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+
         <!-- Shizuku provider for optional silent install support -->
         <provider
             android:name="rikka.shizuku.ShizukuProvider"

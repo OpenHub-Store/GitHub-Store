@@ -14,6 +14,9 @@ sealed interface DetailsAction {
     data object OnDismissDowngradeWarning : DetailsAction
 
     data object UninstallApp : DetailsAction
+    data object OnRequestUninstall : DetailsAction
+    data object OnDismissUninstallConfirmation : DetailsAction
+    data object OnConfirmUninstall : DetailsAction
 
     data class DownloadAsset(
         val downloadUrl: String,

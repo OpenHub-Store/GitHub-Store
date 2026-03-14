@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -29,15 +30,22 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -46,14 +54,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,6 +79,7 @@ import io.github.fletchmckee.liquid.liquefiable
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import zed.rainxch.apps.presentation.components.LinkAppBottomSheet
 import zed.rainxch.apps.presentation.model.AppItem
 import zed.rainxch.apps.presentation.model.UpdateAllProgress
 import zed.rainxch.apps.presentation.model.UpdateState
@@ -105,6 +117,25 @@ fun AppsRoot(
                     snackbarHostState.showSnackbar(event.message)
                 }
             }
+
+            is AppsEvent.AppLinkedSuccessfully -> {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("${event.appName} linked successfully")
+                }
+            }
+
+            is AppsEvent.ExportReady -> {
+                // Share already handled by ShareManager in ViewModel
+            }
+
+            is AppsEvent.ImportComplete -> {
+                val r = event.result
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        "Imported ${r.imported}, skipped ${r.skipped}, failed ${r.failed}",
+                    )
+                }
+            }
         }
     }
 
@@ -133,6 +164,7 @@ fun AppsScreen(
 ) {
     val liquidState = LocalBottomNavigationLiquid.current
     val bottomNavHeight = LocalBottomNavigationHeight.current
+    var showOverflowMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -154,8 +186,53 @@ fun AppsScreen(
                             contentDescription = stringResource(Res.string.check_for_updates),
                         )
                     }
+
+                    Box {
+                        IconButton(onClick = { showOverflowMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Outlined.MoreVert,
+                                contentDescription = null,
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showOverflowMenu,
+                            onDismissRequest = { showOverflowMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(Res.string.export_apps)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    onAction(AppsAction.OnExportApps)
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.FileUpload, contentDescription = null)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(Res.string.import_apps)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    onAction(AppsAction.OnImportApps)
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.FileDownload, contentDescription = null)
+                                },
+                            )
+                        }
+                    }
                 },
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onAction(AppsAction.OnAddByLinkClick) },
+                modifier = Modifier.padding(bottom = bottomNavHeight),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.add_by_link),
+                )
+            }
         },
         snackbarHost = {
             SnackbarHost(
@@ -165,6 +242,50 @@ fun AppsScreen(
         },
         modifier = Modifier.liquefiable(liquidState),
     ) { innerPadding ->
+
+        // Link app bottom sheet
+        if (state.showLinkSheet) {
+            LinkAppBottomSheet(
+                state = state,
+                onAction = onAction,
+            )
+        }
+
+        // Uninstall confirmation dialog
+        state.appPendingUninstall?.let { app ->
+            AlertDialog(
+                onDismissRequest = { onAction(AppsAction.OnDismissUninstallDialog) },
+                title = {
+                    Text(
+                        text = stringResource(Res.string.confirm_uninstall_title),
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.confirm_uninstall_message, app.appName),
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { onAction(AppsAction.OnUninstallConfirmed(app)) },
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.uninstall),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { onAction(AppsAction.OnDismissUninstallDialog) },
+                    ) {
+                        Text(text = stringResource(Res.string.cancel))
+                    }
+                },
+            )
+        }
+
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = { onAction(AppsAction.OnRefresh) },

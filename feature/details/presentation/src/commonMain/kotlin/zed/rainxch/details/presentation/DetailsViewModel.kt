@@ -399,7 +399,34 @@ class DetailsViewModel(
                 }
             }
 
+            DetailsAction.OnRequestUninstall -> {
+                _state.update { it.copy(showUninstallConfirmation = true) }
+            }
+
+            DetailsAction.OnDismissUninstallConfirmation -> {
+                _state.update { it.copy(showUninstallConfirmation = false) }
+            }
+
+            DetailsAction.OnConfirmUninstall -> {
+                _state.update { it.copy(showUninstallConfirmation = false) }
+                val installedApp = _state.value.installedApp ?: return
+                logger.debug("Uninstalling app (confirmed): ${installedApp.packageName}")
+                viewModelScope.launch {
+                    try {
+                        installer.uninstall(installedApp.packageName)
+                    } catch (e: Exception) {
+                        logger.error("Failed to request uninstall for ${installedApp.packageName}: ${e.message}")
+                        _events.send(
+                            DetailsEvent.OnMessage(
+                                getString(Res.string.failed_to_uninstall, installedApp.packageName),
+                            ),
+                        )
+                    }
+                }
+            }
+
             DetailsAction.UninstallApp -> {
+                // Legacy direct uninstall (used from downgrade warning flow)
                 val installedApp = _state.value.installedApp ?: return
                 logger.debug("Uninstalling app: ${installedApp.packageName}")
                 viewModelScope.launch {

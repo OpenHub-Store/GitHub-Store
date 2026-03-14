@@ -61,6 +61,7 @@ data class DetailsState(
     val downgradeWarning: DowngradeWarning? = null,
     val showExternalInstallerPrompt: Boolean = false,
     val pendingInstallFilePath: String? = null,
+    val showUninstallConfirmation: Boolean = false,
 ) {
     val filteredReleases: List<GithubRelease>
         get() =

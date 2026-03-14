@@ -51,6 +51,7 @@ class ProfileViewModel(
                 observeShizukuStatus()
                 loadAutoUpdatePreference()
                 loadUpdateCheckInterval()
+                loadIncludePreReleases()
 
                 hasLoadedInitialData = true
             }
@@ -242,6 +243,16 @@ class ProfileViewModel(
         }
     }
 
+    private fun loadIncludePreReleases() {
+        viewModelScope.launch {
+            themesRepository.getIncludePreReleases().collect { enabled ->
+                _state.update {
+                    it.copy(includePreReleases = enabled)
+                }
+            }
+        }
+    }
+
     fun onAction(action: ProfileAction) {
         when (action) {
             ProfileAction.OnHelpClick -> {
@@ -419,6 +430,12 @@ class ProfileViewModel(
                 viewModelScope.launch {
                     themesRepository.setUpdateCheckInterval(action.hours)
                     updateScheduleManager.reschedule(action.hours)
+                }
+            }
+
+            is ProfileAction.OnIncludePreReleasesToggled -> {
+                viewModelScope.launch {
+                    themesRepository.setIncludePreReleases(action.enabled)
                 }
             }
 

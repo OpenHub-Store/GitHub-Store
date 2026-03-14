@@ -24,6 +24,7 @@ class ThemesRepositoryImpl(
     private val INSTALLER_TYPE_KEY = stringPreferencesKey("installer_type")
     private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update_enabled")
     private val UPDATE_CHECK_INTERVAL_KEY = longPreferencesKey("update_check_interval_hours")
+    private val INCLUDE_PRE_RELEASES_KEY = booleanPreferencesKey("include_pre_releases")
 
     override fun getThemeColor(): Flow<AppTheme> =
         preferences.data.map { prefs ->
@@ -118,6 +119,17 @@ class ThemesRepositoryImpl(
     override suspend fun setUpdateCheckInterval(hours: Long) {
         preferences.edit { prefs ->
             prefs[UPDATE_CHECK_INTERVAL_KEY] = hours
+        }
+    }
+
+    override fun getIncludePreReleases(): Flow<Boolean> =
+        preferences.data.map { prefs ->
+            prefs[INCLUDE_PRE_RELEASES_KEY] ?: false
+        }
+
+    override suspend fun setIncludePreReleases(enabled: Boolean) {
+        preferences.edit { prefs ->
+            prefs[INCLUDE_PRE_RELEASES_KEY] = enabled
         }
     }
 

@@ -104,7 +104,7 @@ fun SmartInstallButton(
         ) {
             // Uninstall button
             ElevatedCard(
-                onClick = { onAction(DetailsAction.UninstallApp) },
+                onClick = { onAction(DetailsAction.OnRequestUninstall) },
                 modifier =
                     Modifier
                         .weight(1f)

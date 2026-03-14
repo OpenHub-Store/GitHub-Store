@@ -5,4 +5,8 @@
         name="ghs_downloads"
         path="/" />
 
+    <cache-path
+        name="exports"
+        path="exports/" />
+
 </paths>

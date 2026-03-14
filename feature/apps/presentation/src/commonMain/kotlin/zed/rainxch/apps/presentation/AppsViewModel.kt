@@ -26,6 +26,7 @@ import zed.rainxch.core.domain.network.Downloader
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
+import zed.rainxch.core.domain.utils.ShareManager
 import zed.rainxch.githubstore.core.presentation.res.*
 import java.io.File
 
@@ -36,6 +37,7 @@ class AppsViewModel(
     private val installedAppsRepository: InstalledAppsRepository,
     private val syncInstalledAppsUseCase: SyncInstalledAppsUseCase,
     private val logger: GitHubStoreLogger,
+    private val shareManager: ShareManager,
 ) : ViewModel() {
     companion object {
         private const val UPDATE_CHECK_COOLDOWN_MS = 30 * 60 * 1000L // 30 minutes
@@ -204,7 +206,58 @@ class AppsViewModel(
             }
 
             is AppsAction.OnUninstallApp -> {
+                _state.update { it.copy(appPendingUninstall = action.app) }
+            }
+
+            // Link app to repo
+            AppsAction.OnAddByLinkClick -> openLinkSheet()
+            AppsAction.OnDismissLinkSheet -> dismissLinkSheet()
+            is AppsAction.OnDeviceAppSearchChange -> {
+                _state.update { it.copy(deviceAppSearchQuery = action.query) }
+            }
+            is AppsAction.OnDeviceAppSelected -> {
+                _state.update {
+                    it.copy(
+                        selectedDeviceApp = action.app,
+                        linkStep = LinkStep.EnterUrl,
+                        repoUrl = "",
+                        repoValidationError = null,
+                        fetchedRepoInfo = null,
+                    )
+                }
+            }
+            is AppsAction.OnRepoUrlChanged -> {
+                _state.update {
+                    it.copy(
+                        repoUrl = action.url,
+                        repoValidationError = null,
+                    )
+                }
+            }
+            AppsAction.OnValidateAndLinkRepo -> validateAndLinkRepo()
+            AppsAction.OnBackToAppPicker -> {
+                _state.update {
+                    it.copy(
+                        linkStep = LinkStep.PickApp,
+                        selectedDeviceApp = null,
+                        repoUrl = "",
+                        repoValidationError = null,
+                        fetchedRepoInfo = null,
+                    )
+                }
+            }
+
+            // Export/Import
+            AppsAction.OnExportApps -> exportApps()
+            AppsAction.OnImportApps -> importAppsFromFile()
+
+            // Uninstall confirmation
+            is AppsAction.OnUninstallConfirmed -> {
                 uninstallApp(action.app)
+                _state.update { it.copy(appPendingUninstall = null) }
+            }
+            AppsAction.OnDismissUninstallDialog -> {
+                _state.update { it.copy(appPendingUninstall = null) }
             }
         }
     }
@@ -631,6 +684,178 @@ class AppsViewModel(
             }
         } catch (e: Exception) {
             logger.error("Cleanup failed for $packageName: ${e.message}")
+        }
+    }
+
+    // ── Link app to repo ──────────────────────────────────────────
+
+    private fun openLinkSheet() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    showLinkSheet = true,
+                    linkStep = LinkStep.PickApp,
+                    deviceApps = emptyList(),
+                    deviceAppSearchQuery = "",
+                    selectedDeviceApp = null,
+                    repoUrl = "",
+                    repoValidationError = null,
+                    fetchedRepoInfo = null,
+                )
+            }
+
+            try {
+                val trackedPackages = appsRepository.getTrackedPackageNames()
+                val deviceApps = appsRepository.getDeviceApps()
+                    .filter { it.packageName !in trackedPackages }
+
+                _state.update { it.copy(deviceApps = deviceApps) }
+            } catch (e: Exception) {
+                logger.error("Failed to load device apps: ${e.message}")
+                _events.send(AppsEvent.ShowError("Failed to load installed apps"))
+            }
+        }
+    }
+
+    private fun dismissLinkSheet() {
+        _state.update {
+            it.copy(
+                showLinkSheet = false,
+                linkStep = LinkStep.PickApp,
+                deviceApps = emptyList(),
+                deviceAppSearchQuery = "",
+                selectedDeviceApp = null,
+                repoUrl = "",
+                repoValidationError = null,
+                fetchedRepoInfo = null,
+                isValidatingRepo = false,
+            )
+        }
+    }
+
+    private fun validateAndLinkRepo() {
+        val selectedApp = _state.value.selectedDeviceApp ?: return
+        val url = _state.value.repoUrl.trim()
+
+        // Parse owner/repo from URL
+        val (owner, repo) = parseGithubUrl(url) ?: run {
+            _state.update { it.copy(repoValidationError = "Invalid GitHub URL. Use format: github.com/owner/repo") }
+            return
+        }
+
+        viewModelScope.launch {
+            _state.update { it.copy(isValidatingRepo = true, repoValidationError = null) }
+
+            try {
+                val repoInfo = appsRepository.fetchRepoInfo(owner, repo)
+                if (repoInfo == null) {
+                    _state.update {
+                        it.copy(
+                            isValidatingRepo = false,
+                            repoValidationError = "Repository not found: $owner/$repo",
+                        )
+                    }
+                    return@launch
+                }
+
+                appsRepository.linkAppToRepo(selectedApp, repoInfo)
+
+                _state.update {
+                    it.copy(
+                        isValidatingRepo = false,
+                        showLinkSheet = false,
+                    )
+                }
+
+                _events.send(AppsEvent.AppLinkedSuccessfully(selectedApp.appName))
+                _events.send(AppsEvent.ShowSuccess("${selectedApp.appName} linked to ${repoInfo.owner}/${repoInfo.name}"))
+            } catch (e: RateLimitException) {
+                _state.update {
+                    it.copy(
+                        isValidatingRepo = false,
+                        repoValidationError = "GitHub API rate limit exceeded. Try again later.",
+                    )
+                }
+            } catch (e: Exception) {
+                logger.error("Failed to link app: ${e.message}")
+                _state.update {
+                    it.copy(
+                        isValidatingRepo = false,
+                        repoValidationError = "Failed to link: ${e.message}",
+                    )
+                }
+            }
+        }
+    }
+
+    private fun parseGithubUrl(input: String): Pair<String, String>? {
+        val cleaned = input.trim()
+            .removePrefix("https://")
+            .removePrefix("http://")
+            .removePrefix("www.")
+            .removePrefix("github.com/")
+            .removeSuffix("/")
+            .split("?")[0]   // remove query params
+            .split("#")[0]   // remove fragment
+
+        val parts = cleaned.split("/")
+        if (parts.size < 2) return null
+
+        val owner = parts[0]
+        val repo = parts[1]
+
+        if (owner.isBlank() || repo.isBlank()) return null
+        if (owner.length > 39 || repo.length > 100) return null
+
+        return owner to repo
+    }
+
+    // ── Export/Import ─────────────────────────────────────────────
+
+    private fun exportApps() {
+        viewModelScope.launch {
+            _state.update { it.copy(isExporting = true) }
+            try {
+                val json = appsRepository.exportApps()
+                val fileName = "github-store-apps-${System.currentTimeMillis()}.json"
+                shareManager.shareFile(fileName, json)
+                _events.send(AppsEvent.ExportReady(json))
+            } catch (e: Exception) {
+                logger.error("Export failed: ${e.message}")
+                _events.send(AppsEvent.ShowError("Export failed: ${e.message}"))
+            } finally {
+                _state.update { it.copy(isExporting = false) }
+            }
+        }
+    }
+
+    private fun importAppsFromFile() {
+        shareManager.pickFile("application/json") { content ->
+            if (content != null) {
+                viewModelScope.launch {
+                    importApps(content)
+                }
+            }
+        }
+    }
+
+    private suspend fun importApps(json: String) {
+        _state.update { it.copy(isImporting = true) }
+        try {
+            val result = appsRepository.importApps(json)
+            _events.send(AppsEvent.ImportComplete(result))
+            _events.send(
+                AppsEvent.ShowSuccess(
+                    "Imported ${result.imported} apps" +
+                        if (result.skipped > 0) ", ${result.skipped} skipped" else "" +
+                            if (result.failed > 0) ", ${result.failed} failed" else "",
+                ),
+            )
+        } catch (e: Exception) {
+            logger.error("Import failed: ${e.message}")
+            _events.send(AppsEvent.ShowError("Import failed: ${e.message}"))
+        } finally {
+            _state.update { it.copy(isImporting = false) }
         }
     }
 

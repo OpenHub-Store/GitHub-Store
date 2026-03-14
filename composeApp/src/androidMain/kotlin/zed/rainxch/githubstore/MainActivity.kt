@@ -13,14 +13,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.util.Consumer
+import org.koin.android.ext.android.inject
+import zed.rainxch.core.data.utils.AndroidShareManager
+import zed.rainxch.core.domain.utils.ShareManager
 import zed.rainxch.githubstore.app.deeplink.DeepLinkParser
 
 class MainActivity : ComponentActivity() {
     private var deepLinkUri by mutableStateOf<String?>(null)
+    private val shareManager: ShareManager by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge()
+
+        // Register activity result launcher for file picker (must be before STARTED)
+        (shareManager as? AndroidShareManager)?.registerActivityResultLauncher(this)
 
         super.onCreate(savedInstanceState)
 

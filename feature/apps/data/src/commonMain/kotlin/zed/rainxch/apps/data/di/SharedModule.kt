@@ -12,6 +12,8 @@ val appsModule =
                 appsRepository = get(),
                 logger = get(),
                 httpClient = get(),
+                packageMonitor = get(),
+                themesRepository = get(),
             )
         }
     }

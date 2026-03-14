@@ -533,4 +533,23 @@
     <string name="interval_6h">6h</string>
     <string name="interval_12h">12h</string>
     <string name="interval_24h">24h</string>
+
+    <string name="add_by_link">Add by link</string>
+    <string name="link_app_title">Link app to repository</string>
+    <string name="pick_installed_app">Pick an installed app to link with a GitHub repository</string>
+    <string name="search_apps_hint">Search apps…</string>
+    <string name="enter_repo_url">GitHub repository URL</string>
+    <string name="repo_url_hint">github.com/owner/repo</string>
+    <string name="validating_repo">Validating…</string>
+    <string name="link_and_track">Link &amp; Track</string>
+    <string name="export_apps">Export</string>
+    <string name="import_apps">Import</string>
+    <string name="import_apps_title">Import apps</string>
+    <string name="import_apps_description">Paste the exported JSON to restore your tracked apps</string>
+    <string name="import_apps_hint">Paste exported JSON here…</string>
+
+    <string name="include_pre_releases_title">Include pre-releases</string>
+    <string name="include_pre_releases_description">Track pre-release versions when checking for updates. When disabled, only stable releases are considered.</string>
+    <string name="confirm_uninstall_title">Uninstall app?</string>
+    <string name="confirm_uninstall_message">Are you sure you want to uninstall %1$s? This action cannot be undone and app data may be lost.</string>
 </resources>

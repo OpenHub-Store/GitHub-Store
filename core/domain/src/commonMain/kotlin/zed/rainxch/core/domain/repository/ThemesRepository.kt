@@ -22,4 +22,6 @@ interface ThemesRepository {
     suspend fun setAutoUpdateEnabled(enabled: Boolean)
     fun getUpdateCheckInterval(): Flow<Long>
     suspend fun setUpdateCheckInterval(hours: Long)
+    fun getIncludePreReleases(): Flow<Boolean>
+    suspend fun setIncludePreReleases(enabled: Boolean)
 }

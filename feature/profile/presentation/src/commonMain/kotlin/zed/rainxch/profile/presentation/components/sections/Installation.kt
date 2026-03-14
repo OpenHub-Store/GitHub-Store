@@ -123,6 +123,15 @@ fun LazyListScope.updatesSection(
                 onAction(ProfileAction.OnUpdateCheckIntervalChanged(hours))
             }
         )
+
+        Spacer(Modifier.height(12.dp))
+
+        PreReleaseToggleCard(
+            enabled = state.includePreReleases,
+            onToggle = { enabled ->
+                onAction(ProfileAction.OnIncludePreReleasesToggled(enabled))
+            }
+        )
     }
 }
 
@@ -445,6 +454,44 @@ private fun UpdateCheckIntervalCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun PreReleaseToggleCard(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit,
+) {
+    ExpressiveCard {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = stringResource(Res.string.include_pre_releases_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(Res.string.include_pre_releases_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onToggle
+            )
         }
     }
 }

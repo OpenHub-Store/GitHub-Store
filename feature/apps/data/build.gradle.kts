@@ -14,6 +14,7 @@ kotlin {
                 implementation(projects.feature.apps.domain)
 
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.datetime)
                 implementation(libs.bundles.ktor.common)
                 implementation(libs.bundles.koin.common)
             }

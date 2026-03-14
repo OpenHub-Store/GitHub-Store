@@ -189,6 +189,47 @@ fun DetailsRoot(
         )
     }
 
+    // Uninstall confirmation dialog
+    if (state.showUninstallConfirmation) {
+        val appName = state.installedApp?.appName ?: ""
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.onAction(DetailsAction.OnDismissUninstallConfirmation)
+            },
+            title = {
+                Text(
+                    text = stringResource(Res.string.confirm_uninstall_title),
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(Res.string.confirm_uninstall_message, appName),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onAction(DetailsAction.OnConfirmUninstall)
+                    },
+                ) {
+                    Text(
+                        text = stringResource(Res.string.uninstall),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onAction(DetailsAction.OnDismissUninstallConfirmation)
+                    },
+                ) {
+                    Text(text = stringResource(Res.string.cancel))
+                }
+            },
+        )
+    }
+
     if (state.showExternalInstallerPrompt) {
         AlertDialog(
             onDismissRequest = {

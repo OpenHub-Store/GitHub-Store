@@ -1,10 +1,12 @@
 package zed.rainxch.core.data.services
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import zed.rainxch.core.domain.model.DeviceApp
 import zed.rainxch.core.domain.model.SystemPackageInfo
 import zed.rainxch.core.domain.system.PackageMonitor
 
@@ -54,5 +56,41 @@ class AndroidPackageMonitor(
                 }
 
             packages.map { it.packageName }.toSet()
+        }
+
+    override suspend fun getAllInstalledApps(): List<DeviceApp> =
+        withContext(Dispatchers.IO) {
+            val packages =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(0L))
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageManager.getInstalledPackages(0)
+                }
+
+            packages
+                .filter { pkg ->
+                    // Exclude system apps (keep user-installed + updated system apps)
+                    val isSystemApp = (pkg.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0
+                    val isUpdatedSystem = (pkg.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0
+                    !isSystemApp || isUpdatedSystem
+                }
+                .map { pkg ->
+                    val versionCode =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            pkg.longVersionCode
+                        } else {
+                            @Suppress("DEPRECATION")
+                            pkg.versionCode.toLong()
+                        }
+
+                    DeviceApp(
+                        packageName = pkg.packageName,
+                        appName = pkg.applicationInfo?.loadLabel(packageManager)?.toString() ?: pkg.packageName,
+                        versionName = pkg.versionName,
+                        versionCode = versionCode,
+                    )
+                }
+                .sortedBy { it.appName.lowercase() }
         }
 }

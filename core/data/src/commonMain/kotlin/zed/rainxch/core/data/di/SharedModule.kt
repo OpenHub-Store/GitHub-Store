@@ -75,6 +75,7 @@ val coreModule =
                 historyDao = get(),
                 installer = get(),
                 httpClient = get(),
+                themesRepository = get(),
             )
         }
 

@@ -71,6 +71,7 @@ sealed interface ProfileAction {
     data object OnRequestShizukuPermission : ProfileAction
     data class OnAutoUpdateToggled(val enabled: Boolean) : ProfileAction
     data class OnUpdateCheckIntervalChanged(val hours: Long) : ProfileAction
+    data class OnIncludePreReleasesToggled(val enabled: Boolean) : ProfileAction
 
     data class OnAutoDetectClipboardToggled(
         val enabled: Boolean,

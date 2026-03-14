@@ -28,4 +28,5 @@ data class ProfileState(
     val shizukuAvailability: ShizukuAvailability = ShizukuAvailability.UNAVAILABLE,
     val autoUpdateEnabled: Boolean = false,
     val updateCheckIntervalHours: Long = 6L,
+    val includePreReleases: Boolean = false,
 )
