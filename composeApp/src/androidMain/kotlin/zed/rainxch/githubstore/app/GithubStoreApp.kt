@@ -82,8 +82,15 @@ class GithubStoreApp : Application() {
 
     private fun scheduleBackgroundUpdateChecks() {
         appScope.launch {
-            val intervalHours = get<ThemesRepository>().getUpdateCheckInterval().first()
-            UpdateScheduler.schedule(context = this@GithubStoreApp, intervalHours = intervalHours)
+            try {
+                val intervalHours = get<ThemesRepository>().getUpdateCheckInterval().first()
+                UpdateScheduler.schedule(
+                    context = this@GithubStoreApp,
+                    intervalHours = intervalHours,
+                )
+            } catch (e: Exception) {
+                Logger.e(e) { "Failed to schedule background update checks" }
+            }
         }
     }
 
@@ -110,7 +117,7 @@ class GithubStoreApp : Application() {
                 val selfApp =
                     InstalledApp(
                         packageName = selfPackageName,
-                        repoId = 0L,
+                        repoId = SELF_REPO_ID,
                         repoName = SELF_REPO_NAME,
                         repoOwner = SELF_REPO_OWNER,
                         repoOwnerAvatarUrl = SELF_AVATAR_URL,
@@ -140,14 +147,15 @@ class GithubStoreApp : Application() {
                     )
 
                 repo.saveInstalledApp(selfApp)
-                Logger.e("GitHub Store App: App added")
+                Logger.i("GitHub Store App: App added")
             } catch (e: Exception) {
-                Logger.e("GitHub Store App", e)
+                Logger.e(e) { "GitHub Store App: Failed to register self as installed app" }
             }
         }
     }
 
     companion object {
+        private const val SELF_REPO_ID = 1101281251L
         private const val SELF_REPO_OWNER = "OpenHub-Store"
         private const val SELF_REPO_NAME = "GitHub-Store"
         private const val SELF_AVATAR_URL =
