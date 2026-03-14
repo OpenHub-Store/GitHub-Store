@@ -465,4 +465,23 @@
 
     <string name="sponsor_thank_you">Każde wsparcie — finansowe lub nie — utrzymuje ten projekt przy życiu. Dziękuję!</string>
 
+
+    <!-- Installation method settings -->
+    <string name="section_installation">Instalacja</string>
+    <string name="installer_type_default">Domyślny</string>
+    <string name="installer_type_default_description">Standardowe okno instalacji systemowej</string>
+    <string name="installer_type_shizuku">Shizuku</string>
+    <string name="installer_type_shizuku_description">Cicha instalacja bez potwierdzeń</string>
+    <string name="shizuku_status_not_installed">Shizuku nie jest zainstalowany</string>
+    <string name="shizuku_status_not_running">Shizuku nie jest uruchomiony</string>
+    <string name="shizuku_status_permission_needed">Wymagane uprawnienie</string>
+    <string name="shizuku_status_ready">Gotowy</string>
+    <string name="shizuku_grant_permission">Przyznaj uprawnienie</string>
+    <string name="shizuku_install_hint">Zainstaluj Shizuku, aby włączyć cichą instalację</string>
+    <string name="shizuku_start_hint">Uruchom Shizuku, aby włączyć cichą instalację</string>
+    <string name="shizuku_install_failed_fallback">Instalacja przez Shizuku nie powiodła się, używam standardowego instalatora</string>
+
+    <string name="auto_update_title">Automatyczna aktualizacja</string>
+    <string name="auto_update_description">Automatycznie pobieraj i instaluj aktualizacje w tle przez Shizuku</string>
+
 </resources>

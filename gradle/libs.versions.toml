@@ -41,6 +41,8 @@ buildkonfig = "0.17.1"
 markdownRenderer = "0.39.2"
 liquid = "1.1.1"
 landscapist = "2.9.5"
+shizuku = "13.1.5"
+hidden-api = "4.4.0"
 jsystemthemedetector = "3.9.1"
 work = "2.11.1"
 resources="1.10.1"
@@ -148,6 +150,11 @@ markdown-renderer-coil3 = { module = "com.mikepenz:multiplatform-markdown-render
 
 # WorkManager
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+
+# Shizuku
+shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
+shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
+hidden-api-stub = { module = "dev.rikka.hidden:stub", version.ref = "hidden-api" }
 
 # Liquid effect
 liquid = { module = "io.github.fletchmckee.liquid:liquid", version.ref = "liquid" }

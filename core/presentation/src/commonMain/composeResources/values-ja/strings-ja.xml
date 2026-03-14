@@ -463,4 +463,23 @@
     <string name="sponsor_share_desc">他の開発者に広める</string>
 
     <string name="sponsor_thank_you">金銭的であれそうでなくても、すべての支援がこのプロジェクトを支えています。ありがとうございます！</string>
+
+    <!-- Installation method settings -->
+    <string name="section_installation">インストール</string>
+    <string name="installer_type_default">デフォルト</string>
+    <string name="installer_type_default_description">標準のシステムインストールダイアログ</string>
+    <string name="installer_type_shizuku">Shizuku</string>
+    <string name="installer_type_shizuku_description">確認なしのサイレントインストール</string>
+    <string name="shizuku_status_not_installed">Shizukuがインストールされていません</string>
+    <string name="shizuku_status_not_running">Shizukuが実行されていません</string>
+    <string name="shizuku_status_permission_needed">権限が必要です</string>
+    <string name="shizuku_status_ready">準備完了</string>
+    <string name="shizuku_grant_permission">権限を付与</string>
+    <string name="shizuku_install_hint">サイレントインストールを有効にするにはShizukuをインストールしてください</string>
+    <string name="shizuku_start_hint">サイレントインストールを有効にするにはShizukuを起動してください</string>
+    <string name="shizuku_install_failed_fallback">Shizukuインストールに失敗、標準インストーラーを使用します</string>
+
+    <string name="auto_update_title">アプリを自動更新</string>
+    <string name="auto_update_description">Shizukuを使用してバックグラウンドで自動的にアップデートをダウンロードしてインストール</string>
+
 </resources>

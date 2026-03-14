@@ -37,18 +37,20 @@ object UpdateScheduler {
                     TimeUnit.MINUTES,
                 ).build()
 
-        // UPDATE replaces any existing schedule so new intervals and code changes take effect
+        // KEEP preserves the existing schedule so reopening the app doesn't reset the timer.
+        // The schedule is only created fresh on first install or after cancel().
         WorkManager
             .getInstance(context)
             .enqueueUniquePeriodicWork(
                 uniqueWorkName = UpdateCheckWorker.WORK_NAME,
-                existingPeriodicWorkPolicy = ExistingPeriodicWorkPolicy.UPDATE,
+                existingPeriodicWorkPolicy = ExistingPeriodicWorkPolicy.KEEP,
                 request = request,
             )
 
         // Run an immediate one-time check so users get notified sooner
         // rather than waiting up to intervalHours for the first periodic run.
-        // Uses KEEP policy so it doesn't re-enqueue if one is already pending.
+        // Uses REPLACE so each app launch gets a fresh check (the previous one-time
+        // work may have already completed).
         val immediateRequest =
             OneTimeWorkRequestBuilder<UpdateCheckWorker>()
                 .setConstraints(constraints)
@@ -59,11 +61,43 @@ object UpdateScheduler {
             .getInstance(context)
             .enqueueUniqueWork(
                 IMMEDIATE_CHECK_WORK_NAME,
-                ExistingWorkPolicy.KEEP,
+                ExistingWorkPolicy.REPLACE,
                 immediateRequest,
             )
 
         Logger.i { "UpdateScheduler: Scheduled periodic update check every ${intervalHours}h + immediate check" }
+    }
+
+    /**
+     * Enqueues a one-time [AutoUpdateWorker] to download and silently install
+     * all available updates via Shizuku. Uses KEEP policy to avoid duplicate runs.
+     */
+    fun scheduleAutoUpdate(context: Context) {
+        val constraints =
+            Constraints
+                .Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+        val request =
+            OneTimeWorkRequestBuilder<AutoUpdateWorker>()
+                .setConstraints(constraints)
+                .setBackoffCriteria(
+                    BackoffPolicy.EXPONENTIAL,
+                    15,
+                    TimeUnit.MINUTES,
+                )
+                .build()
+
+        WorkManager
+            .getInstance(context)
+            .enqueueUniqueWork(
+                AutoUpdateWorker.WORK_NAME,
+                ExistingWorkPolicy.KEEP,
+                request,
+            )
+
+        Logger.i { "UpdateScheduler: Scheduled auto-update worker" }
     }
 
     fun cancel(context: Context) {
@@ -73,6 +107,9 @@ object UpdateScheduler {
         WorkManager
             .getInstance(context)
             .cancelUniqueWork(IMMEDIATE_CHECK_WORK_NAME)
-        Logger.i { "UpdateScheduler: Cancelled periodic update checks" }
+        WorkManager
+            .getInstance(context)
+            .cancelUniqueWork(AutoUpdateWorker.WORK_NAME)
+        Logger.i { "UpdateScheduler: Cancelled all update work" }
     }
 }

@@ -2,6 +2,7 @@ package zed.rainxch.profile.presentation
 
 import zed.rainxch.core.domain.model.AppTheme
 import zed.rainxch.core.domain.model.FontTheme
+import zed.rainxch.core.domain.model.InstallerType
 import zed.rainxch.profile.presentation.model.ProxyType
 
 sealed interface ProfileAction {
@@ -66,6 +67,9 @@ sealed interface ProfileAction {
     data object OnProxyPasswordVisibilityToggle : ProfileAction
 
     data object OnProxySave : ProfileAction
+    data class OnInstallerTypeSelected(val type: InstallerType) : ProfileAction
+    data object OnRequestShizukuPermission : ProfileAction
+    data class OnAutoUpdateToggled(val enabled: Boolean) : ProfileAction
 
     data class OnAutoDetectClipboardToggled(
         val enabled: Boolean,

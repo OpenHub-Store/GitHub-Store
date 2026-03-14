@@ -15,6 +15,7 @@ import org.jetbrains.compose.resources.getString
 import zed.rainxch.core.domain.model.ProxyConfig
 import zed.rainxch.core.domain.repository.ProxyRepository
 import zed.rainxch.core.domain.repository.ThemesRepository
+import zed.rainxch.core.domain.system.InstallerStatusProvider
 import zed.rainxch.core.domain.utils.BrowserHelper
 import zed.rainxch.githubstore.core.presentation.res.Res
 import zed.rainxch.githubstore.core.presentation.res.failed_to_save_proxy_settings
@@ -27,6 +28,7 @@ class ProfileViewModel(
     private val browserHelper: BrowserHelper,
     private val themesRepository: ThemesRepository,
     private val profileRepository: ProfileRepository,
+    private val installerStatusProvider: InstallerStatusProvider,
     private val proxyRepository: ProxyRepository,
 ) : ViewModel() {
     private var userProfileJob: Job? = null
@@ -34,24 +36,26 @@ class ProfileViewModel(
     private var hasLoadedInitialData = false
 
     private val _state = MutableStateFlow(ProfileState())
-    val state =
-        _state
-            .onStart {
-                if (!hasLoadedInitialData) {
-                    loadCurrentTheme()
-                    collectIsUserLoggedIn()
-                    loadUserProfile()
-                    loadVersionName()
-                    loadProxyConfig()
-                    observeCacheSize()
+    val state = _state
+        .onStart {
+            if (!hasLoadedInitialData) {
+                loadCurrentTheme()
+                collectIsUserLoggedIn()
+                loadUserProfile()
+                loadVersionName()
+                loadProxyConfig()
+                observeCacheSize()
+                loadInstallerPreference()
+                observeShizukuStatus()
+                loadAutoUpdatePreference()
 
-                    hasLoadedInitialData = true
-                }
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000L),
-                initialValue = ProfileState(),
-            )
+                hasLoadedInitialData = true
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = ProfileState(),
+        )
 
     private val _events = Channel<ProfileEvent>()
     val events = _events.receiveAsFlow()
@@ -195,6 +199,36 @@ class ProfileViewModel(
         }
     }
 
+    private fun loadInstallerPreference() {
+        viewModelScope.launch {
+            themesRepository.getInstallerType().collect { type ->
+                _state.update {
+                    it.copy(installerType = type)
+                }
+            }
+        }
+    }
+
+    private fun observeShizukuStatus() {
+        viewModelScope.launch {
+            installerStatusProvider.shizukuAvailability.collect { availability ->
+                _state.update {
+                    it.copy(shizukuAvailability = availability)
+                }
+            }
+        }
+    }
+
+    private fun loadAutoUpdatePreference() {
+        viewModelScope.launch {
+            themesRepository.getAutoUpdateEnabled().collect { enabled ->
+                _state.update {
+                    it.copy(autoUpdateEnabled = enabled)
+                }
+            }
+        }
+    }
+
     fun onAction(action: ProfileAction) {
         when (action) {
             ProfileAction.OnHelpClick -> {
@@ -259,33 +293,34 @@ class ProfileViewModel(
             ProfileAction.OnLogoutDismiss -> {
                 _state.update {
                     it.copy(
-                        isLogoutDialogVisible = false,
+                        isLogoutDialogVisible = false
                     )
                 }
             }
 
             ProfileAction.OnNavigateBackClick -> {
-                // Handed in composable
+                /* Handed in composable */
             }
 
             ProfileAction.OnLoginClick -> {
-                // Handed in composable
+                /* Handed in composable */
             }
 
             ProfileAction.OnFavouriteReposClick -> {
-                // Handed in composable
+                /* Handed in composable */
             }
 
             ProfileAction.OnStarredReposClick -> {
-                // Handed in composable
+                /* Handed in composable */
             }
 
+
             is ProfileAction.OnRepositoriesClick -> {
-                // Handed in composable
+                /* Handed in composable */
             }
 
             ProfileAction.OnSponsorClick -> {
-                // Handed in composable
+                /* Handed in composable */
             }
 
             is ProfileAction.OnFontThemeSelected -> {
@@ -348,6 +383,22 @@ class ProfileViewModel(
             is ProfileAction.OnAutoDetectClipboardToggled -> {
                 viewModelScope.launch {
                     themesRepository.setAutoDetectClipboardLinks(action.enabled)
+                }
+            }
+
+            is ProfileAction.OnInstallerTypeSelected -> {
+                viewModelScope.launch {
+                    themesRepository.setInstallerType(action.type)
+                }
+            }
+
+            ProfileAction.OnRequestShizukuPermission -> {
+                installerStatusProvider.requestShizukuPermission()
+            }
+
+            is ProfileAction.OnAutoUpdateToggled -> {
+                viewModelScope.launch {
+                    themesRepository.setAutoUpdateEnabled(action.enabled)
                 }
             }
 

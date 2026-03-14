@@ -4,7 +4,7 @@
 
 GitHub Store is a cross-platform app store for GitHub releases, built with **Kotlin Multiplatform (KMP)** and **Compose Multiplatform**. Targets **Android** (min API 26) and **Desktop** (Windows, macOS, Linux via JVM).
 
-Package: `zed.rainxch.githubstore`
+Package: `zed.rainxch.githubstore` | Version: 1.6.2 (code 13) | Target SDK: 36
 
 ## Build & Run Commands
 
@@ -45,8 +45,8 @@ feature/
   dev-profile/                       # Developer/user profile display
   favourites/                        # Saved favorite repositories (presentation-only)
   home/                              # Main discovery screen (trending, hot, popular)
+  profile/                           # User profile, settings, appearance, proxy, Shizuku installer
   search/                            # Repository search with filters
-  settings/                          # App settings (theme, account, appearance)
   starred/                           # Starred repositories (presentation-only)
 build-logic/convention/              # Custom Gradle convention plugins
 ```
@@ -86,9 +86,9 @@ class XViewModel : ViewModel() {
 Type-safe navigation using `@Serializable` sealed interface `GithubStoreGraph`:
 
 ```
-HomeScreen, SearchScreen, AuthenticationScreen, SettingsScreen,
-FavouritesScreen, StarredReposScreen, AppsScreen
-DetailsScreen(repositoryId, owner, repo)
+HomeScreen, SearchScreen, AuthenticationScreen, ProfileScreen,
+FavouritesScreen, StarredReposScreen, AppsScreen, SponsorScreen
+DetailsScreen(repositoryId, owner, repo, isComingFromUpdate)
 DeveloperProfileScreen(username)
 ```
 
@@ -102,26 +102,29 @@ Routes defined in `composeApp/.../app/navigation/GithubStoreGraph.kt`, wired in 
 
 | Module | Purpose | Key Contents |
 |--------|---------|--------------|
-| `core/domain` | Shared contracts | Repository interfaces (`FavouritesRepository`, `StarredRepository`, `InstalledAppsRepository`, `ThemesRepository`), models (`GithubRepoSummary`, `GithubRelease`, `InstalledApp`, `ProxyConfig`), system interfaces (`Downloader`, `Installer`, `PackageMonitor`) |
-| `core/data` | Shared implementations | `HttpClientFactory` (Ktor + interceptors), `AppDatabase` (Room), `ProxyManager`, `TokenStore`, `LocalizationManager`, platform-specific clients (OkHttp for Android, CIO for Desktop) |
-| `core/presentation` | Shared UI | `GithubStoreTheme` (Material 3), reusable components (`RepositoryCard`, `GithubStoreButton`), formatting utils |
+| `core/domain` | Shared contracts | Repository interfaces (`FavouritesRepository`, `StarredRepository`, `InstalledAppsRepository`, `ThemesRepository`, `ProxyRepository`, `RateLimitRepository`), models (`GithubRepoSummary`, `GithubRelease`, `InstalledApp`, `ProxyConfig`, `InstallerType`, `ShizukuAvailability`), system interfaces (`Installer`, `InstallerInfoExtractor`, `InstallerStatusProvider`, `PackageMonitor`) |
+| `core/data` | Shared implementations | `HttpClientFactory` (Ktor + interceptors), `AppDatabase` (Room), `ProxyManager`, `TokenStore`, `LocalizationManager`, platform-specific clients (OkHttp for Android, CIO for Desktop), Shizuku integration (Android: `ShizukuServiceManager`, `ShizukuInstallerWrapper`, `ShizukuInstallerServiceImpl`, `AndroidInstallerStatusProvider`; Desktop: `DesktopInstallerStatusProvider`) |
+| `core/presentation` | Shared UI | `GithubStoreTheme` (Material 3), reusable components (`RepositoryCard`, `GithubStoreButton`), formatting utils, localized strings (11 languages) |
 
 ## Tech Stack
 
 | Area | Library | Version |
 |------|---------|---------|
-| Language | Kotlin | 2.3.0 |
-| UI | Compose Multiplatform | 1.9.0-beta01 |
-| HTTP | Ktor | 3.2.3 |
-| Database | Room | 2.7.2 |
-| DI | Koin | 4.1.0 |
-| Serialization | Kotlinx Serialization | 1.9.0 |
-| Preferences | DataStore | 1.1.7 |
-| Image Loading | Landscapist (Coil3) | 2.9.1 |
+| Language | Kotlin | 2.3.10 |
+| UI | Compose Multiplatform | 1.10.1 |
+| HTTP | Ktor | 3.4.0 |
+| Database | Room | 2.8.4 |
+| DI | Koin | 4.1.1 |
+| Serialization | Kotlinx Serialization | 1.10.0 |
+| Preferences | DataStore | 1.2.0 |
+| Image Loading | Landscapist (Coil3) | 2.9.5 |
 | Logging | Kermit | 2.0.8 |
-| Permissions | MOKO Permissions | 0.19.1 |
-| Navigation | Navigation Compose | 2.9.1 |
-| Markdown | Multiplatform Markdown Renderer | 0.39.1 |
+| Permissions | MOKO Permissions | 0.20.1 |
+| Navigation | Navigation Compose | 2.9.2 |
+| Markdown | Multiplatform Markdown Renderer | 0.39.2 |
+| Shizuku | Shizuku API | 13.1.5 |
+| Background Work | WorkManager | 2.11.1 |
+| Date/Time | Kotlinx Datetime | 0.7.1 |
 
 All versions managed in `gradle/libs.versions.toml` (Version Catalog).
 
@@ -151,7 +154,8 @@ Custom Gradle plugins in `build-logic/convention/` standardize module setup:
 
 ## Key Configuration
 
-- **GitHub OAuth:** Set `GITHUB_CLIENT_ID` in `local.properties`. Callback URL: `githubstore://callback`
+- **GitHub OAuth:** Set `GITHUB_CLIENT_ID` in `local.properties`. Callback URL: `githubstore://callback`. Deep link: `githubstore://repo`
+- **Shizuku (Android):** Optional silent install via `ShizukuProvider` (registered in AndroidManifest). Requires Shizuku app running with ADB or root. AIDL service passes APK via `ParcelFileDescriptor` to `pm install -S`. Falls back to standard installer on failure.
 - **Gradle properties:** Config cache enabled, build cache enabled, 4GB Gradle heap, 3GB Kotlin daemon heap
 - **Code style:** Official Kotlin style (`kotlin.code.style=official`)
 

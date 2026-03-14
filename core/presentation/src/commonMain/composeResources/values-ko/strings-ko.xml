@@ -498,4 +498,23 @@
 
     <string name="sponsor_thank_you">금전적이든 아니든 모든 지원이 이 프로젝트를 계속 유지하게 합니다. 감사합니다!</string>
 
+
+    <!-- Installation method settings -->
+    <string name="section_installation">설치</string>
+    <string name="installer_type_default">기본</string>
+    <string name="installer_type_default_description">표준 시스템 설치 대화 상자</string>
+    <string name="installer_type_shizuku">Shizuku</string>
+    <string name="installer_type_shizuku_description">확인 없이 자동 설치</string>
+    <string name="shizuku_status_not_installed">Shizuku가 설치되지 않았습니다</string>
+    <string name="shizuku_status_not_running">Shizuku가 실행되고 있지 않습니다</string>
+    <string name="shizuku_status_permission_needed">권한 필요</string>
+    <string name="shizuku_status_ready">준비됨</string>
+    <string name="shizuku_grant_permission">권한 부여</string>
+    <string name="shizuku_install_hint">자동 설치를 활성화하려면 Shizuku를 설치하세요</string>
+    <string name="shizuku_start_hint">자동 설치를 활성화하려면 Shizuku를 시작하세요</string>
+    <string name="shizuku_install_failed_fallback">Shizuku 설치 실패, 표준 설치 프로그램 사용</string>
+
+    <string name="auto_update_title">앱 자동 업데이트</string>
+    <string name="auto_update_description">Shizuku를 통해 백그라운드에서 자동으로 업데이트 다운로드 및 설치</string>
+
 </resources>

@@ -28,7 +28,9 @@ class GithubStoreApp : Application() {
     }
 
     private fun createNotificationChannels() {
-        val channel =
+        val notificationManager = getSystemService(NotificationManager::class.java)
+
+        val updatesChannel =
             NotificationChannel(
                 UPDATES_CHANNEL_ID,
                 "App Updates",
@@ -36,8 +38,18 @@ class GithubStoreApp : Application() {
             ).apply {
                 description = "Notifications when app updates are available"
             }
-        val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(updatesChannel)
+
+        val serviceChannel =
+            NotificationChannel(
+                UPDATE_SERVICE_CHANNEL_ID,
+                "Update Service",
+                NotificationManager.IMPORTANCE_LOW,
+            ).apply {
+                description = "Background update check and auto-update progress"
+                setShowBadge(false)
+            }
+        notificationManager.createNotificationChannel(serviceChannel)
     }
 
     private fun registerPackageEventReceiver() {
@@ -63,5 +75,6 @@ class GithubStoreApp : Application() {
 
     companion object {
         const val UPDATES_CHANNEL_ID = "app_updates"
+        const val UPDATE_SERVICE_CHANNEL_ID = "update_service"
     }
 }

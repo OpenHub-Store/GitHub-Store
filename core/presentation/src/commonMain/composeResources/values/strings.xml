@@ -470,6 +470,7 @@
     <string name="clear_cache">Clear cache</string>
     <string name="current_size">Current size:</string>
     <string name="clear">Clear</string>
+    <string name="cache_cleared">The cache is gradually cleared.</string>
 
     <string name="sponsor_title">Support GitHub Store</string>
     <string name="sponsor_button">Support the project</string>
@@ -507,4 +508,21 @@
     <string name="sponsor_share_desc">Tell other developers about it</string>
 
     <string name="sponsor_thank_you">Any support — financial or not — helps keep the project alive. Thank you!</string>
+
+    <!-- Installation method settings -->
+    <string name="section_installation">Installation</string>
+    <string name="installer_type_default">Default</string>
+    <string name="installer_type_default_description">Standard system install dialog</string>
+    <string name="installer_type_shizuku">Shizuku</string>
+    <string name="installer_type_shizuku_description">Silent install without prompts</string>
+    <string name="shizuku_status_not_installed">Shizuku is not installed</string>
+    <string name="shizuku_status_not_running">Shizuku is not running</string>
+    <string name="shizuku_status_permission_needed">Permission required</string>
+    <string name="shizuku_status_ready">Ready</string>
+    <string name="shizuku_grant_permission">Grant Permission</string>
+    <string name="shizuku_install_hint">Install Shizuku to enable silent installs</string>
+    <string name="shizuku_start_hint">Start Shizuku to enable silent installs</string>
+    <string name="shizuku_install_failed_fallback">Shizuku install failed, using standard installer</string>
+    <string name="auto_update_title">Auto-update apps</string>
+    <string name="auto_update_description">Automatically download and install updates in background via Shizuku</string>
 </resources>

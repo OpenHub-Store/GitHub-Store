@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import zed.rainxch.core.domain.model.AppTheme
 import zed.rainxch.core.domain.model.FontTheme
+import zed.rainxch.core.domain.model.InstallerType
 import zed.rainxch.core.domain.repository.ThemesRepository
 
 class ThemesRepositoryImpl(
@@ -19,6 +20,8 @@ class ThemesRepositoryImpl(
     private val IS_DARK_THEME_KEY = booleanPreferencesKey("is_dark_theme")
     private val FONT_KEY = stringPreferencesKey("font_theme")
     private val AUTO_DETECT_CLIPBOARD_KEY = booleanPreferencesKey("auto_detect_clipboard_links")
+    private val INSTALLER_TYPE_KEY = stringPreferencesKey("installer_type")
+    private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update_enabled")
 
     override fun getThemeColor(): Flow<AppTheme> =
         preferences.data.map { prefs ->
@@ -78,6 +81,30 @@ class ThemesRepositoryImpl(
     override suspend fun setAutoDetectClipboardLinks(enabled: Boolean) {
         preferences.edit { prefs ->
             prefs[AUTO_DETECT_CLIPBOARD_KEY] = enabled
+        }
+    }
+
+    override fun getInstallerType(): Flow<InstallerType> {
+        return preferences.data.map { prefs ->
+            val name = prefs[INSTALLER_TYPE_KEY]
+            InstallerType.fromName(name)
+        }
+    }
+
+    override suspend fun setInstallerType(type: InstallerType) {
+        preferences.edit { prefs ->
+            prefs[INSTALLER_TYPE_KEY] = type.name
+        }
+    }
+
+    override fun getAutoUpdateEnabled(): Flow<Boolean> =
+        preferences.data.map { prefs ->
+            prefs[AUTO_UPDATE_KEY] ?: false
+        }
+
+    override suspend fun setAutoUpdateEnabled(enabled: Boolean) {
+        preferences.edit { prefs ->
+            prefs[AUTO_UPDATE_KEY] = enabled
         }
     }
 }

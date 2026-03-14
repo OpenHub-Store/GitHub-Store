@@ -501,4 +501,23 @@
     <string name="sponsor_share_desc">अन्य डेवलपर्स तक बात फैलाएँ</string>
 
     <string name="sponsor_thank_you">हर तरह का समर्थन — चाहे आर्थिक हो या नहीं — इस प्रोजेक्ट को जीवित रखता है। धन्यवाद!</string>
+
+    <!-- Installation method settings -->
+    <string name="section_installation">इंस्टॉलेशन</string>
+    <string name="installer_type_default">डिफ़ॉल्ट</string>
+    <string name="installer_type_default_description">मानक सिस्टम इंस्टॉल डायलॉग</string>
+    <string name="installer_type_shizuku">Shizuku</string>
+    <string name="installer_type_shizuku_description">बिना पुष्टि के साइलेंट इंस्टॉल</string>
+    <string name="shizuku_status_not_installed">Shizuku इंस्टॉल नहीं है</string>
+    <string name="shizuku_status_not_running">Shizuku चल नहीं रहा है</string>
+    <string name="shizuku_status_permission_needed">अनुमति आवश्यक</string>
+    <string name="shizuku_status_ready">तैयार</string>
+    <string name="shizuku_grant_permission">अनुमति दें</string>
+    <string name="shizuku_install_hint">साइलेंट इंस्टॉल सक्रिय करने के लिए Shizuku इंस्टॉल करें</string>
+    <string name="shizuku_start_hint">साइलेंट इंस्टॉल सक्रिय करने के लिए Shizuku शुरू करें</string>
+    <string name="shizuku_install_failed_fallback">Shizuku इंस्टॉल विफल, मानक इंस्टॉलर का उपयोग किया जा रहा है</string>
+
+    <string name="auto_update_title">ऐप्स ऑटो-अपडेट करें</string>
+    <string name="auto_update_description">Shizuku के माध्यम से पृष्ठभूमि में स्वचालित रूप से अपडेट डाउनलोड और इंस्टॉल करें</string>
+
 </resources>
