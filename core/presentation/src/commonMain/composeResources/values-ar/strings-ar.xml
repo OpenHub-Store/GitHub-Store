@@ -518,4 +518,7 @@
     <string name="shizuku_start_hint">شغّل Shizuku لتفعيل التثبيت الصامت</string>
     <string name="shizuku_install_failed_fallback">فشل تثبيت Shizuku، يتم استخدام المثبت القياسي</string>
 
+    <string name="auto_update_title">تحديث التطبيقات تلقائيًا</string>
+    <string name="auto_update_description">تنزيل التحديثات وتثبيتها تلقائيًا في الخلفية عبر Shizuku</string>
+
 </resources>

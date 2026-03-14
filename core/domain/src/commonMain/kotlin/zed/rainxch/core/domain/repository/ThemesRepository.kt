@@ -18,4 +18,6 @@ interface ThemesRepository {
     suspend fun setAutoDetectClipboardLinks(enabled: Boolean)
     fun getInstallerType(): Flow<InstallerType>
     suspend fun setInstallerType(type: InstallerType)
+    fun getAutoUpdateEnabled(): Flow<Boolean>
+    suspend fun setAutoUpdateEnabled(enabled: Boolean)
 }

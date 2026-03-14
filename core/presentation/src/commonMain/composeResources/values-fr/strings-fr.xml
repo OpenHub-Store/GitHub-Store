@@ -479,4 +479,7 @@
     <string name="shizuku_start_hint">Démarrez Shizuku pour activer l\'installation silencieuse</string>
     <string name="shizuku_install_failed_fallback">L\'installation via Shizuku a échoué, utilisation de l\'installateur standard</string>
 
+    <string name="auto_update_title">Mise à jour automatique</string>
+    <string name="auto_update_description">Télécharger et installer automatiquement les mises à jour en arrière-plan via Shizuku</string>
+
 </resources>

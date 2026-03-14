@@ -515,4 +515,7 @@
     <string name="shizuku_start_hint">Sessiz kurulumu etkinleştirmek için Shizuku\'yu başlatın</string>
     <string name="shizuku_install_failed_fallback">Shizuku kurulumu başarısız, standart yükleyici kullanılıyor</string>
 
+    <string name="auto_update_title">Uygulamaları otomatik güncelle</string>
+    <string name="auto_update_description">Shizuku aracılığıyla arka planda otomatik olarak güncellemeleri indirin ve yükleyin</string>
+
 </resources>

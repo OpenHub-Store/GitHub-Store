@@ -25,5 +25,6 @@ data class ProfileState(
     val autoDetectClipboardLinks: Boolean = true,
     val cacheSize: String = "",
     val installerType: InstallerType = InstallerType.DEFAULT,
-    val shizukuAvailability: ShizukuAvailability = ShizukuAvailability.UNAVAILABLE
+    val shizukuAvailability: ShizukuAvailability = ShizukuAvailability.UNAVAILABLE,
+    val autoUpdateEnabled: Boolean = false,
 )

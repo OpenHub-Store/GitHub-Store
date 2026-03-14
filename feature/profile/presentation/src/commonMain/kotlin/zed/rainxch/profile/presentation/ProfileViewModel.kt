@@ -47,6 +47,7 @@ class ProfileViewModel(
                 observeCacheSize()
                 loadInstallerPreference()
                 observeShizukuStatus()
+                loadAutoUpdatePreference()
 
                 hasLoadedInitialData = true
             }
@@ -218,6 +219,16 @@ class ProfileViewModel(
         }
     }
 
+    private fun loadAutoUpdatePreference() {
+        viewModelScope.launch {
+            themesRepository.getAutoUpdateEnabled().collect { enabled ->
+                _state.update {
+                    it.copy(autoUpdateEnabled = enabled)
+                }
+            }
+        }
+    }
+
     fun onAction(action: ProfileAction) {
         when (action) {
             ProfileAction.OnHelpClick -> {
@@ -383,6 +394,12 @@ class ProfileViewModel(
 
             ProfileAction.OnRequestShizukuPermission -> {
                 installerStatusProvider.requestShizukuPermission()
+            }
+
+            is ProfileAction.OnAutoUpdateToggled -> {
+                viewModelScope.launch {
+                    themesRepository.setAutoUpdateEnabled(action.enabled)
+                }
             }
 
             ProfileAction.OnProxySave -> {

@@ -480,4 +480,7 @@
     <string name="shizuku_start_hint">启动 Shizuku 以启用静默安装</string>
     <string name="shizuku_install_failed_fallback">Shizuku 安装失败，正在使用标准安装程序</string>
 
+    <string name="auto_update_title">自动更新应用</string>
+    <string name="auto_update_description">通过 Shizuku 在后台自动下载并安装更新</string>
+
 </resources>

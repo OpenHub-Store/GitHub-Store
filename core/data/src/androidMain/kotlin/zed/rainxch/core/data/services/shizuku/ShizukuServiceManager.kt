@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
 import kotlin.coroutines.resume
 
@@ -34,12 +37,14 @@ class ShizukuServiceManager(
     companion object {
         private const val TAG = "ShizukuServiceManager"
         private const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
+        private const val BIND_TIMEOUT_MS = 15_000L
         const val SHIZUKU_PERMISSION_REQUEST_CODE = 1001
     }
 
     private val _status = MutableStateFlow(ShizukuStatus.NOT_INSTALLED)
     val status: StateFlow<ShizukuStatus> = _status.asStateFlow()
 
+    private val bindMutex = Mutex()
     private var serviceConnection: ServiceConnection? = null
     private var boundUserServiceArgs: Shizuku.UserServiceArgs? = null
 
@@ -155,28 +160,31 @@ class ShizukuServiceManager(
             return null
         }
 
-        // Return cached service if still alive
-        installerService?.let { service ->
-            try {
-                val alive = service.asBinder().pingBinder()
-                Logger.d(TAG) { "getService() — cached service ping=$alive" }
-                if (alive) return service
-                Logger.w(TAG) { "getService() — cached service binder dead, rebinding..." }
-                installerService = null
-            } catch (e: Exception) {
-                Logger.w(TAG) { "getService() — cached service error: ${e.message}, rebinding..." }
-                installerService = null
+        return bindMutex.withLock {
+            // Re-check cached service after acquiring lock (another coroutine may have bound it)
+            installerService?.let { service ->
+                try {
+                    val alive = service.asBinder().pingBinder()
+                    Logger.d(TAG) { "getService() — cached service ping=$alive" }
+                    if (alive) return@withLock service
+                    Logger.w(TAG) { "getService() — cached service binder dead, rebinding..." }
+                    installerService = null
+                } catch (e: Exception) {
+                    Logger.w(TAG) { "getService() — cached service error: ${e.message}, rebinding..." }
+                    installerService = null
+                }
+            } ?: run {
+                Logger.d(TAG) { "getService() — no cached service, binding..." }
             }
-        } ?: run {
-            Logger.d(TAG) { "getService() — no cached service, binding..." }
-        }
 
-        return bindService()
+            bindService()
+        }
     }
 
     private suspend fun bindService(): IShizukuInstallerService? {
         Logger.d(TAG) { "bindService() — attempting to bind Shizuku UserService..." }
         return try {
+            withTimeoutOrNull(BIND_TIMEOUT_MS) {
             suspendCancellableCoroutine { continuation ->
                 val componentName = ComponentName(
                     context.packageName,
@@ -194,7 +202,6 @@ class ShizukuServiceManager(
                         Logger.d(TAG) { "onServiceConnected() — name=$name, binder=${binder?.javaClass?.name}, binderAlive=${binder?.pingBinder()}" }
                         val service = IShizukuInstallerService.Stub.asInterface(binder)
                         installerService = service
-                        serviceConnection = this
                         Logger.d(TAG) { "Shizuku installer service connected and cached" }
                         if (continuation.isActive) {
                             continuation.resume(service)
@@ -207,8 +214,12 @@ class ShizukuServiceManager(
                     }
                 }
 
-                Logger.d(TAG) { "Calling Shizuku.bindUserService()..." }
+                // Store connection and args before binding so unbindService() can
+                // clean up even if onServiceConnected never fires (e.g. timeout).
+                serviceConnection = connection
                 boundUserServiceArgs = args
+
+                Logger.d(TAG) { "Calling Shizuku.bindUserService()..." }
                 Shizuku.bindUserService(args, connection)
                 Logger.d(TAG) { "Shizuku.bindUserService() called, waiting for callback..." }
 
@@ -217,6 +228,11 @@ class ShizukuServiceManager(
                     try {
                         Shizuku.unbindUserService(args, connection, true)
                     } catch (_: Exception) {}
+                }
+            }
+            }.also { service ->
+                if (service == null) {
+                    Logger.w(TAG) { "bindService() timed out after ${BIND_TIMEOUT_MS}ms" }
                 }
             }
         } catch (e: Exception) {

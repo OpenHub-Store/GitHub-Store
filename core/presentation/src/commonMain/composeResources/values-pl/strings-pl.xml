@@ -481,4 +481,7 @@
     <string name="shizuku_start_hint">Uruchom Shizuku, aby włączyć cichą instalację</string>
     <string name="shizuku_install_failed_fallback">Instalacja przez Shizuku nie powiodła się, używam standardowego instalatora</string>
 
+    <string name="auto_update_title">Automatyczna aktualizacja</string>
+    <string name="auto_update_description">Automatycznie pobieraj i instaluj aktualizacje w tle przez Shizuku</string>
+
 </resources>

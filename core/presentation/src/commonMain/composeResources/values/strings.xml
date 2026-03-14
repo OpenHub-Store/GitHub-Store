@@ -523,4 +523,6 @@
     <string name="shizuku_install_hint">Install Shizuku to enable silent installs</string>
     <string name="shizuku_start_hint">Start Shizuku to enable silent installs</string>
     <string name="shizuku_install_failed_fallback">Shizuku install failed, using standard installer</string>
+    <string name="auto_update_title">Auto-update apps</string>
+    <string name="auto_update_description">Automatically download and install updates in background via Shizuku</string>
 </resources>

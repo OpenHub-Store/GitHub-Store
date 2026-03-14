@@ -478,4 +478,7 @@
     <string name="shizuku_start_hint">Inicia Shizuku para habilitar la instalación silenciosa</string>
     <string name="shizuku_install_failed_fallback">La instalación con Shizuku falló, usando el instalador estándar</string>
 
+    <string name="auto_update_title">Actualizar apps automáticamente</string>
+    <string name="auto_update_description">Descargar e instalar actualizaciones en segundo plano a través de Shizuku</string>
+
 </resources>

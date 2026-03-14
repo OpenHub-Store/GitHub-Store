@@ -21,6 +21,7 @@ import java.net.PasswordAuthentication
 import java.net.Proxy
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 class AndroidDownloader(
     private val files: FileLocationsProvider,
@@ -34,6 +35,9 @@ class AndroidDownloader(
 
         return OkHttpClient
             .Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .apply {
                 when (val config = proxyManager.currentProxyConfig.value) {
                     is ProxyConfig.None -> {

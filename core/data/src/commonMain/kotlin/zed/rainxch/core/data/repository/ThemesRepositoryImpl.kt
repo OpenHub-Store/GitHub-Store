@@ -21,6 +21,7 @@ class ThemesRepositoryImpl(
     private val FONT_KEY = stringPreferencesKey("font_theme")
     private val AUTO_DETECT_CLIPBOARD_KEY = booleanPreferencesKey("auto_detect_clipboard_links")
     private val INSTALLER_TYPE_KEY = stringPreferencesKey("installer_type")
+    private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update_enabled")
 
     override fun getThemeColor(): Flow<AppTheme> =
         preferences.data.map { prefs ->
@@ -93,6 +94,17 @@ class ThemesRepositoryImpl(
     override suspend fun setInstallerType(type: InstallerType) {
         preferences.edit { prefs ->
             prefs[INSTALLER_TYPE_KEY] = type.name
+        }
+    }
+
+    override fun getAutoUpdateEnabled(): Flow<Boolean> =
+        preferences.data.map { prefs ->
+            prefs[AUTO_UPDATE_KEY] ?: false
+        }
+
+    override suspend fun setAutoUpdateEnabled(enabled: Boolean) {
+        preferences.edit { prefs ->
+            prefs[AUTO_UPDATE_KEY] = enabled
         }
     }
 }

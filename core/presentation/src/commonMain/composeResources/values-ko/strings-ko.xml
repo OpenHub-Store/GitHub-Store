@@ -514,4 +514,7 @@
     <string name="shizuku_start_hint">자동 설치를 활성화하려면 Shizuku를 시작하세요</string>
     <string name="shizuku_install_failed_fallback">Shizuku 설치 실패, 표준 설치 프로그램 사용</string>
 
+    <string name="auto_update_title">앱 자동 업데이트</string>
+    <string name="auto_update_description">Shizuku를 통해 백그라운드에서 자동으로 업데이트 다운로드 및 설치</string>
+
 </resources>

@@ -9,14 +9,43 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.PackageMonitor
 
-class PackageEventReceiver(
-    private val installedAppsRepository: InstalledAppsRepository,
-    private val packageMonitor: PackageMonitor,
-) : BroadcastReceiver() {
+/**
+ * Listens for package install/replace/remove broadcasts to update tracked app state.
+ *
+ * Registered both statically (manifest — works when process is dead, e.g. after
+ * Shizuku silent install) and dynamically (GithubStoreApp — immediate in-process delivery).
+ *
+ * Uses [KoinComponent] for the no-arg constructor path (manifest-registered).
+ * The constructor with explicit dependencies is used for dynamic registration.
+ */
+class PackageEventReceiver() : BroadcastReceiver(), KoinComponent {
+    private val installedAppsRepositoryKoin: InstalledAppsRepository by inject()
+    private val packageMonitorKoin: PackageMonitor by inject()
+
+    // Explicitly provided dependencies (dynamic registration path)
+    private var explicitRepository: InstalledAppsRepository? = null
+    private var explicitMonitor: PackageMonitor? = null
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    constructor(
+        installedAppsRepository: InstalledAppsRepository,
+        packageMonitor: PackageMonitor,
+    ) : this() {
+        this.explicitRepository = installedAppsRepository
+        this.explicitMonitor = packageMonitor
+    }
+
+    private fun getRepository(): InstalledAppsRepository =
+        explicitRepository ?: installedAppsRepositoryKoin
+
+    private fun getMonitor(): PackageMonitor =
+        explicitMonitor ?: packageMonitorKoin
 
     override fun onReceive(
         context: Context?,
@@ -26,25 +55,31 @@ class PackageEventReceiver(
 
         Logger.d { "PackageEventReceiver: ${intent.action} for $packageName" }
 
-        when (intent.action) {
-            Intent.ACTION_PACKAGE_ADDED,
-            Intent.ACTION_PACKAGE_REPLACED,
-            -> {
-                scope.launch { onPackageInstalled(packageName) }
-            }
+        try {
+            when (intent.action) {
+                Intent.ACTION_PACKAGE_ADDED,
+                Intent.ACTION_PACKAGE_REPLACED,
+                -> {
+                    scope.launch { onPackageInstalled(packageName) }
+                }
 
-            Intent.ACTION_PACKAGE_FULLY_REMOVED -> {
-                scope.launch { onPackageRemoved(packageName) }
+                Intent.ACTION_PACKAGE_FULLY_REMOVED -> {
+                    scope.launch { onPackageRemoved(packageName) }
+                }
             }
+        } catch (e: Exception) {
+            Logger.e { "PackageEventReceiver: Failed to handle ${intent.action}: ${e.message}" }
         }
     }
 
     private suspend fun onPackageInstalled(packageName: String) {
         try {
-            val app = installedAppsRepository.getAppByPackage(packageName) ?: return
+            val repo = getRepository()
+            val monitor = getMonitor()
+            val app = repo.getAppByPackage(packageName) ?: return
 
             if (app.isPendingInstall) {
-                val systemInfo = packageMonitor.getInstalledPackageInfo(packageName)
+                val systemInfo = monitor.getInstalledPackageInfo(packageName)
                 if (systemInfo != null) {
                     val expectedVersionCode = app.latestVersionCode ?: 0L
                     val wasActuallyUpdated =
@@ -52,7 +87,7 @@ class PackageEventReceiver(
                             systemInfo.versionCode >= expectedVersionCode
 
                     if (wasActuallyUpdated) {
-                        installedAppsRepository.updateAppVersion(
+                        repo.updateAppVersion(
                             packageName = packageName,
                             newTag = app.latestVersion ?: systemInfo.versionName,
                             newAssetName = app.latestAssetName ?: "",
@@ -60,10 +95,10 @@ class PackageEventReceiver(
                             newVersionName = systemInfo.versionName,
                             newVersionCode = systemInfo.versionCode,
                         )
-                        installedAppsRepository.updatePendingStatus(packageName, false)
+                        repo.updatePendingStatus(packageName, false)
                         Logger.i { "Update confirmed via broadcast: $packageName (v${systemInfo.versionName})" }
                     } else {
-                        installedAppsRepository.updateApp(
+                        repo.updateApp(
                             app.copy(
                                 isPendingInstall = false,
                                 installedVersionName = systemInfo.versionName,
@@ -82,13 +117,13 @@ class PackageEventReceiver(
                         }
                     }
                 } else {
-                    installedAppsRepository.updatePendingStatus(packageName, false)
+                    repo.updatePendingStatus(packageName, false)
                     Logger.i { "Resolved pending install via broadcast (no system info): $packageName" }
                 }
             } else {
-                val systemInfo = packageMonitor.getInstalledPackageInfo(packageName)
+                val systemInfo = monitor.getInstalledPackageInfo(packageName)
                 if (systemInfo != null) {
-                    installedAppsRepository.updateApp(
+                    repo.updateApp(
                         app.copy(
                             installedVersionName = systemInfo.versionName,
                             installedVersionCode = systemInfo.versionCode,
@@ -104,7 +139,7 @@ class PackageEventReceiver(
 
     private suspend fun onPackageRemoved(packageName: String) {
         try {
-            installedAppsRepository.deleteInstalledApp(packageName)
+            getRepository().deleteInstalledApp(packageName)
             Logger.i { "Removed uninstalled app via broadcast: $packageName" }
         } catch (e: Exception) {
             Logger.e { "PackageEventReceiver remove error for $packageName: ${e.message}" }

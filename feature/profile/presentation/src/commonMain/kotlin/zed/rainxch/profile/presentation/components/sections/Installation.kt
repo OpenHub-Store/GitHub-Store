@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,6 +75,20 @@ fun LazyListScope.installationSection(
                 onAction(ProfileAction.OnRequestShizukuPermission)
             }
         )
+
+        // Auto-update toggle — only shown when Shizuku is selected and ready
+        if (state.installerType == InstallerType.SHIZUKU &&
+            state.shizukuAvailability == ShizukuAvailability.READY
+        ) {
+            Spacer(Modifier.height(12.dp))
+
+            AutoUpdateCard(
+                enabled = state.autoUpdateEnabled,
+                onToggle = { enabled ->
+                    onAction(ProfileAction.OnAutoUpdateToggled(enabled))
+                }
+            )
+        }
     }
 }
 
@@ -279,6 +294,44 @@ private fun ShizukuStatusBadge(
             color = color,
             fontWeight = FontWeight.Medium
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun AutoUpdateCard(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit,
+) {
+    ExpressiveCard {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = stringResource(Res.string.auto_update_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(Res.string.auto_update_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onToggle
+            )
+        }
     }
 }
 

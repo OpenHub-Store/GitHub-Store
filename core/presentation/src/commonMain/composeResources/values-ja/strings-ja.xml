@@ -479,4 +479,7 @@
     <string name="shizuku_start_hint">サイレントインストールを有効にするにはShizukuを起動してください</string>
     <string name="shizuku_install_failed_fallback">Shizukuインストールに失敗、標準インストーラーを使用します</string>
 
+    <string name="auto_update_title">アプリを自動更新</string>
+    <string name="auto_update_description">Shizukuを使用してバックグラウンドで自動的にアップデートをダウンロードしてインストール</string>
+
 </resources>

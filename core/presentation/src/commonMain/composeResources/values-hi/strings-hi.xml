@@ -517,4 +517,7 @@
     <string name="shizuku_start_hint">साइलेंट इंस्टॉल सक्रिय करने के लिए Shizuku शुरू करें</string>
     <string name="shizuku_install_failed_fallback">Shizuku इंस्टॉल विफल, मानक इंस्टॉलर का उपयोग किया जा रहा है</string>
 
+    <string name="auto_update_title">ऐप्स ऑटो-अपडेट करें</string>
+    <string name="auto_update_description">Shizuku के माध्यम से पृष्ठभूमि में स्वचालित रूप से अपडेट डाउनलोड और इंस्टॉल करें</string>
+
 </resources>

@@ -166,7 +166,8 @@ class ShizukuInstallerWrapper(
                         if (result == 0) {
                             Logger.d(TAG) { "Shizuku uninstall SUCCEEDED for: $packageName" }
                         } else {
-                            Logger.w(TAG) { "Shizuku uninstall FAILED with code: $result" }
+                            Logger.w(TAG) { "Shizuku uninstall FAILED with code: $result, falling back" }
+                            androidInstaller.uninstall(packageName)
                         }
                     } else {
                         Logger.w(TAG) { "Shizuku service is NULL, falling back" }

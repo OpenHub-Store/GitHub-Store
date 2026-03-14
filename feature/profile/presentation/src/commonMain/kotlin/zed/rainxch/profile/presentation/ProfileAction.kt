@@ -69,6 +69,7 @@ sealed interface ProfileAction {
     data object OnProxySave : ProfileAction
     data class OnInstallerTypeSelected(val type: InstallerType) : ProfileAction
     data object OnRequestShizukuPermission : ProfileAction
+    data class OnAutoUpdateToggled(val enabled: Boolean) : ProfileAction
 
     data class OnAutoDetectClipboardToggled(
         val enabled: Boolean,

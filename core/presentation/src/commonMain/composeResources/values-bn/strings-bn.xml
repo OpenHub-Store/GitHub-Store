@@ -517,4 +517,7 @@
     <string name="shizuku_start_hint">নীরব ইনস্টল সক্রিয় করতে Shizuku চালু করুন</string>
     <string name="shizuku_install_failed_fallback">Shizuku ইনস্টল ব্যর্থ, স্ট্যান্ডার্ড ইনস্টলার ব্যবহার করা হচ্ছে</string>
 
+    <string name="auto_update_title">স্বয়ংক্রিয়ভাবে অ্যাপ আপডেট করুন</string>
+    <string name="auto_update_description">Shizuku এর মাধ্যমে ব্যাকগ্রাউন্ডে স্বয়ংক্রিয়ভাবে আপডেট ডাউনলোড এবং ইনস্টল করুন</string>
+
 </resources>

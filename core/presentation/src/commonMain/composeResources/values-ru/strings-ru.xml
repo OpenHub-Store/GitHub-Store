@@ -481,4 +481,7 @@
     <string name="shizuku_start_hint">Запустите Shizuku для тихой установки</string>
     <string name="shizuku_install_failed_fallback">Установка через Shizuku не удалась, используется стандартный установщик</string>
 
+    <string name="auto_update_title">Автообновление приложений</string>
+    <string name="auto_update_description">Автоматически загружать и устанавливать обновления в фоне через Shizuku</string>
+
 </resources>
