@@ -2,7 +2,6 @@
 
 package zed.rainxch.apps.presentation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
@@ -37,12 +35,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -73,7 +69,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.landscapist.coil3.CoilImage
 import io.github.fletchmckee.liquid.liquefiable
 import kotlinx.coroutines.launch
@@ -88,7 +83,34 @@ import zed.rainxch.core.presentation.locals.LocalBottomNavigationHeight
 import zed.rainxch.core.presentation.locals.LocalBottomNavigationLiquid
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
-import zed.rainxch.githubstore.core.presentation.res.*
+import zed.rainxch.githubstore.core.presentation.res.Res
+import zed.rainxch.githubstore.core.presentation.res.add_by_link
+import zed.rainxch.githubstore.core.presentation.res.cancel
+import zed.rainxch.githubstore.core.presentation.res.check_for_updates
+import zed.rainxch.githubstore.core.presentation.res.checking
+import zed.rainxch.githubstore.core.presentation.res.checking_for_updates
+import zed.rainxch.githubstore.core.presentation.res.confirm_uninstall_message
+import zed.rainxch.githubstore.core.presentation.res.confirm_uninstall_title
+import zed.rainxch.githubstore.core.presentation.res.currently_updating
+import zed.rainxch.githubstore.core.presentation.res.downloading
+import zed.rainxch.githubstore.core.presentation.res.error_with_message
+import zed.rainxch.githubstore.core.presentation.res.export_apps
+import zed.rainxch.githubstore.core.presentation.res.import_apps
+import zed.rainxch.githubstore.core.presentation.res.installed_apps
+import zed.rainxch.githubstore.core.presentation.res.installing
+import zed.rainxch.githubstore.core.presentation.res.last_checked
+import zed.rainxch.githubstore.core.presentation.res.last_checked_hours_ago
+import zed.rainxch.githubstore.core.presentation.res.last_checked_just_now
+import zed.rainxch.githubstore.core.presentation.res.last_checked_minutes_ago
+import zed.rainxch.githubstore.core.presentation.res.no_apps_found
+import zed.rainxch.githubstore.core.presentation.res.open
+import zed.rainxch.githubstore.core.presentation.res.pending_install
+import zed.rainxch.githubstore.core.presentation.res.search_your_apps
+import zed.rainxch.githubstore.core.presentation.res.uninstall
+import zed.rainxch.githubstore.core.presentation.res.update
+import zed.rainxch.githubstore.core.presentation.res.update_all
+import zed.rainxch.githubstore.core.presentation.res.updated_successfully
+import zed.rainxch.githubstore.core.presentation.res.updating_x_of_y
 
 @Composable
 fun AppsRoot(
@@ -118,24 +140,9 @@ fun AppsRoot(
                 }
             }
 
-            is AppsEvent.AppLinkedSuccessfully -> {
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar("${event.appName} linked successfully")
-                }
-            }
+            is AppsEvent.AppLinkedSuccessfully -> { /* handled by ShowSuccess */ }
 
-            is AppsEvent.ExportReady -> {
-                // Share already handled by ShareManager in ViewModel
-            }
-
-            is AppsEvent.ImportComplete -> {
-                val r = event.result
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(
-                        "Imported ${r.imported}, skipped ${r.skipped}, failed ${r.failed}",
-                    )
-                }
-            }
+            is AppsEvent.ImportComplete -> { /* handled by ShowSuccess */ }
         }
     }
 
@@ -581,7 +588,7 @@ fun AppItemCard(
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = app.repoDescription!!,
+                    text = app.repoDescription,
                     style = MaterialTheme.typography.bodyMediumEmphasized,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,

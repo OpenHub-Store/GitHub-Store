@@ -70,6 +70,7 @@ kotlin {
             implementation(libs.jetbrains.compose.material.icons.extended)
 
             implementation(libs.touchlab.kermit)
+            implementation(libs.kotlinx.collections.immutable)
 
             implementation(compose.runtime)
             implementation(compose.foundation)

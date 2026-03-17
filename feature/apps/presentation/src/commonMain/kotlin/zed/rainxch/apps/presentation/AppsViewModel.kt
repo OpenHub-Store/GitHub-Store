@@ -2,6 +2,9 @@ package zed.rainxch.apps.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -16,12 +19,14 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import zed.rainxch.apps.domain.repository.AppsRepository
+import zed.rainxch.apps.presentation.mappers.toDomain
+import zed.rainxch.apps.presentation.mappers.toUi
 import zed.rainxch.apps.presentation.model.AppItem
+import zed.rainxch.apps.presentation.model.GithubAssetUi
+import zed.rainxch.apps.presentation.model.InstalledAppUi
 import zed.rainxch.apps.presentation.model.UpdateAllProgress
 import zed.rainxch.apps.presentation.model.UpdateState
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
-import zed.rainxch.core.domain.model.DeviceApp
-import zed.rainxch.core.domain.model.GithubAsset
 import zed.rainxch.core.domain.model.InstalledApp
 import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.network.Downloader
@@ -80,6 +85,7 @@ class AppsViewModel(
                 appsRepository.getApps().collect { apps ->
                     val appItems =
                         apps
+                            .map { it.toUi() }
                             .map { app ->
                                 val existing =
                                     _state.value.apps.find {
@@ -92,6 +98,7 @@ class AppsViewModel(
                                     error = existing?.error,
                                 )
                             }.sortedByDescending { it.installedApp.isUpdateAvailable }
+                            .toImmutableList()
 
                     _state.update {
                         it.copy(
@@ -256,7 +263,7 @@ class AppsViewModel(
                         repoUrl = "",
                         repoValidationError = null,
                         fetchedRepoInfo = null,
-                        linkInstallableAssets = emptyList(),
+                        linkInstallableAssets = persistentListOf(),
                         linkSelectedAsset = null,
                         linkDownloadProgress = null,
                     )
@@ -271,7 +278,7 @@ class AppsViewModel(
                 _state.update {
                     it.copy(
                         linkStep = LinkStep.EnterUrl,
-                        linkInstallableAssets = emptyList(),
+                        linkInstallableAssets = persistentListOf(),
                         linkSelectedAsset = null,
                         linkDownloadProgress = null,
                         linkValidationStatus = null,
@@ -308,20 +315,23 @@ class AppsViewModel(
     }
 
     private fun computeFilteredApps(
-        apps: List<AppItem>,
+        apps: ImmutableList<AppItem>,
         query: String,
-    ): List<AppItem> =
+    ): ImmutableList<AppItem> =
         if (query.isBlank()) {
-            apps.sortedBy { it.installedApp.isUpdateAvailable }
+            apps
+                .sortedBy { it.installedApp.isUpdateAvailable }
+                .toImmutableList()
         } else {
             apps
                 .filter { appItem ->
                     appItem.installedApp.appName.contains(query, ignoreCase = true) ||
                         appItem.installedApp.repoOwner.contains(query, ignoreCase = true)
                 }.sortedBy { it.installedApp.isUpdateAvailable }
+                .toImmutableList()
         }
 
-    private fun uninstallApp(app: InstalledApp) {
+    private fun uninstallApp(app: InstalledAppUi) {
         viewModelScope.launch {
             try {
                 installer.uninstall(app.packageName)
@@ -337,11 +347,11 @@ class AppsViewModel(
         }
     }
 
-    private fun openApp(app: InstalledApp) {
+    private fun openApp(app: InstalledAppUi) {
         viewModelScope.launch {
             try {
                 appsRepository.openApp(
-                    installedApp = app,
+                    installedApp = app.toDomain(),
                     onCantLaunchApp = {
                         viewModelScope.launch {
                             _events.send(
@@ -369,7 +379,7 @@ class AppsViewModel(
         }
     }
 
-    private fun updateSingleApp(app: InstalledApp) {
+    private fun updateSingleApp(app: InstalledAppUi) {
         if (activeUpdates.containsKey(app.packageName)) {
             logger.debug("Update already in progress for ${app.packageName}")
             return
@@ -468,7 +478,7 @@ class AppsViewModel(
                             ),
                         )
                     } else {
-                        markPendingUpdate(app)
+                        markPendingUpdate(app.toDomain())
                     }
 
                     updateAppState(app.packageName, UpdateState.Installing)
@@ -657,22 +667,23 @@ class AppsViewModel(
         _state.update { currentState ->
             currentState.copy(
                 apps =
-                    currentState.apps.map { appItem ->
-                        if (appItem.installedApp.packageName == packageName) {
-                            appItem.copy(
-                                updateState = state,
-                                downloadProgress =
-                                    if (state is UpdateState.Downloading) {
-                                        appItem.downloadProgress
-                                    } else {
-                                        null
-                                    },
-                                error = if (state is UpdateState.Error) state.message else null,
-                            )
-                        } else {
-                            appItem
-                        }
-                    },
+                    currentState.apps
+                        .map { appItem ->
+                            if (appItem.installedApp.packageName == packageName) {
+                                appItem.copy(
+                                    updateState = state,
+                                    downloadProgress =
+                                        if (state is UpdateState.Downloading) {
+                                            appItem.downloadProgress
+                                        } else {
+                                            null
+                                        },
+                                    error = if (state is UpdateState.Error) state.message else null,
+                                )
+                            } else {
+                                appItem
+                            }
+                        }.toImmutableList(),
             )
         }
 
@@ -686,13 +697,14 @@ class AppsViewModel(
         _state.update { currentState ->
             currentState.copy(
                 apps =
-                    currentState.apps.map { appItem ->
-                        if (appItem.installedApp.packageName == packageName) {
-                            appItem.copy(downloadProgress = progress)
-                        } else {
-                            appItem
-                        }
-                    },
+                    currentState.apps
+                        .map { appItem ->
+                            if (appItem.installedApp.packageName == packageName) {
+                                appItem.copy(downloadProgress = progress)
+                            } else {
+                                appItem
+                            }
+                        }.toImmutableList(),
             )
         }
 
@@ -724,7 +736,7 @@ class AppsViewModel(
                 it.copy(
                     showLinkSheet = true,
                     linkStep = LinkStep.PickApp,
-                    deviceApps = emptyList(),
+                    deviceApps = persistentListOf(),
                     deviceAppSearchQuery = "",
                     selectedDeviceApp = null,
                     repoUrl = "",
@@ -739,6 +751,8 @@ class AppsViewModel(
                     appsRepository
                         .getDeviceApps()
                         .filter { it.packageName !in trackedPackages }
+                        .map { it.toUi() }
+                        .toImmutableList()
 
                 _state.update { it.copy(deviceApps = deviceApps) }
             } catch (e: Exception) {
@@ -753,13 +767,13 @@ class AppsViewModel(
             it.copy(
                 showLinkSheet = false,
                 linkStep = LinkStep.PickApp,
-                deviceApps = emptyList(),
+                deviceApps = persistentListOf(),
                 deviceAppSearchQuery = "",
                 selectedDeviceApp = null,
                 repoUrl = "",
                 repoValidationError = null,
                 linkValidationStatus = null,
-                linkInstallableAssets = emptyList(),
+                linkInstallableAssets = persistentListOf(),
                 linkSelectedAsset = null,
                 linkDownloadProgress = null,
                 fetchedRepoInfo = null,
@@ -806,7 +820,7 @@ class AppsViewModel(
 
                 _state.update {
                     it.copy(
-                        fetchedRepoInfo = repoInfo,
+                        fetchedRepoInfo = repoInfo.toUi(),
                         linkValidationStatus = getString(Res.string.checking_release),
                     )
                 }
@@ -822,7 +836,7 @@ class AppsViewModel(
                     }
 
                 if (latestRelease == null) {
-                    appsRepository.linkAppToRepo(selectedApp, repoInfo)
+                    appsRepository.linkAppToRepo(selectedApp.toDomain(), repoInfo)
                     _state.update {
                         it.copy(
                             isValidatingRepo = false,
@@ -831,14 +845,27 @@ class AppsViewModel(
                         )
                     }
                     _events.send(AppsEvent.AppLinkedSuccessfully(selectedApp.appName))
-                    _events.send(AppsEvent.ShowSuccess(getString(Res.string.app_linked_success, selectedApp.appName, repoInfo.owner, repoInfo.name)))
+                    _events.send(
+                        AppsEvent.ShowSuccess(
+                            getString(
+                                Res.string.app_linked_success,
+                                selectedApp.appName,
+                                repoInfo.owner,
+                                repoInfo.name,
+                            ),
+                        ),
+                    )
                     return@launch
                 }
 
                 val installableAssets =
-                    latestRelease.assets.filter { installer.isAssetInstallable(it.name) }
+                    latestRelease
+                        .assets
+                        .filter { installer.isAssetInstallable(it.name) }
+                        .map { it.toUi() }
+                        .toImmutableList()
                 if (installableAssets.isEmpty()) {
-                    appsRepository.linkAppToRepo(selectedApp, repoInfo)
+                    appsRepository.linkAppToRepo(selectedApp.toDomain(), repoInfo)
                     _state.update {
                         it.copy(
                             isValidatingRepo = false,
@@ -847,7 +874,16 @@ class AppsViewModel(
                         )
                     }
                     _events.send(AppsEvent.AppLinkedSuccessfully(selectedApp.appName))
-                    _events.send(AppsEvent.ShowSuccess(getString(Res.string.app_linked_success, selectedApp.appName, repoInfo.owner, repoInfo.name)))
+                    _events.send(
+                        AppsEvent.ShowSuccess(
+                            getString(
+                                Res.string.app_linked_success,
+                                selectedApp.appName,
+                                repoInfo.owner,
+                                repoInfo.name,
+                            ),
+                        ),
+                    )
                     return@launch
                 }
 
@@ -880,7 +916,7 @@ class AppsViewModel(
         }
     }
 
-    private fun validateWithAsset(asset: GithubAsset) {
+    private fun validateWithAsset(asset: GithubAssetUi) {
         val selectedApp = _state.value.selectedDeviceApp ?: return
         val repoInfo = _state.value.fetchedRepoInfo ?: return
 
@@ -922,7 +958,7 @@ class AppsViewModel(
                 val apkInfo = installer.getApkInfoExtractor().extractPackageInfo(filePath)
                 if (apkInfo == null) {
                     logger.debug("Could not extract APK info for validation, linking anyway")
-                    appsRepository.linkAppToRepo(selectedApp, repoInfo)
+                    appsRepository.linkAppToRepo(selectedApp.toDomain(), repoInfo.toDomain())
                     _state.update {
                         it.copy(
                             linkDownloadProgress = null,
@@ -931,7 +967,16 @@ class AppsViewModel(
                         )
                     }
                     _events.send(AppsEvent.AppLinkedSuccessfully(selectedApp.appName))
-                    _events.send(AppsEvent.ShowSuccess(getString(Res.string.app_linked_success, selectedApp.appName, repoInfo.owner, repoInfo.name)))
+                    _events.send(
+                        AppsEvent.ShowSuccess(
+                            getString(
+                                Res.string.app_linked_success,
+                                selectedApp.appName,
+                                repoInfo.owner,
+                                repoInfo.name,
+                            ),
+                        ),
+                    )
                     return@launch
                 }
 
@@ -965,7 +1010,7 @@ class AppsViewModel(
                     return@launch
                 }
 
-                appsRepository.linkAppToRepo(selectedApp, repoInfo)
+                appsRepository.linkAppToRepo(selectedApp.toDomain(), repoInfo.toDomain())
                 _state.update {
                     it.copy(
                         linkDownloadProgress = null,
@@ -974,7 +1019,16 @@ class AppsViewModel(
                     )
                 }
                 _events.send(AppsEvent.AppLinkedSuccessfully(selectedApp.appName))
-                _events.send(AppsEvent.ShowSuccess(getString(Res.string.app_linked_success, selectedApp.appName, repoInfo.owner, repoInfo.name)))
+                _events.send(
+                    AppsEvent.ShowSuccess(
+                        getString(
+                            Res.string.app_linked_success,
+                            selectedApp.appName,
+                            repoInfo.owner,
+                            repoInfo.name,
+                        ),
+                    ),
+                )
             } catch (_: RateLimitException) {
                 _state.update {
                     it.copy(
@@ -1032,10 +1086,16 @@ class AppsViewModel(
                 val json = appsRepository.exportApps()
                 val fileName = "github-store-apps-${System.currentTimeMillis()}.json"
                 shareManager.shareFile(fileName, json)
-                _events.send(AppsEvent.ExportReady(json))
             } catch (e: Exception) {
                 logger.error("Export failed: ${e.message}")
-                _events.send(AppsEvent.ShowError(getString(Res.string.export_failed, e.message ?: "")))
+                _events.send(
+                    AppsEvent.ShowError(
+                        getString(
+                            Res.string.export_failed,
+                            e.message ?: "",
+                        ),
+                    ),
+                )
             } finally {
                 _state.update { it.copy(isExporting = false) }
             }
@@ -1060,8 +1120,26 @@ class AppsViewModel(
             _events.send(
                 AppsEvent.ShowSuccess(
                     getString(Res.string.imported_apps_summary, result.imported) +
-                        (if (result.skipped > 0) getString(Res.string.imported_skipped, result.skipped) else "") +
-                        (if (result.failed > 0) getString(Res.string.imported_failed, result.failed) else ""),
+                        (
+                            if (result.skipped > 0) {
+                                getString(
+                                    Res.string.imported_skipped,
+                                    result.skipped,
+                                )
+                            } else {
+                                ""
+                            }
+                        ) +
+                        (
+                            if (result.failed > 0) {
+                                getString(
+                                    Res.string.imported_failed,
+                                    result.failed,
+                                )
+                            } else {
+                                ""
+                            }
+                        ),
                 ),
             )
         } catch (e: Exception) {

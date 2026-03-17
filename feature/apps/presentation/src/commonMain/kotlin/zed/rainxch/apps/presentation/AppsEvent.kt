@@ -19,10 +19,6 @@ sealed interface AppsEvent {
         val appName: String,
     ) : AppsEvent
 
-    data class ExportReady(
-        val json: String,
-    ) : AppsEvent
-
     data class ImportComplete(
         val result: ImportResult,
     ) : AppsEvent

@@ -17,6 +17,8 @@ kotlin {
 
                 implementation(libs.bundles.landscapist)
                 implementation(libs.liquid)
+
+                implementation(libs.kotlinx.collections.immutable)
             }
         }
 

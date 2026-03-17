@@ -49,8 +49,8 @@ import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.apps.presentation.AppsAction
 import zed.rainxch.apps.presentation.AppsState
 import zed.rainxch.apps.presentation.LinkStep
-import zed.rainxch.core.domain.model.DeviceApp
-import zed.rainxch.core.domain.model.GithubAsset
+import zed.rainxch.apps.presentation.model.DeviceAppUi
+import zed.rainxch.apps.presentation.model.GithubAssetUi
 import zed.rainxch.githubstore.core.presentation.res.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,10 +113,10 @@ fun LinkAppBottomSheet(
 
 @Composable
 private fun PickAppStep(
-    deviceApps: List<DeviceApp>,
+    deviceApps: List<DeviceAppUi>,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
-    onAppSelected: (DeviceApp) -> Unit,
+    onAppSelected: (DeviceAppUi) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -205,7 +205,7 @@ private fun PickAppStep(
 
 @Composable
 private fun DeviceAppItem(
-    app: DeviceApp,
+    app: DeviceAppUi,
     onClick: () -> Unit,
 ) {
     Row(
@@ -248,7 +248,7 @@ private fun DeviceAppItem(
 
 @Composable
 private fun EnterUrlStep(
-    selectedApp: DeviceApp?,
+    selectedApp: DeviceAppUi?,
     repoUrl: String,
     isValidating: Boolean,
     validationError: String?,
@@ -367,12 +367,12 @@ private fun EnterUrlStep(
 
 @Composable
 private fun PickAssetStep(
-    assets: List<GithubAsset>,
-    selectedAsset: GithubAsset?,
+    assets: List<GithubAssetUi>,
+    selectedAsset: GithubAssetUi?,
     downloadProgress: Int?,
     validationStatus: String?,
     validationError: String?,
-    onAssetSelected: (GithubAsset) -> Unit,
+    onAssetSelected: (GithubAssetUi) -> Unit,
     onBack: () -> Unit,
 ) {
     val isProcessing = selectedAsset != null

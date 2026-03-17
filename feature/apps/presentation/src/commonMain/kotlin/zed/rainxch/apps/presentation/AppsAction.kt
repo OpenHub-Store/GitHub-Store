@@ -1,8 +1,9 @@
 package zed.rainxch.apps.presentation
 
-import zed.rainxch.core.domain.model.DeviceApp
-import zed.rainxch.core.domain.model.GithubAsset
-import zed.rainxch.core.domain.model.InstalledApp
+import zed.rainxch.apps.presentation.model.InstalledAppUi
+import zed.rainxch.apps.presentation.model.DeviceAppUi
+import zed.rainxch.apps.presentation.model.GithubAssetUi
+
 
 sealed interface AppsAction {
     data object OnNavigateBackClick : AppsAction
@@ -12,11 +13,11 @@ sealed interface AppsAction {
     ) : AppsAction
 
     data class OnOpenApp(
-        val app: InstalledApp,
+        val app: InstalledAppUi,
     ) : AppsAction
 
     data class OnUpdateApp(
-        val app: InstalledApp,
+        val app: InstalledAppUi,
     ) : AppsAction
 
     data class OnCancelUpdate(
@@ -36,22 +37,22 @@ sealed interface AppsAction {
     ) : AppsAction
 
     data class OnUninstallApp(
-        val app: InstalledApp,
+        val app: InstalledAppUi,
     ) : AppsAction
 
     // Uninstall confirmation
-    data class OnUninstallConfirmed(val app: InstalledApp) : AppsAction
+    data class OnUninstallConfirmed(val app: InstalledAppUi) : AppsAction
     data object OnDismissUninstallDialog : AppsAction
 
     // Link app to repo
     data object OnAddByLinkClick : AppsAction
     data object OnDismissLinkSheet : AppsAction
     data class OnDeviceAppSearchChange(val query: String) : AppsAction
-    data class OnDeviceAppSelected(val app: DeviceApp) : AppsAction
+    data class OnDeviceAppSelected(val app: DeviceAppUi) : AppsAction
     data class OnRepoUrlChanged(val url: String) : AppsAction
     data object OnValidateAndLinkRepo : AppsAction
     data object OnBackToAppPicker : AppsAction
-    data class OnLinkAssetSelected(val asset: GithubAsset) : AppsAction
+    data class OnLinkAssetSelected(val asset: GithubAssetUi) : AppsAction
     data object OnBackToEnterUrl : AppsAction
 
     // Export/Import
