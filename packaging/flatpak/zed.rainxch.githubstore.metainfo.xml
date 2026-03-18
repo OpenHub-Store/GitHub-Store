@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>zed.rainxch.githubstore</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+
+  <name>GitHub Store</name>
+  <summary>A cross-platform app store for GitHub releases</summary>
+
+  <description>
+    <p>
+      GitHub Store lets you browse, download, and manage applications distributed
+      through GitHub releases. It brings the convenience of an app store to the
+      open-source ecosystem.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Discover trending, hot, and popular repositories with installable releases</li>
+      <li>Search and filter repositories by language, topic, and more</li>
+      <li>Track installed apps and get notified when updates are available</li>
+      <li>View release notes, changelogs, and repository READMEs with translation support</li>
+      <li>Secure installs with TOFU signing key verification and provenance attestation checks</li>
+      <li>Save favourites and starred repositories for quick access</li>
+      <li>GitHub OAuth authentication for higher API rate limits and personalized experience</li>
+      <li>Material 3 theming with light/dark mode and 11 language translations</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">zed.rainxch.githubstore.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Home screen showing trending repositories</caption>
+      <image>https://raw.githubusercontent.com/AshkanAhmady/GitHub-Store/main/screenshots/home.png</image>
+    </screenshot>
+    <!-- Add more screenshots as needed -->
+  </screenshots>
+
+  <url type="homepage">https://github.com/AshkanAhmady/GitHub-Store</url>
+  <url type="bugtracker">https://github.com/AshkanAhmady/GitHub-Store/issues</url>
+  <url type="vcs-browser">https://github.com/AshkanAhmady/GitHub-Store</url>
+
+  <developer id="zed.rainxch">
+    <name>rainxchzed</name>
+  </developer>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="1.6.2" date="2026-03-18">
+      <description>
+        <p>Security improvements: package name and signing key validation on updates,
+           provenance attestation badges, and app-link verification with asset picker.</p>
+      </description>
+    </release>
+  </releases>
+
+  <categories>
+    <category>Development</category>
+    <category>PackageManager</category>
+  </categories>
+
+  <keywords>
+    <keyword>GitHub</keyword>
+    <keyword>releases</keyword>
+    <keyword>app store</keyword>
+    <keyword>package manager</keyword>
+    <keyword>APK</keyword>
+  </keywords>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+</component>

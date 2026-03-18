@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=GitHub Store
+GenericName=App Store for GitHub Releases
+Comment=Browse, download, and manage apps from GitHub releases
+Icon=zed.rainxch.githubstore
+Exec=githubstore %u
+Terminal=false
+StartupNotify=true
+Categories=Development;PackageManager;
+Keywords=GitHub;Apps;Releases;APK;Store;
+StartupWMClass=GitHub-Store
+MimeType=x-scheme-handler/githubstore;

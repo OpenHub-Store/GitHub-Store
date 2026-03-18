@@ -1,0 +1,91 @@
+app-id: zed.rainxch.githubstore
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk21
+command: githubstore
+
+finish-args:
+  # Network access for GitHub API calls and downloading releases
+  - --share=network
+  # X11 display support
+  - --share=ipc
+  - --socket=x11
+  # GPU acceleration for Compose rendering
+  - --device=dri
+  # Download directory access for APK/release downloads
+  - --filesystem=xdg-download:rw
+  # Wayland support (fallback to X11 via XWayland)
+  - --socket=fallback-x11
+  - --socket=wayland
+
+modules:
+  # Module 1: Bundle JetBrains Runtime (JBR) 21 for optimal Compose Desktop rendering
+  - name: jbr
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/jre
+      - tar xzf jbr-*.tar.gz -C /app/jre --strip-components=1
+    sources:
+      # x86_64
+      - type: file
+        url: https://cache-redirector.jetbrains.com/intellij-jbr/jbr_jcef-21.0.7-linux-x64-b631.27.tar.gz
+        sha256: REPLACE_WITH_ACTUAL_SHA256_x64
+        only-arches:
+          - x86_64
+      # aarch64
+      - type: file
+        url: https://cache-redirector.jetbrains.com/intellij-jbr/jbr_jcef-21.0.7-linux-aarch64-b631.27.tar.gz
+        sha256: REPLACE_WITH_ACTUAL_SHA256_aarch64
+        only-arches:
+          - aarch64
+
+  # Module 2: Build and install GitHub Store
+  - name: githubstore
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/openjdk21/bin
+      env:
+        JAVA_HOME: /usr/lib/sdk/openjdk21
+        GRADLE_USER_HOME: /run/build/githubstore/.gradle
+    build-commands:
+      # Use local Gradle distribution (no network in sandbox)
+      - sed -i 's|distributionUrl=.*|distributionUrl=gradle-bin.zip|' gradle/wrapper/gradle-wrapper.properties
+      # Disable Android targets (no Android SDK in Flatpak sandbox)
+      - bash packaging/flatpak/disable-android-for-flatpak.sh
+      # Build uber JAR
+      - ./gradlew :composeApp:packageReleaseUberJarForCurrentOS
+          --no-daemon
+          --offline
+          --no-configuration-cache
+          -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=2g"
+          -Dorg.gradle.parallel=false
+      # Install the JAR
+      - install -Dm644 "$(find composeApp/build/compose/jars/ -name '*.jar' -type f | head -1)"
+          /app/lib/githubstore.jar
+      # Install launcher script
+      - install -Dm755 packaging/flatpak/githubstore.sh /app/bin/githubstore
+      # Install desktop entry
+      - install -Dm644 packaging/flatpak/zed.rainxch.githubstore.desktop
+          /app/share/applications/zed.rainxch.githubstore.desktop
+      # Install AppStream metainfo
+      - install -Dm644 packaging/flatpak/zed.rainxch.githubstore.metainfo.xml
+          /app/share/metainfo/zed.rainxch.githubstore.metainfo.xml
+      # Install icon (512x512)
+      - install -Dm644 composeApp/src/jvmMain/resources/logo/app_icon.png
+          /app/share/icons/hicolor/512x512/apps/zed.rainxch.githubstore.png
+    sources:
+      - type: git
+        url: https://github.com/AshkanAhmady/GitHub-Store
+        tag: v1.6.2
+        # commit: REPLACE_WITH_COMMIT_HASH
+      # Local Gradle distribution (pre-downloaded, no network in sandbox)
+      - type: file
+        url: https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+        sha256: REPLACE_WITH_ACTUAL_SHA256
+        dest: gradle/wrapper
+        dest-filename: gradle-bin.zip
+      # Pre-downloaded Maven/Gradle dependencies
+      # Generate with: ./gradlew flatpakGradleGenerator
+      - flatpak-sources.json
