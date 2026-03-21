@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -65,6 +66,7 @@ import zed.rainxch.githubstore.core.presentation.res.installing
 import zed.rainxch.githubstore.core.presentation.res.not_available
 import zed.rainxch.githubstore.core.presentation.res.open_app
 import zed.rainxch.githubstore.core.presentation.res.show_install_options
+import zed.rainxch.githubstore.core.presentation.res.unable_to_verify_attestation
 import zed.rainxch.githubstore.core.presentation.res.uninstall
 import zed.rainxch.githubstore.core.presentation.res.update_to_version
 import zed.rainxch.githubstore.core.presentation.res.updating
@@ -569,7 +571,10 @@ fun SmartInstallButton(
 @Composable
 private fun AttestationBadge(attestationStatus: AttestationStatus) {
     AnimatedVisibility(
-        visible = attestationStatus == AttestationStatus.VERIFIED || attestationStatus == AttestationStatus.CHECKING,
+        visible =
+            attestationStatus == AttestationStatus.VERIFIED ||
+                attestationStatus == AttestationStatus.CHECKING ||
+                attestationStatus == AttestationStatus.UNABLE_TO_VERIFY,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
@@ -606,6 +611,21 @@ private fun AttestationBadge(attestationStatus: AttestationStatus) {
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.tertiary,
                         fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                AttestationStatus.UNABLE_TO_VERIFY -> {
+                    Icon(
+                        imageVector = Icons.Outlined.Warning,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(Res.string.unable_to_verify_attestation),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 

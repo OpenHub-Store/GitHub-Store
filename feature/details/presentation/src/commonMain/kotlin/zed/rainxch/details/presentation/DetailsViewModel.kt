@@ -22,6 +22,7 @@ import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.getString
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
+import zed.rainxch.core.domain.model.ApkPackageInfo
 import zed.rainxch.core.domain.model.FavoriteRepo
 import zed.rainxch.core.domain.model.GithubAsset
 import zed.rainxch.core.domain.model.GithubRelease
@@ -39,14 +40,15 @@ import zed.rainxch.core.domain.system.PackageMonitor
 import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
 import zed.rainxch.core.domain.utils.BrowserHelper
 import zed.rainxch.core.domain.utils.ShareManager
-import zed.rainxch.details.domain.model.ReleaseCategory
-import zed.rainxch.details.domain.repository.DetailsRepository
-import zed.rainxch.details.domain.repository.TranslationRepository
 import zed.rainxch.details.domain.model.ApkValidationResult
 import zed.rainxch.details.domain.model.FingerprintCheckResult
+import zed.rainxch.details.domain.model.ReleaseCategory
 import zed.rainxch.details.domain.model.SaveInstalledAppParams
 import zed.rainxch.details.domain.model.UpdateInstalledAppParams
+import zed.rainxch.details.domain.repository.DetailsRepository
+import zed.rainxch.details.domain.repository.TranslationRepository
 import zed.rainxch.details.domain.system.AttestationVerifier
+import zed.rainxch.details.domain.system.VerificationResult
 import zed.rainxch.details.domain.system.InstallationManager
 import zed.rainxch.details.domain.util.VersionHelper
 import zed.rainxch.details.presentation.model.AttestationStatus
@@ -859,6 +861,7 @@ class DetailsViewModel(
 
     private fun overrideSigningKeyWarning() {
         val warning = _state.value.signingKeyWarning ?: return
+        _state.update { it.copy(signingKeyWarning = null) }
         dismissDowngradeWarning()
         viewModelScope.launch {
             try {
@@ -867,12 +870,12 @@ class DetailsViewModel(
 
                 if (platform == Platform.ANDROID) {
                     saveInstalledAppToDatabase(
+                        apkInfo = warning.pendingApkInfo,
                         assetName = warning.pendingAssetName,
                         assetUrl = warning.pendingDownloadUrl,
                         assetSize = warning.pendingSizeBytes,
                         releaseTag = warning.pendingReleaseTag,
                         isUpdate = warning.pendingIsUpdate,
-                        filePath = warning.pendingFilePath,
                         installOutcome = installOutcome,
                     )
                 }
@@ -966,6 +969,7 @@ class DetailsViewModel(
 
         val ext = assetName.substringAfterLast('.', "").lowercase()
         val isApk = ext == "apk"
+        var validatedApkInfo: ApkPackageInfo? = null
 
         if (isApk) {
             val validationResult =
@@ -1020,6 +1024,7 @@ class DetailsViewModel(
                 }
 
                 is ApkValidationResult.Valid -> {
+                    validatedApkInfo = validationResult.apkInfo
                     val fpResult =
                         installationManager.checkSigningFingerprint(validationResult.apkInfo)
                     if (fpResult is FingerprintCheckResult.Mismatch) {
@@ -1036,6 +1041,7 @@ class DetailsViewModel(
                                         pendingReleaseTag = releaseTag,
                                         pendingIsUpdate = isUpdate,
                                         pendingFilePath = filePath,
+                                        pendingApkInfo = validationResult.apkInfo,
                                     ),
                             )
                         }
@@ -1056,17 +1062,17 @@ class DetailsViewModel(
         // Launch attestation check asynchronously (non-blocking)
         launchAttestationCheck(filePath)
 
-        if (platform == Platform.ANDROID) {
+        if (platform == Platform.ANDROID && validatedApkInfo != null) {
             saveInstalledAppToDatabase(
+                apkInfo = validatedApkInfo,
                 assetName = assetName,
                 assetUrl = downloadUrl,
                 assetSize = sizeBytes,
                 releaseTag = releaseTag,
                 isUpdate = isUpdate,
-                filePath = filePath,
                 installOutcome = installOutcome,
             )
-        } else {
+        } else if (platform != Platform.ANDROID) {
             viewModelScope.launch {
                 _events.send(DetailsEvent.OnMessage(getString(Res.string.installer_saved_downloads)))
             }
@@ -1095,11 +1101,14 @@ class DetailsViewModel(
         _state.update { it.copy(attestationStatus = AttestationStatus.CHECKING) }
 
         viewModelScope.launch {
-            val verified = attestationVerifier.verify(owner, repoName, filePath)
+            val result = attestationVerifier.verify(owner, repoName, filePath)
             _state.update {
                 it.copy(
-                    attestationStatus =
-                        if (verified) AttestationStatus.VERIFIED else AttestationStatus.UNVERIFIED,
+                    attestationStatus = when (result) {
+                        is VerificationResult.Verified -> AttestationStatus.VERIFIED
+                        is VerificationResult.Unverified -> AttestationStatus.UNVERIFIED
+                        is VerificationResult.Error -> AttestationStatus.UNABLE_TO_VERIFY
+                    },
                 )
             }
         }
@@ -1209,22 +1218,15 @@ class DetailsViewModel(
     }
 
     private suspend fun saveInstalledAppToDatabase(
+        apkInfo: ApkPackageInfo,
         assetName: String,
         assetUrl: String,
         assetSize: Long,
         releaseTag: String,
         isUpdate: Boolean,
-        filePath: String,
-        installOutcome: InstallOutcome = InstallOutcome.DELEGATED_TO_SYSTEM,
+        installOutcome: InstallOutcome,
     ) {
         val repo = _state.value.repository ?: return
-        if (platform != Platform.ANDROID || !assetName.lowercase().endsWith(".apk")) return
-
-        val apkInfo = installer.getApkInfoExtractor().extractPackageInfo(filePath)
-        if (apkInfo == null) {
-            logger.error("Failed to extract APK info for $assetName")
-            return
-        }
 
         if (isUpdate) {
             installationManager.updateInstalledAppVersion(

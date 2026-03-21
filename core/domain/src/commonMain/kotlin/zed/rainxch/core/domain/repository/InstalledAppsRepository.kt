@@ -34,6 +34,7 @@ interface InstalledAppsRepository {
         newVersionName: String,
         newVersionCode: Long,
         signingFingerprint: String?,
+        isPendingInstall: Boolean = true,
     )
 
     suspend fun updateApp(app: InstalledApp)

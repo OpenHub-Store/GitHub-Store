@@ -231,6 +231,12 @@
     <string name="home_category_hot_release">Yeni sürüm</string>
     <string name="home_category_most_popular">En popüler</string>
 
+    <string name="home_topic_privacy">Gizlilik</string>
+    <string name="home_topic_media">Medya</string>
+    <string name="home_topic_productivity">Üretkenlik</string>
+    <string name="home_topic_networking">Ağ</string>
+    <string name="home_topic_dev_tools">Geliştirici araçları</string>
+
     <string name="home_finding_repositories">Repolar bulunuyor...</string>
     <string name="home_loading_more">Daha fazla yükleniyor...</string>
     <string name="home_no_more_repositories">Başka repo yok</string>

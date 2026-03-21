@@ -210,6 +210,7 @@
     <string name="install_anyway">Install anyway</string>
     <string name="verified_build">Verified build</string>
     <string name="checking_attestation">Checking\u2026</string>
+    <string name="unable_to_verify_attestation">Could not verify</string>
     <string name="install_version">Install %1$s</string>
     <string name="failed_to_open_app">Failed to open %1$s</string>
     <string name="failed_to_uninstall">Failed to uninstall %1$s</string>
@@ -269,6 +270,12 @@
     <string name="home_category_trending">Trending</string>
     <string name="home_category_hot_release">Hot release</string>
     <string name="home_category_most_popular">Most popular</string>
+
+    <string name="home_topic_privacy">Privacy</string>
+    <string name="home_topic_media">Media</string>
+    <string name="home_topic_productivity">Productivity</string>
+    <string name="home_topic_networking">Network</string>
+    <string name="home_topic_dev_tools">Dev Tools</string>
 
     <string name="home_finding_repositories">Finding repositories...</string>
     <string name="home_loading_more">Loading more...</string>

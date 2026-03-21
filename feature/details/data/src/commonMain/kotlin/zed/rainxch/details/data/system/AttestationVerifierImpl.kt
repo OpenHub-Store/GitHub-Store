@@ -3,6 +3,7 @@ package zed.rainxch.details.data.system
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
 import zed.rainxch.details.domain.repository.DetailsRepository
 import zed.rainxch.details.domain.system.AttestationVerifier
+import zed.rainxch.details.domain.system.VerificationResult
 import java.io.File
 import java.io.FileInputStream
 import java.security.MessageDigest
@@ -15,13 +16,14 @@ class AttestationVerifierImpl(
         owner: String,
         repoName: String,
         filePath: String,
-    ): Boolean =
+    ): VerificationResult =
         try {
             val digest = computeSha256(filePath)
-            detailsRepository.checkAttestations(owner, repoName, digest)
+            val hasAttestation = detailsRepository.checkAttestations(owner, repoName, digest)
+            if (hasAttestation) VerificationResult.Verified else VerificationResult.Unverified
         } catch (e: Exception) {
             logger.debug("Attestation check error: ${e.message}")
-            false
+            VerificationResult.Error(e.message ?: "Unknown error")
         }
 
     private fun computeSha256(filePath: String): String {

@@ -30,6 +30,7 @@ import zed.rainxch.core.presentation.model.DiscoveryRepositoryUi
 import zed.rainxch.core.presentation.utils.toUi
 import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.home.domain.model.HomeCategory
+import zed.rainxch.home.domain.model.TopicCategory
 import zed.rainxch.home.domain.repository.HomeRepository
 import zed.rainxch.home.presentation.HomeEvent.*
 
@@ -48,6 +49,7 @@ class HomeViewModel(
     private var hasLoadedInitialData = false
     private var currentJob: Job? = null
     private var switchCategoryJob: Job? = null
+    private var topicSupplementJob: Job? = null
     private var nextPageIndex = 1
 
     private val _state = MutableStateFlow(HomeState())
@@ -122,8 +124,11 @@ class HomeViewModel(
         isInitial: Boolean = false,
         category: HomeCategory? = null,
         platform: DiscoveryPlatform? = null,
+        topic: TopicCategory? = null,
+        topicExplicitlySet: Boolean = false,
     ): Job? {
         currentJob?.cancel()
+        topicSupplementJob?.cancel()
 
         if (_state.value.isLoading || _state.value.isLoadingMore) {
             logger.debug("Already loading, skipping...")
@@ -136,8 +141,9 @@ class HomeViewModel(
 
         val targetCategory = category ?: _state.value.currentCategory
         val targetPlatform = platform ?: _state.value.currentPlatform
+        val targetTopic = if (topicExplicitlySet) topic else _state.value.selectedTopic
 
-        logger.debug("Loading repos: category=$targetCategory, page=$nextPageIndex, isInitial=$isInitial")
+        logger.debug("Loading repos: category=$targetCategory, topic=$targetTopic, page=$nextPageIndex, isInitial=$isInitial")
 
         return viewModelScope
             .launch {
@@ -148,6 +154,7 @@ class HomeViewModel(
                         errorMessage = null,
                         currentCategory = targetCategory,
                         currentPlatform = targetPlatform,
+                        selectedTopic = targetTopic,
                         repos = if (isInitial) persistentListOf() else it.repos,
                     )
                 }
@@ -184,41 +191,16 @@ class HomeViewModel(
 
                         this@HomeViewModel.nextPageIndex = paginatedRepos.nextPageIndex
 
-                        val installedAppsMap =
-                            installedAppsRepository
-                                .getAllInstalledApps()
-                                .first()
-                                .associateBy { it.repoId }
-
-                        val favoritesMap =
-                            favouritesRepository
-                                .getAllFavorites()
-                                .first()
-                                .associateBy { it.repoId }
-
-                        val starredReposMap =
-                            starredRepository
-                                .getAllStarred()
-                                .first()
-                                .associateBy { it.repoId }
-
-                        val seenIds = _state.value.seenRepoIds
-
-                        val newReposWithStatus =
-                            paginatedRepos.repos.map { repo ->
-                                val app = installedAppsMap[repo.id]
-                                val favourite = favoritesMap[repo.id]
-                                val starred = starredReposMap[repo.id]
-
-                                DiscoveryRepositoryUi(
-                                    isInstalled = app != null,
-                                    isFavourite = favourite != null,
-                                    isStarred = starred != null,
-                                    isSeen = repo.id in seenIds,
-                                    isUpdateAvailable = app?.isUpdateAvailable ?: false,
-                                    repository = repo.toUi(),
-                                )
+                        val repos =
+                            if (targetTopic != null) {
+                                paginatedRepos.repos.filter { repo ->
+                                    targetTopic.matchesRepo(repo.topics, repo.description, repo.name)
+                                }
+                            } else {
+                                paginatedRepos.repos
                             }
+
+                        val newReposWithStatus = mapReposToUi(repos)
 
                         _state.update { currentState ->
                             val rawList = currentState.repos + newReposWithStatus
@@ -241,6 +223,10 @@ class HomeViewModel(
                     _state.update {
                         it.copy(isLoading = false, isLoadingMore = false)
                     }
+
+                    if (targetTopic != null && isInitial) {
+                        loadTopicSupplement(targetTopic, targetPlatform)
+                    }
                 } catch (t: Throwable) {
                     if (t is CancellationException) {
                         logger.debug("Load cancelled (expected)")
@@ -261,6 +247,105 @@ class HomeViewModel(
             }.also {
                 currentJob = it
             }
+    }
+
+    private fun loadTopicSupplement(
+        topic: TopicCategory,
+        platform: DiscoveryPlatform,
+    ) {
+        topicSupplementJob?.cancel()
+        topicSupplementJob =
+            viewModelScope.launch {
+                _state.update { it.copy(isLoadingTopicSupplement = true) }
+
+                try {
+                    // Phase 1: Load pre-fetched cached topic repos (instant, no API cost)
+                    homeRepository
+                        .getTopicRepositories(
+                            topic = topic,
+                            platform = platform,
+                        ).collect { paginatedRepos ->
+                            if (paginatedRepos.repos.isNotEmpty()) {
+                                val cachedReposWithStatus = mapReposToUi(paginatedRepos.repos)
+
+                                _state.update { currentState ->
+                                    val merged = (currentState.repos + cachedReposWithStatus)
+                                        .distinctBy { it.repository.fullName }
+
+                                    currentState.copy(
+                                        repos = merged.toImmutableList(),
+                                    )
+                                }
+
+                                logger.debug("Loaded ${paginatedRepos.repos.size} cached topic repos for ${topic.name}")
+                            }
+                        }
+
+                    // Phase 2: Supplement with live GitHub search (fills gaps)
+                    homeRepository
+                        .searchByTopic(
+                            searchKeywords = topic.searchKeywords,
+                            platform = platform,
+                            page = 1,
+                        ).collect { paginatedRepos ->
+                            val newReposWithStatus = mapReposToUi(paginatedRepos.repos)
+
+                            _state.update { currentState ->
+                                val merged = (currentState.repos + newReposWithStatus)
+                                    .distinctBy { it.repository.fullName }
+
+                                currentState.copy(
+                                    repos = merged.toImmutableList(),
+                                    hasMorePages = currentState.hasMorePages || paginatedRepos.hasMore,
+                                )
+                            }
+                        }
+                } catch (t: Throwable) {
+                    if (t is CancellationException) throw t
+                    logger.warn("Topic supplement search failed: ${t.message}")
+                } finally {
+                    _state.update { it.copy(isLoadingTopicSupplement = false) }
+                }
+            }
+    }
+
+    private suspend fun mapReposToUi(
+        repos: List<zed.rainxch.core.domain.model.GithubRepoSummary>,
+    ): List<DiscoveryRepositoryUi> {
+        val installedAppsMap =
+            installedAppsRepository
+                .getAllInstalledApps()
+                .first()
+                .associateBy { it.repoId }
+
+        val favoritesMap =
+            favouritesRepository
+                .getAllFavorites()
+                .first()
+                .associateBy { it.repoId }
+
+        val starredReposMap =
+            starredRepository
+                .getAllStarred()
+                .first()
+                .associateBy { it.repoId }
+
+        val seenIds = _state.value.seenRepoIds
+
+        return repos.map { repo ->
+            val app = installedAppsMap[repo.id]
+            val favourite = favoritesMap[repo.id]
+            val starred = starredReposMap[repo.id]
+
+            DiscoveryRepositoryUi(
+                isInstalled = app != null,
+                isFavourite = favourite != null,
+                isStarred = starred != null,
+                isSeen = repo.id in seenIds,
+                isUpdateAvailable = app?.isUpdateAvailable ?: false,
+                repository = repo.toUi(),
+            )
+        }
     }
 
     fun onAction(action: HomeAction) {
@@ -285,6 +370,23 @@ class HomeViewModel(
 
                 if (!_state.value.isLoadingMore && !_state.value.isLoading && _state.value.hasMorePages) {
                     loadRepos(isInitial = false)
+                }
+            }
+
+            is HomeAction.SwitchTopic -> {
+                val newTopic = if (_state.value.selectedTopic == action.topic) null else action.topic
+                if (_state.value.selectedTopic != newTopic) {
+                    nextPageIndex = 1
+                    switchCategoryJob?.cancel()
+                    switchCategoryJob =
+                        viewModelScope.launch {
+                            loadRepos(
+                                isInitial = true,
+                                topic = newTopic,
+                                topicExplicitlySet = true,
+                            )?.join() ?: return@launch
+                            _events.send(HomeEvent.OnScrollToListTop)
+                        }
                 }
             }
 
@@ -438,5 +540,6 @@ class HomeViewModel(
     override fun onCleared() {
         super.onCleared()
         currentJob?.cancel()
+        topicSupplementJob?.cancel()
     }
 }

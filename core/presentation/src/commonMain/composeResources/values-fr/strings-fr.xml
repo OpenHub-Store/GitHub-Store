@@ -178,6 +178,12 @@
     <string name="home_category_hot_release">Sortie en salles</string>
     <string name="home_category_most_popular">Les plus populaires</string>
 
+    <string name="home_topic_privacy">Confidentialité</string>
+    <string name="home_topic_media">Médias</string>
+    <string name="home_topic_productivity">Productivité</string>
+    <string name="home_topic_networking">Réseau</string>
+    <string name="home_topic_dev_tools">Outils de développement</string>
+
     <string name="home_finding_repositories">Recherche de dépôts...</string>
     <string name="home_loading_more">Chargement...</string>
     <string name="home_no_more_repositories">Plus aucun dépôt</string>

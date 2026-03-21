@@ -230,6 +230,12 @@
     <string name="home_category_hot_release">핫 릴리스</string>
     <string name="home_category_most_popular">가장 인기 있는</string>
 
+    <string name="home_topic_privacy">개인정보</string>
+    <string name="home_topic_media">미디어</string>
+    <string name="home_topic_productivity">생산성</string>
+    <string name="home_topic_networking">네트워크</string>
+    <string name="home_topic_dev_tools">개발 도구</string>
+
     <string name="home_finding_repositories">저장소를 찾는 중...</string>
     <string name="home_loading_more">더 불러오는 중...</string>
     <string name="home_no_more_repositories">더 이상 저장소가 없습니다</string>

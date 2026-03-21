@@ -186,6 +186,7 @@ class InstalledAppsRepositoryImpl(
         newVersionName: String,
         newVersionCode: Long,
         signingFingerprint: String?,
+        isPendingInstall: Boolean,
     ) {
         val app = installedAppsDao.getAppByPackage(packageName) ?: return
 
@@ -220,6 +221,7 @@ class InstalledAppsRepositoryImpl(
                 latestVersionName = newVersionName,
                 latestVersionCode = newVersionCode,
                 isUpdateAvailable = false,
+                isPendingInstall = isPendingInstall,
                 lastUpdatedAt = System.currentTimeMillis(),
                 lastCheckedAt = System.currentTimeMillis(),
                 signingFingerprint = signingFingerprint,

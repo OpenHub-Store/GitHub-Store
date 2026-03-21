@@ -266,6 +266,12 @@
     <string name="home_category_hot_release">إصدار ساخن</string>
     <string name="home_category_most_popular">الأكثر شعبية</string>
 
+    <string name="home_topic_privacy">الخصوصية</string>
+    <string name="home_topic_media">الوسائط</string>
+    <string name="home_topic_productivity">الإنتاجية</string>
+    <string name="home_topic_networking">الشبكة</string>
+    <string name="home_topic_dev_tools">أدوات المطور</string>
+
     <string name="home_finding_repositories">جارٍ البحث عن مستودعات...</string>
     <string name="home_loading_more">جارٍ تحميل المزيد...</string>
     <string name="home_no_more_repositories">لا مزيد من المستودعات</string>

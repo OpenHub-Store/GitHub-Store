@@ -8,9 +8,10 @@ import zed.rainxch.core.domain.model.GithubRelease
 object VersionHelper {
     fun normalizeVersion(version: String?): String =
         version
+            ?.trim()
+            ?.removePrefix("refs/tags/")
             ?.removePrefix("v")
             ?.removePrefix("V")
-            ?.trim()
             .orEmpty()
 
     /**

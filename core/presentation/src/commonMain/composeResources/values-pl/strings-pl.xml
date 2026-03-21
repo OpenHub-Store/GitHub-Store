@@ -196,6 +196,12 @@
     <string name="home_category_hot_release">Gorące wydanie</string>
     <string name="home_category_most_popular">Najpopularniejsze</string>
 
+    <string name="home_topic_privacy">Prywatność</string>
+    <string name="home_topic_media">Media</string>
+    <string name="home_topic_productivity">Produktywność</string>
+    <string name="home_topic_networking">Sieć</string>
+    <string name="home_topic_dev_tools">Narzędzia deweloperskie</string>
+
     <string name="home_finding_repositories">Wyszukiwanie repozytoriów...</string>
     <string name="home_loading_more">Ładowanie więcej...</string>
     <string name="home_no_more_repositories">Brak kolejnych repozytoriów</string>

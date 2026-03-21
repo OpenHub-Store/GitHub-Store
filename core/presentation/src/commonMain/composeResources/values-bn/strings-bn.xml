@@ -232,6 +232,12 @@
     <string name="home_category_hot_release">হট রিলিজ</string>
     <string name="home_category_most_popular">সবচেয়ে জনপ্রিয়</string>
 
+    <string name="home_topic_privacy">গোপনীয়তা</string>
+    <string name="home_topic_media">মিডিয়া</string>
+    <string name="home_topic_productivity">উৎপাদনশীলতা</string>
+    <string name="home_topic_networking">নেটওয়ার্ক</string>
+    <string name="home_topic_dev_tools">ডেভ টুলস</string>
+
     <string name="home_finding_repositories">রিপোজিটরি খোঁজা হচ্ছে...</string>
     <string name="home_loading_more">আরও লোড হচ্ছে...</string>
     <string name="home_no_more_repositories">আর কোনো রিপোজিটরি নেই</string>

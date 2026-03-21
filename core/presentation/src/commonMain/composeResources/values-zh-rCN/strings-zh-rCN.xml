@@ -180,6 +180,12 @@
     <string name="home_category_hot_release">热门发布</string>
     <string name="home_category_most_popular">最受欢迎</string>
 
+    <string name="home_topic_privacy">隐私</string>
+    <string name="home_topic_media">媒体</string>
+    <string name="home_topic_productivity">生产力</string>
+    <string name="home_topic_networking">网络</string>
+    <string name="home_topic_dev_tools">开发工具</string>
+
     <string name="home_finding_repositories">正在查找仓库…</string>
     <string name="home_loading_more">加载中…</string>
     <string name="home_no_more_repositories">没有更多仓库了</string>

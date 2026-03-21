@@ -228,8 +228,6 @@
     <string name="error_asset_not_supported">संपदा प्रकार .%1$s समर्थित नहीं</string>
     <string name="error_file_not_found">डाउनलोड की गई फ़ाइल नहीं मिली</string>
 
-    <string name="home_category_trending">रुझान</string>
-
     <string name="home_finding_repositories">रिपॉजिटरी ढूंढी जा रही हैं...</string>
     <string name="home_loading_more">और लोड हो रहा है...</string>
     <string name="home_no_more_repositories">अब और कोई रिपॉजिटरी नहीं</string>
@@ -357,8 +355,15 @@
     <string name="versions_title">संस्करण</string>
 
     <!-- Home categories -->
+    <string name="home_category_trending">रुझान</string>
     <string name="home_category_hot_release">हॉट रिलीज़</string>
     <string name="home_category_most_popular">सबसे लोकप्रिय</string>
+
+    <string name="home_topic_privacy">गोपनीयता</string>
+    <string name="home_topic_media">मीडिया</string>
+    <string name="home_topic_productivity">उत्पादकता</string>
+    <string name="home_topic_networking">नेटवर्क</string>
+    <string name="home_topic_dev_tools">डेव टूल्स</string>
 
     <!-- Install status -->
     <string name="pending_install">इंस्टॉल लंबित</string>

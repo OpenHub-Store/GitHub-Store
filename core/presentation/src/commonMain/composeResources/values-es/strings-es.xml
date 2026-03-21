@@ -178,6 +178,12 @@
     <string name="home_category_hot_release">Lanzamiento en caliente</string>
     <string name="home_category_most_popular">Los más populares</string>
 
+    <string name="home_topic_privacy">Privacidad</string>
+    <string name="home_topic_media">Multimedia</string>
+    <string name="home_topic_productivity">Productividad</string>
+    <string name="home_topic_networking">Red</string>
+    <string name="home_topic_dev_tools">Herramientas de desarrollo</string>
+
     <string name="home_finding_repositories">Buscando repositorios...</string>
     <string name="home_loading_more">Cargando...</string>
     <string name="home_no_more_repositories">No hay más repositorios</string>

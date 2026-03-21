@@ -179,6 +179,12 @@
     <string name="home_category_hot_release">ホットリリース</string>
     <string name="home_category_most_popular">最も人気のある</string>
 
+    <string name="home_topic_privacy">プライバシー</string>
+    <string name="home_topic_media">メディア</string>
+    <string name="home_topic_productivity">生産性</string>
+    <string name="home_topic_networking">ネットワーク</string>
+    <string name="home_topic_dev_tools">開発ツール</string>
+
     <string name="home_finding_repositories">リポジトリを検索中…</string>
     <string name="home_loading_more">読み込み中…</string>
     <string name="home_no_more_repositories">これ以上ありません</string>

@@ -197,6 +197,12 @@
     <string name="home_category_hot_release">Горячий релиз</string>
     <string name="home_category_most_popular">Самые популярные</string>
 
+    <string name="home_topic_privacy">Конфиденциальность</string>
+    <string name="home_topic_media">Медиа</string>
+    <string name="home_topic_productivity">Продуктивность</string>
+    <string name="home_topic_networking">Сеть</string>
+    <string name="home_topic_dev_tools">Инструменты разработчика</string>
+
     <string name="home_finding_repositories">Поиск репозиториев...</string>
     <string name="home_loading_more">Загрузка...</string>
     <string name="home_no_more_repositories">Больше репозиториев нет</string>

@@ -120,16 +120,15 @@ class InstallationManagerImpl(
         }
 
     override suspend fun updateInstalledAppVersion(params: UpdateInstalledAppParams) {
-        val packageName = params.apkInfo.packageName
         installedAppsRepository.updateAppVersion(
-            packageName = packageName,
+            packageName = params.apkInfo.packageName,
             newTag = params.releaseTag,
             newAssetName = params.assetName,
             newAssetUrl = params.assetUrl,
             newVersionName = params.apkInfo.versionName,
             newVersionCode = params.apkInfo.versionCode,
             signingFingerprint = params.apkInfo.signingFingerprint,
+            isPendingInstall = params.isPendingInstall,
         )
-        installedAppsRepository.updatePendingStatus(packageName, params.isPendingInstall)
     }
 }

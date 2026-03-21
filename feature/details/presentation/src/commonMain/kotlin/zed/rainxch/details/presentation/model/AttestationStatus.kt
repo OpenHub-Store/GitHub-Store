@@ -5,4 +5,5 @@ enum class AttestationStatus {
     CHECKING,
     VERIFIED,
     UNVERIFIED,
+    UNABLE_TO_VERIFY,
 }
