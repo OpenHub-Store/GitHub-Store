@@ -3,6 +3,7 @@ package zed.rainxch.home.presentation
 import zed.rainxch.core.domain.model.DiscoveryPlatform
 import zed.rainxch.core.presentation.model.GithubRepoSummaryUi
 import zed.rainxch.home.domain.model.HomeCategory
+import zed.rainxch.home.domain.model.TopicCategory
 
 sealed interface HomeAction {
     data object Refresh : HomeAction
@@ -25,6 +26,10 @@ sealed interface HomeAction {
 
     data class SwitchCategory(
         val category: HomeCategory,
+    ) : HomeAction
+
+    data class SwitchTopic(
+        val topic: TopicCategory?,
     ) : HomeAction
 
     data class SwitchFilterPlatform(

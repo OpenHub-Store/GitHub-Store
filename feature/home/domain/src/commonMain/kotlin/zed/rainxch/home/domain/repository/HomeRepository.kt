@@ -19,4 +19,10 @@ interface HomeRepository {
         platform: DiscoveryPlatform,
         page: Int,
     ): Flow<PaginatedDiscoveryRepositories>
+
+    fun searchByTopic(
+        searchKeywords: String,
+        platform: DiscoveryPlatform,
+        page: Int,
+    ): Flow<PaginatedDiscoveryRepositories>
 }

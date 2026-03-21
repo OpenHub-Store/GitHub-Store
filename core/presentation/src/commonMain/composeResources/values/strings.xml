@@ -270,6 +270,12 @@
     <string name="home_category_hot_release">Hot release</string>
     <string name="home_category_most_popular">Most popular</string>
 
+    <string name="home_topic_privacy">Privacy</string>
+    <string name="home_topic_media">Media</string>
+    <string name="home_topic_productivity">Productivity</string>
+    <string name="home_topic_networking">Network</string>
+    <string name="home_topic_dev_tools">Dev Tools</string>
+
     <string name="home_finding_repositories">Finding repositories...</string>
     <string name="home_loading_more">Loading more...</string>
     <string name="home_no_more_repositories">No more repositories</string>

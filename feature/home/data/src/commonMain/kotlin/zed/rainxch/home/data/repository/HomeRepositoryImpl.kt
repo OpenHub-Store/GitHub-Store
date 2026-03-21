@@ -269,6 +269,39 @@ class HomeRepositoryImpl(
             )
         }.flowOn(Dispatchers.IO)
 
+    override fun searchByTopic(
+        searchKeywords: String,
+        platform: DiscoveryPlatform,
+        page: Int,
+    ): Flow<PaginatedDiscoveryRepositories> =
+        flow {
+            val cacheCategory = "topic_${searchKeywords.hashCode()}"
+            val localCached =
+                cacheManager.get<PaginatedDiscoveryRepositories>(
+                    cacheKey(
+                        category = cacheCategory,
+                        requestedPlatform = platform,
+                        page = page,
+                    ),
+                )
+            if (localCached != null && localCached.repos.isNotEmpty()) {
+                logger.debug("Using cached topic repos: ${localCached.repos.size}")
+                emit(localCached)
+                return@flow
+            }
+
+            emitAll(
+                searchReposWithInstallersFlow(
+                    platform = platform,
+                    baseQuery = "$searchKeywords in:name,description,topics stars:>10 archived:false",
+                    sort = "stars",
+                    order = "desc",
+                    startPage = page,
+                    category = cacheCategory,
+                ),
+            )
+        }.flowOn(Dispatchers.IO)
+
     private fun searchReposWithInstallersFlow(
         platform: DiscoveryPlatform,
         baseQuery: String,

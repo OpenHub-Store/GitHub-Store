@@ -1,8 +1,18 @@
 package zed.rainxch.home.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +30,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,6 +39,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,11 +51,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,8 +89,11 @@ import zed.rainxch.core.presentation.utils.toIcons
 import zed.rainxch.core.presentation.utils.toLabel
 import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.home.domain.model.HomeCategory
+import zed.rainxch.home.domain.model.TopicCategory
 import zed.rainxch.home.presentation.components.LiquidGlassCategoryChips
 import zed.rainxch.home.presentation.locals.LocalHomeTopBarLiquid
+import zed.rainxch.home.presentation.utils.displayText
+import zed.rainxch.home.presentation.utils.icon
 
 @Composable
 fun HomeRoot(
@@ -174,24 +193,14 @@ fun HomeScreen(
         }
     }
 
+    val isHeaderVisible by listState.isScrollingUp()
+
     val homeTopbarLiquidState = rememberLiquidState()
 
     CompositionLocalProvider(
         LocalHomeTopBarLiquid provides homeTopbarLiquidState,
     ) {
         Scaffold(
-            topBar = {
-                TopAppBar(
-                    currentPlatform = state.currentPlatform,
-                    onChangePlatform = {
-                        onAction(HomeAction.SwitchFilterPlatform(it))
-                    },
-                    isPlatformPopupVisible = state.isPlatformPopupVisible,
-                    onTogglePlatformPopup = {
-                        onAction(HomeAction.OnTogglePlatformPopup)
-                    },
-                )
-            },
             snackbarHost = {
                 SnackbarHost(
                     hostState = snackbarHost,
@@ -216,7 +225,47 @@ fun HomeScreen(
                             },
                         ),
             ) {
-                FilterChips(state, onAction)
+                AnimatedVisibility(
+                    visible = isHeaderVisible,
+                    enter = slideInVertically(
+                        initialOffsetY = { -it },
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow,
+                        ),
+                    ) + fadeIn(tween(200)),
+                    exit = slideOutVertically(
+                        targetOffsetY = { -it },
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow,
+                        ),
+                    ) + fadeOut(tween(150)),
+                ) {
+                    Column {
+                        HomeTopAppBar(
+                            currentPlatform = state.currentPlatform,
+                            onChangePlatform = {
+                                onAction(HomeAction.SwitchFilterPlatform(it))
+                            },
+                            isPlatformPopupVisible = state.isPlatformPopupVisible,
+                            onTogglePlatformPopup = {
+                                onAction(HomeAction.OnTogglePlatformPopup)
+                            },
+                        )
+
+                        FilterChips(state, onAction)
+
+                        TopicChips(
+                            selectedTopic = state.selectedTopic,
+                            onTopicSelected = { topic ->
+                                onAction(HomeAction.SwitchTopic(topic))
+                            },
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
 
                 Box(Modifier.fillMaxSize()) {
                     LoadingState(state)
@@ -232,6 +281,81 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TopicChips(
+    selectedTopic: TopicCategory?,
+    onTopicSelected: (TopicCategory) -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        TopicCategory.entries.forEach { topic ->
+            val isSelected = selectedTopic == topic
+
+            val containerColor by animateColorAsState(
+                targetValue =
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHigh
+                    },
+                animationSpec = tween(250),
+                label = "topicChipContainer",
+            )
+
+            val labelColor by animateColorAsState(
+                targetValue =
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                animationSpec = tween(250),
+                label = "topicChipLabel",
+            )
+
+            FilterChip(
+                selected = isSelected,
+                onClick = { onTopicSelected(topic) },
+                label = {
+                    Text(
+                        text = topic.displayText(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = topic.icon(),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = containerColor,
+                    labelColor = labelColor,
+                    iconColor = labelColor,
+                    selectedContainerColor = containerColor,
+                    selectedLabelColor = labelColor,
+                    selectedLeadingIconColor = labelColor,
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    borderColor = Color.Transparent,
+                    selectedBorderColor = Color.Transparent,
+                    enabled = true,
+                    selected = isSelected,
+                ),
+                shape = RoundedCornerShape(12.dp),
+            )
         }
     }
 }
@@ -294,7 +418,7 @@ private fun MainState(
                 )
             }
 
-            if (state.isLoadingMore) {
+            if (state.isLoadingMore || state.isLoadingTopicSupplement) {
                 item(key = "loading_indicator") {
                     Box(
                         modifier =
@@ -323,7 +447,7 @@ private fun MainState(
                 }
             }
 
-            if (!state.hasMorePages && !state.isLoadingMore) {
+            if (!state.hasMorePages && !state.isLoadingMore && !state.isLoadingTopicSupplement) {
                 item(key = "end_message") {
                     Text(
                         text = stringResource(Res.string.home_no_more_repositories),
@@ -414,7 +538,7 @@ private fun FilterChips(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun TopAppBar(
+private fun HomeTopAppBar(
     currentPlatform: DiscoveryPlatform,
     onChangePlatform: (DiscoveryPlatform) -> Unit,
     isPlatformPopupVisible: Boolean,
@@ -534,6 +658,31 @@ private fun PlatformsPopup(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Tracks scroll direction — returns true when the user is scrolling up
+ * (or is at the very top of the list), false when scrolling down.
+ */
+@Composable
+private fun LazyStaggeredGridState.isScrollingUp(): State<Boolean> {
+    var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
+    var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
+
+    return remember(this) {
+        derivedStateOf {
+            if (firstVisibleItemIndex == 0 && firstVisibleItemScrollOffset == 0) {
+                true // at the very top — always show header
+            } else if (previousIndex != firstVisibleItemIndex) {
+                previousIndex > firstVisibleItemIndex
+            } else {
+                previousScrollOffset >= firstVisibleItemScrollOffset
+            }.also {
+                previousIndex = firstVisibleItemIndex
+                previousScrollOffset = firstVisibleItemScrollOffset
             }
         }
     }
