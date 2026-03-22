@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
+    alias(libs.plugins.flatpak.gradle.generator)
 }
 
 group = "zed.rainxch.convention.buildlogic"
@@ -36,6 +37,12 @@ tasks {
         enableStricterValidation = true
         failOnWarning = true
     }
+}
+
+tasks.flatpakGradleGenerator {
+    outputFile = file("../../packaging/flatpak/flatpak-sources-convention.json")
+    downloadDirectory.set("./offline-repository")
+    excludeConfigurations.set(listOf("testCompileClasspath", "testRuntimeClasspath"))
 }
 
 gradlePlugin {

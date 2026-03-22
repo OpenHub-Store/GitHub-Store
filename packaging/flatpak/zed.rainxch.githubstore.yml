@@ -9,16 +9,14 @@ command: githubstore
 finish-args:
   # Network access for GitHub API calls and downloading releases
   - --share=network
-  # X11 display support
-  - --share=ipc
+  # Display support — X11 required (Compose/Skiko doesn't support native Wayland yet)
+  # On Wayland desktops this uses XWayland, available on all major distros
   - --socket=x11
+  - --share=ipc
   # GPU acceleration for Compose rendering
   - --device=dri
   # Download directory access for APK/release downloads
   - --filesystem=xdg-download:rw
-  # Wayland support (fallback to X11 via XWayland)
-  - --socket=fallback-x11
-  - --socket=wayland
 
 modules:
   # Module 1: Bundle JetBrains Runtime (JBR) 21 for optimal Compose Desktop rendering
@@ -51,14 +49,62 @@ modules:
         JAVA_HOME: /usr/lib/sdk/openjdk21
         GRADLE_USER_HOME: /run/build/githubstore/.gradle
     build-commands:
-      # Use local Gradle distribution (no network in sandbox)
+      # Use local Gradle distribution (no network needed)
       - sed -i 's|distributionUrl=.*|distributionUrl=gradle-bin.zip|' gradle/wrapper/gradle-wrapper.properties
+      # Rewrite settings.gradle.kts files to use offline Maven repository
+      - |
+        python3 -c "
+        # 1. Rewrite root settings.gradle.kts
+        lines = open('settings.gradle.kts').readlines()
+        includes = [l for l in lines if l.strip().startswith('include(')]
+        with open('settings.gradle.kts', 'w') as f:
+            f.write('rootProject.name = \"GithubStore\"\n')
+            f.write('enableFeaturePreview(\"TYPESAFE_PROJECT_ACCESSORS\")\n\n')
+            f.write('pluginManagement {\n')
+            f.write('    includeBuild(\"build-logic\")\n')
+            f.write('    repositories {\n')
+            f.write('        maven { url = uri(\"/run/build/githubstore/offline-repository\") }\n')
+            f.write('    }\n')
+            f.write('}\n\n')
+            f.write('dependencyResolutionManagement {\n')
+            f.write('    repositories {\n')
+            f.write('        maven { url = uri(\"/run/build/githubstore/offline-repository\") }\n')
+            f.write('    }\n')
+            f.write('}\n\n')
+            # foojay-resolver-convention plugin removed — not needed in Flatpak
+            # (JAVA_HOME is set explicitly, no toolchain auto-download)
+            for inc in includes:
+                f.write(inc)
+        print('Rewrote root settings.gradle.kts for offline build')
+
+        # 2. Rewrite build-logic/settings.gradle.kts
+        with open('build-logic/settings.gradle.kts', 'w') as f:
+            f.write('@file:Suppress(\"UnstableApiUsage\")\n\n')
+            f.write('rootProject.name = \"build-logic\"\n\n')
+            f.write('pluginManagement {\n')
+            f.write('    repositories {\n')
+            f.write('        maven { url = uri(\"/run/build/githubstore/offline-repository\") }\n')
+            f.write('    }\n')
+            f.write('}\n\n')
+            f.write('dependencyResolutionManagement {\n')
+            f.write('    repositories {\n')
+            f.write('        maven { url = uri(\"/run/build/githubstore/offline-repository\") }\n')
+            f.write('    }\n\n')
+            f.write('    versionCatalogs {\n')
+            f.write('        create(\"libs\") {\n')
+            f.write('            from(files(\"../gradle/libs.versions.toml\"))\n')
+            f.write('        }\n')
+            f.write('    }\n')
+            f.write('}\n\n')
+            f.write('include(\":convention\")\n')
+        print('Rewrote build-logic/settings.gradle.kts for offline build')
+        "
       # Disable Android targets (no Android SDK in Flatpak sandbox)
       - bash packaging/flatpak/disable-android-for-flatpak.sh
-      # Build uber JAR
-      - ./gradlew :composeApp:packageReleaseUberJarForCurrentOS
+      # Build uber JAR — all deps resolved from offline-repository (local file:// Maven repo,
+      # no network needed even without --offline flag since sandbox has no network access)
+      - ./gradlew :composeApp:packageUberJarForCurrentOS
           --no-daemon
-          --offline
           --no-configuration-cache
           -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=2g"
           -Dorg.gradle.parallel=false
@@ -77,16 +123,17 @@ modules:
       - install -Dm644 composeApp/src/jvmMain/resources/logo/app_icon.png
           /app/share/icons/hicolor/512x512/apps/zed.rainxch.githubstore.png
     sources:
-      - type: git
-        url: https://github.com/OpenHub-Store/GitHub-Store
-        tag: v1.6.2
-        # commit: REPLACE_WITH_COMMIT_HASH
-      # Local Gradle distribution (pre-downloaded, no network in sandbox)
+      # NOTE: For Flathub submission, switch this to:
+      #   type: git
+      #   url: https://github.com/OpenHub-Store/GitHub-Store.git
+      #   tag: <release-tag>
+      - type: dir
+        path: ../../
+      # Gradle distribution (referenced by gradle-wrapper.properties after sed patch)
       - type: file
         url: https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
         sha256: bd71102213493060956ec229d946beee57158dbd89d0e62b91bca0fa2c5f3531
         dest: gradle/wrapper
         dest-filename: gradle-bin.zip
-      # Pre-downloaded Maven/Gradle dependencies
-      # Generate with: ./gradlew flatpakGradleGenerator
+      # Pre-downloaded Gradle/Maven dependencies for offline build
       - flatpak-sources.json

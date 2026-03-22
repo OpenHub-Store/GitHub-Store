@@ -32,6 +32,19 @@ class DesktopInstaller(
         determineSystemArchitecture()
     }
 
+    /**
+     * Detects whether the app is running inside a Flatpak sandbox.
+     * Checks for the `/.flatpak-info` file which is always present inside Flatpak containers.
+     */
+    private val isRunningInFlatpak: Boolean by lazy {
+        try {
+            File("/.flatpak-info").exists() ||
+                    System.getenv("FLATPAK_ID") != null
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     override fun getApkInfoExtractor(): InstallerInfoExtractor = installerInfoExtractor
 
     override fun detectSystemArchitecture(): SystemArchitecture = systemArchitecture
@@ -54,13 +67,11 @@ class DesktopInstaller(
     }
 
     override fun openApp(packageName: String): Boolean {
-        // Desktop apps are launched differently per platform
         Logger.d { "Open app not supported on desktop for: $packageName" }
         return false
     }
 
     override fun openWithExternalInstaller(filePath: String) {
-        // Not applicable on desktop
     }
 
     override fun isAssetInstallable(assetName: String): Boolean {
@@ -108,10 +119,18 @@ class DesktopInstaller(
                 }
 
                 Platform.LINUX -> {
-                    when (linuxPackageType) {
-                        LinuxPackageType.DEB -> listOf(".appimage", ".deb", ".rpm")
-                        LinuxPackageType.RPM -> listOf(".appimage", ".rpm", ".deb")
-                        LinuxPackageType.UNIVERSAL -> listOf(".appimage", ".deb", ".rpm")
+                    if (isRunningInFlatpak) {
+                        when (linuxPackageType) {
+                            LinuxPackageType.DEB -> listOf(".deb", ".appimage", ".rpm")
+                            LinuxPackageType.RPM -> listOf(".rpm", ".appimage", ".deb")
+                            LinuxPackageType.UNIVERSAL -> listOf(".appimage", ".deb", ".rpm")
+                        }
+                    } else {
+                        when (linuxPackageType) {
+                            LinuxPackageType.DEB -> listOf(".appimage", ".deb", ".rpm")
+                            LinuxPackageType.RPM -> listOf(".appimage", ".rpm", ".deb")
+                            LinuxPackageType.UNIVERSAL -> listOf(".appimage", ".deb", ".rpm")
+                        }
                     }
                 }
             }
@@ -174,6 +193,15 @@ class DesktopInstaller(
     private fun determineLinuxPackageType(): LinuxPackageType {
         if (platform != Platform.LINUX) return LinuxPackageType.UNIVERSAL
 
+        if (isRunningInFlatpak) {
+            return try {
+                detectHostLinuxPackageType()
+            } catch (e: Exception) {
+                Logger.w { "Failed to detect host Linux package type from Flatpak: ${e.message}" }
+                LinuxPackageType.UNIVERSAL
+            }
+        }
+
         return try {
             val osRelease = tryReadOsRelease()
             if (osRelease != null) {
@@ -231,6 +259,43 @@ class DesktopInstaller(
             Logger.w { "Failed to detect Linux package type: ${e.message}" }
             LinuxPackageType.UNIVERSAL
         }
+    }
+
+    /**
+     * When running inside a Flatpak sandbox, /etc/os-release belongs to the Flatpak runtime
+     * (e.g. org.freedesktop.Platform), not the host OS. To detect the host distro we read
+     * /run/host/os-release, which Flatpak bind-mounts from the host.
+     */
+    private fun detectHostLinuxPackageType(): LinuxPackageType {
+        val hostOsRelease = File("/run/host/os-release")
+        if (!hostOsRelease.exists()) {
+            Logger.w { "Host os-release not available at /run/host/os-release" }
+            return LinuxPackageType.UNIVERSAL
+        }
+
+        val osRelease = parseOsRelease(hostOsRelease.readText())
+        val id = osRelease["ID"]?.lowercase() ?: ""
+        val idLike = osRelease["ID_LIKE"]?.lowercase() ?: ""
+
+        Logger.d { "Host distro detected from Flatpak: ID=$id, ID_LIKE=$idLike" }
+
+        if (id in listOf("debian", "ubuntu", "linuxmint", "pop", "elementary") ||
+            idLike.contains("debian") || idLike.contains("ubuntu")
+        ) {
+            Logger.d { "Host is Debian-based: $id" }
+            return LinuxPackageType.DEB
+        }
+
+        if (id in listOf("fedora", "rhel", "centos", "rocky", "almalinux", "opensuse", "suse") ||
+            idLike.contains("fedora") || idLike.contains("rhel") ||
+            idLike.contains("suse") || idLike.contains("centos")
+        ) {
+            Logger.d { "Host is RPM-based: $id" }
+            return LinuxPackageType.RPM
+        }
+
+        Logger.d { "Could not classify host distro, defaulting to UNIVERSAL" }
+        return LinuxPackageType.UNIVERSAL
     }
 
     private fun tryReadOsRelease(): Map<String, String>? {
@@ -318,6 +383,11 @@ class DesktopInstaller(
         withContext(Dispatchers.IO) {
             val ext = extOrMime.lowercase().removePrefix(".")
 
+            if (isRunningInFlatpak) {
+                Logger.d { "Running in Flatpak — skipping permission checks for .$ext" }
+                return@withContext
+            }
+
             if (platform == Platform.LINUX && ext == "appimage") {
                 try {
                     val tempFile = File.createTempFile("appimage_perm_test", ".tmp")
@@ -326,7 +396,7 @@ class DesktopInstaller(
                         if (!canSetExecutable) {
                             throw IllegalStateException(
                                 "Unable to set executable permissions. AppImage installation requires " +
-                                    "the ability to make files executable.",
+                                        "the ability to make files executable.",
                             )
                         }
                     } finally {
@@ -347,7 +417,6 @@ class DesktopInstaller(
         }
 
     override fun uninstall(packageName: String) {
-        // Desktop doesn't have a unified uninstall mechanism
         Logger.d { "Uninstall not supported on desktop for: $packageName" }
     }
 
@@ -363,6 +432,11 @@ class DesktopInstaller(
 
             val ext = extOrMime.lowercase().removePrefix(".")
 
+            if (isRunningInFlatpak) {
+                installFromFlatpak(file, ext)
+                return@withContext InstallOutcome.DELEGATED_TO_SYSTEM
+            }
+
             when (platform) {
                 Platform.WINDOWS -> installWindows(file, ext)
                 Platform.MACOS -> installMacOS(file, ext)
@@ -371,7 +445,145 @@ class DesktopInstaller(
             }
 
             InstallOutcome.DELEGATED_TO_SYSTEM
+
         }
+
+    /**
+     * Flatpak-sandboxed installation flow.
+     *
+     * Since we can't execute system installers, we use xdg-open (which goes through
+     * the Flatpak portal to the host) to open the file with the host's default handler.
+     * This lets the host's software center / file manager handle the actual installation.
+     */
+    private fun installFromFlatpak(
+        file: File,
+        ext: String,
+    ) {
+        Logger.i { "Running in Flatpak sandbox — delegating installation to host system" }
+        Logger.i { "File: ${file.absolutePath} (.$ext)" }
+
+        when (ext) {
+            "deb", "rpm" -> {
+                Logger.d { "Opening .$ext package via xdg-open portal for host installation" }
+                try {
+                    val process = ProcessBuilder("xdg-open", file.absolutePath).start()
+                    val exitCode = process.waitFor()
+                    if (exitCode == 0) {
+                        Logger.i { "Package opened on host system for installation" }
+                        showFlatpakNotification(
+                            title = "Package Ready to Install",
+                            message = "The ${ext.uppercase()} package has been opened in your system's " +
+                                    "software installer. Follow the prompts to complete installation.",
+                        )
+                    } else {
+                        Logger.w { "xdg-open exited with code $exitCode" }
+                        showFlatpakNotification(
+                            title = "Installation",
+                            message = "Please open this file with your software center to install.",
+                        )
+                        openInFileManager(file)
+                    }
+                } catch (e: Exception) {
+                    Logger.w { "Failed to open file via xdg-open: ${e.message}" }
+                    showFlatpakNotification(
+                        title = "Download Complete",
+                        message = "Please install manually from your file manager.",
+                    )
+                    openInFileManager(file)
+                }
+            }
+
+            "appimage" -> {
+                Logger.d { "AppImage downloaded in Flatpak — preparing for host launch" }
+
+                try {
+                    file.setExecutable(true, false)
+                    Logger.d { "Set executable permission on AppImage" }
+                } catch (e: Exception) {
+                    Logger.w { "Could not set executable permission: ${e.message}" }
+                }
+
+                showFlatpakNotification(
+                    title = "AppImage Downloaded",
+                    message = "Right-click → Properties → mark as executable, then double-click to run.",
+                )
+
+                openInFileManager(file)
+            }
+
+            else -> {
+                showFlatpakNotification(
+                    title = "Download Complete",
+                    message = "File saved to your Downloads folder.",
+                )
+                openInFileManager(file)
+            }
+        }
+    }
+
+    /**
+     * Show a notification from within the Flatpak sandbox.
+     * Uses notify-send which goes through the desktop notifications portal.
+     * Falls back to logging if notifications aren't available.
+     */
+    private fun showFlatpakNotification(
+        title: String,
+        message: String,
+    ) {
+        try {
+            ProcessBuilder(
+                "notify-send",
+                "--app-name=GitHub Store",
+                title,
+                message,
+                "-u",
+                "normal",
+                "-t",
+                "15000",
+            ).start()
+        } catch (e: Exception) {
+            Logger.w { "Could not show Flatpak notification: ${e.message}" }
+            Logger.i { "[$title] $message" }
+        }
+    }
+
+    /**
+     * Opens the system file manager with the given file highlighted/selected.
+     *
+     * Tries D-Bus FileManager1.ShowItems first (works on GNOME, KDE, etc. and
+     * goes through the Flatpak portal), then falls back to xdg-open on the
+     * parent directory.
+     */
+    private fun openInFileManager(file: File) {
+        try {
+            val fileUri = "file://${file.absolutePath}"
+            val process = ProcessBuilder(
+                "gdbus", "call",
+                "--session",
+                "--dest", "org.freedesktop.FileManager1",
+                "--object-path", "/org/freedesktop/FileManager1",
+                "--method", "org.freedesktop.FileManager1.ShowItems",
+                "['$fileUri']", "",
+            ).start()
+            val exitCode = process.waitFor()
+
+            if (exitCode == 0) {
+                Logger.d { "Opened file manager via D-Bus ShowItems: ${file.absolutePath}" }
+                return
+            }
+            Logger.w { "D-Bus ShowItems failed with exit code $exitCode" }
+        } catch (e: Exception) {
+            Logger.w { "D-Bus ShowItems not available: ${e.message}" }
+        }
+
+        try {
+            val parentDir = file.parentFile ?: return
+            ProcessBuilder("xdg-open", parentDir.absolutePath).start()
+            Logger.d { "Opened parent directory: ${parentDir.absolutePath}" }
+        } catch (e: Exception) {
+            Logger.w { "Could not open file manager: ${e.message}" }
+        }
+    }
 
     private fun installWindows(
         file: File,
@@ -507,7 +719,12 @@ class DesktopInstaller(
         val installMethods =
             listOf(
                 listOf("pkexec", "apt", "install", "-y", file.absolutePath),
-                listOf("pkexec", "sh", "-c", "dpkg -i '${file.absolutePath}' || apt-get install -f -y"),
+                listOf(
+                    "pkexec",
+                    "sh",
+                    "-c",
+                    "dpkg -i '${file.absolutePath}' || apt-get install -f -y"
+                ),
                 listOf("gdebi-gtk", file.absolutePath),
                 null,
             )
@@ -899,7 +1116,7 @@ class DesktopInstaller(
             e.printStackTrace()
             throw IllegalStateException(
                 "Failed to install AppImage: ${e.message}. " +
-                    "Please ensure you have write permissions to ~/Applications folder.",
+                        "Please ensure you have write permissions to ~/Applications folder.",
                 e,
             )
         } catch (e: SecurityException) {

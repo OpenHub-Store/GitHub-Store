@@ -1,0 +1,5 @@
+# Flatpak packaging files must use Unix LF line endings
+# (flatpak-builder on Linux can't parse JSON with CRLF)
+packaging/flatpak/*.json text eol=lf
+packaging/flatpak/*.yml text eol=lf
+packaging/flatpak/*.sh text eol=lf

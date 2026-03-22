@@ -1,5 +1,5 @@
 plugins {
-    id("io.github.jwharm.flatpak-gradle-generator") version "1.7.0"
+    alias(libs.plugins.flatpak.gradle.generator)
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.compose.hot.reload) apply false
@@ -12,8 +12,10 @@ plugins {
     alias(libs.plugins.room) apply false
 }
 
-tasks.named<io.github.jwharm.flatpakgradlegenerator.FlatpakGradleGeneratorTask>("flatpakGradleGenerator") {
-    outputFile.set(layout.buildDirectory.file("flatpak-sources.json"))
+tasks.flatpakGradleGenerator {
+    outputFile = file("packaging/flatpak/flatpak-sources.json")
+    downloadDirectory.set("./offline-repository")
+    excludeConfigurations.set(listOf("testCompileClasspath", "testRuntimeClasspath"))
 }
 
 subprojects {

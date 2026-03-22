@@ -1073,6 +1073,7 @@ class DetailsViewModel(
                 installOutcome = installOutcome,
             )
         } else if (platform != Platform.ANDROID) {
+            cachedDownloadAssetName = null
             viewModelScope.launch {
                 _events.send(DetailsEvent.OnMessage(getString(Res.string.installer_saved_downloads)))
             }

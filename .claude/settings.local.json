@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"\\\\.FLATPAK\\\\|Flatpak\\\\|flatpak\" D:/development/Github-Store --include=*.kt)"
+    ]
+  }
+}

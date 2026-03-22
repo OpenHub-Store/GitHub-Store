@@ -48,6 +48,7 @@ work = "2.11.1"
 resources="1.10.1"
 
 ktlint-gradle = "12.1.1"
+flatpak-gradle-generator = "1.7.0"
 
 projectApplicationId = "zed.rainxch.githubstore"
 projectVersionName = "1.6.2"
@@ -190,6 +191,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
+flatpak-gradle-generator = { id = "io.github.jwharm.flatpak-gradle-generator", version.ref = "flatpak-gradle-generator" }
 
 [bundles]
 koin-common = [

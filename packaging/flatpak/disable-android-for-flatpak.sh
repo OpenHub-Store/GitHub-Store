@@ -9,22 +9,61 @@ set -euo pipefail
 
 echo "=== Disabling Android targets for Flatpak build ==="
 
+CONVENTION_DIR="build-logic/convention/src/main/kotlin"
+
+# Note: Step 0 (offline repo) removed — using --share=network instead
+
 # ─────────────────────────────────────────────────────────────────────
 # 1. Root build.gradle.kts — comment out Android plugin declarations
 # ─────────────────────────────────────────────────────────────────────
-echo "[1/6] Patching root build.gradle.kts"
+echo "[0/7] Removing Android & non-essential dependencies from build-logic/convention/build.gradle.kts"
+sed -i \
+    -e '/compileOnly(libs.android.gradlePlugin)/d' \
+    -e '/compileOnly(libs.android.tools.common)/d' \
+    -e '/alias(libs.plugins.flatpak.gradle.generator)/d' \
+    -e '/flatpakGradleGenerator/,/^}/d' \
+    build-logic/convention/build.gradle.kts
+
+# Stub out Android utility files that reference Android SDK
+cat > "$CONVENTION_DIR/zed/rainxch/githubstore/convention/AndroidCompose.kt" << 'KOTLIN'
+package zed.rainxch.githubstore.convention
+
+import org.gradle.api.Project
+
+// Stubbed out for Flatpak build — no Android SDK available
+internal fun Project.configureAndroidCompose() {}
+KOTLIN
+
+cat > "$CONVENTION_DIR/zed/rainxch/githubstore/convention/KotlinAndroid.kt" << 'KOTLIN'
+package zed.rainxch.githubstore.convention
+
+import org.gradle.api.Project
+
+// Stubbed out for Flatpak build — no Android SDK available
+internal fun Project.configureKotlinAndroid(project: Project) {}
+KOTLIN
+
+echo "[1/7] Patching root build.gradle.kts"
 sed -i \
     -e 's|alias(libs.plugins.android.application)|// alias(libs.plugins.android.application)|' \
     -e 's|alias(libs.plugins.android.library)|// alias(libs.plugins.android.library)|' \
     -e 's|alias(libs.plugins.android.kotlin.multiplatform.library)|// alias(libs.plugins.android.kotlin.multiplatform.library)|' \
+    -e '/alias(libs.plugins.flatpak.gradle.generator)/d' \
+    -e '/flatpakGradleGenerator/,/^}/d' \
+    -e '/alias(libs.plugins.compose.hot.reload)/d' \
     build.gradle.kts
+
+# Also remove hot-reload from composeApp/build.gradle.kts
+sed -i \
+    -e '/alias(libs.plugins.compose.hot.reload)/d' \
+    composeApp/build.gradle.kts
 
 # ─────────────────────────────────────────────────────────────────────
 # 2. Convention plugins — replace Android plugin applies with no-ops
 # ─────────────────────────────────────────────────────────────────────
 CONVENTION_DIR="build-logic/convention/src/main/kotlin"
 
-echo "[2/6] Patching KmpLibraryConventionPlugin (remove Android library plugin + config)"
+echo "[2/7] Patching KmpLibraryConventionPlugin (remove Android library plugin + config)"
 cat > "$CONVENTION_DIR/KmpLibraryConventionPlugin.kt" << 'KOTLIN'
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -62,7 +101,7 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
 }
 KOTLIN
 
-echo "[3/6] Patching CmpApplicationConventionPlugin (remove Android application)"
+echo "[3/7] Patching CmpApplicationConventionPlugin (remove Android application)"
 cat > "$CONVENTION_DIR/CmpApplicationConventionPlugin.kt" << 'KOTLIN'
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -85,15 +124,18 @@ class CmpApplicationConventionPlugin : Plugin<Project> {
 }
 KOTLIN
 
-echo "[4/6] Patching CmpLibraryConventionPlugin & CmpFeatureConventionPlugin"
+echo "[4/7] Patching CmpLibraryConventionPlugin & CmpFeatureConventionPlugin"
 
-# CmpLibraryConventionPlugin — remove Android library dependency
+# CmpLibraryConventionPlugin — remove Android library dependency and debugImplementation
 sed -i \
     -e 's|apply("com.android.library")|// apply("com.android.library")|' \
+    -e '/debugImplementation/d' \
     "$CONVENTION_DIR/CmpLibraryConventionPlugin.kt" 2>/dev/null || true
 
 sed -i \
     -e 's|apply("com.android.library")|// apply("com.android.library")|' \
+    -e '/debugImplementation/d' \
+    -e '/androidMainImplementation/d' \
     "$CONVENTION_DIR/CmpFeatureConventionPlugin.kt" 2>/dev/null || true
 
 # Remove configureKotlinAndroid calls and Android extension blocks (only at call sites)
@@ -111,7 +153,7 @@ done
 # ─────────────────────────────────────────────────────────────────────
 # 3. KotlinMultiplatform.kt — skip Android configuration
 # ─────────────────────────────────────────────────────────────────────
-echo "[5/6] Patching KotlinMultiplatform.kt"
+echo "[5/7] Patching KotlinMultiplatform.kt"
 cat > "$CONVENTION_DIR/zed/rainxch/githubstore/convention/KotlinMultiplatform.kt" << 'KOTLIN'
 package zed.rainxch.githubstore.convention
 
@@ -137,7 +179,7 @@ KOTLIN
 # ─────────────────────────────────────────────────────────────────────
 # 4. Module build.gradle.kts files — remove android {} blocks
 # ─────────────────────────────────────────────────────────────────────
-echo "[6/6] Removing android {} blocks from module build.gradle.kts files"
+echo "[6/7] Removing android {} blocks from module build.gradle.kts files"
 
 # composeApp — remove android {} block and its contents
 python3 -c "
@@ -174,40 +216,54 @@ def remove_block(text, keyword):
     return ''.join(result)
 
 content = remove_block(content, 'android')
+
+# Remove androidMain.dependencies { ... } block
+content = remove_block(content, 'androidMain.dependencies')
+
 with open('composeApp/build.gradle.kts', 'w') as f:
     f.write(content)
 "
 
-# core/data — remove android {} block
-for gradle_file in \
-    core/data/build.gradle.kts \
-    core/domain/build.gradle.kts \
-    core/presentation/build.gradle.kts; do
-    if [ -f "$gradle_file" ]; then
-        python3 -c "
+# All modules — remove android {} and androidMain { ... } blocks
+find . -name 'build.gradle.kts' -not -path './build-logic/*' -not -path './.flatpak-builder/*' | while read gradle_file; do
+    # Skip if file has no android references
+    grep -qE 'android\s*\{|androidMain\s*\{|androidMain\.dependencies\s*\{' "$gradle_file" || continue
+    python3 -c "
 import sys
+
 with open('$gradle_file', 'r') as f:
-    lines = f.readlines()
-result = []
-skip_depth = 0
-i = 0
-while i < len(lines):
-    stripped = lines[i].strip()
-    if stripped.startswith('android {') or stripped == 'android{':
-        skip_depth = 1
+    content = f.read()
+
+def remove_block(text, keyword):
+    result = []
+    i = 0
+    while i < len(text):
+        line_start = text.rfind('\n', 0, i) + 1
+        prefix = text[line_start:i].strip()
+        if text[i:].startswith(keyword + ' {') or text[i:].startswith(keyword + '{'):
+            if prefix == '' or prefix.endswith('\n'):
+                brace_start = text.index('{', i)
+                depth = 1
+                j = brace_start + 1
+                while j < len(text) and depth > 0:
+                    if text[j] == '{': depth += 1
+                    elif text[j] == '}': depth -= 1
+                    j += 1
+                if j < len(text) and text[j] == '\n':
+                    j += 1
+                i = j
+                continue
+        result.append(text[i])
         i += 1
-        while i < len(lines) and skip_depth > 0:
-            for ch in lines[i]:
-                if ch == '{': skip_depth += 1
-                elif ch == '}': skip_depth -= 1
-            i += 1
-        continue
-    result.append(lines[i])
-    i += 1
+    return ''.join(result)
+
+content = remove_block(content, 'android')
+content = remove_block(content, 'androidMain.dependencies')
+content = remove_block(content, 'androidMain')
+
 with open('$gradle_file', 'w') as f:
-    f.writelines(result)
+    f.write(content)
 "
-    fi
 done
 
 # Remove AndroidApplicationComposeConventionPlugin registration attempt
@@ -230,6 +286,37 @@ import org.gradle.api.Project
 class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         // No-op: Android disabled for Flatpak build
+    }
+}
+KOTLIN
+
+# RoomConventionPlugin — remove kspAndroid dependency (no Android target)
+cat > "$CONVENTION_DIR/RoomConventionPlugin.kt" << 'KOTLIN'
+import androidx.room.gradle.RoomExtension
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.dependencies
+import zed.rainxch.githubstore.convention.libs
+
+class RoomConventionPlugin : Plugin<Project> {
+    override fun apply(target: Project) {
+        with(target) {
+            with(pluginManager) {
+                apply("com.google.devtools.ksp")
+                apply("androidx.room")
+            }
+
+            extensions.configure<RoomExtension> {
+                schemaDirectory("$projectDir/schemas")
+            }
+
+            dependencies {
+                "commonMainApi"(libs.findLibrary("androidx-room-runtime").get())
+                "commonMainApi"(libs.findLibrary("sqlite-bundled").get())
+                "kspJvm"(libs.findLibrary("androidx-room-compiler").get())
+            }
+        }
     }
 }
 KOTLIN
