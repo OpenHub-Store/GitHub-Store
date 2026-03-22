@@ -48,17 +48,34 @@ modules:
       env:
         JAVA_HOME: /usr/lib/sdk/openjdk21
         GRADLE_USER_HOME: /run/build/githubstore/.gradle
-      build-args:
-        - --share=network
     build-commands:
-      # Use local Gradle distribution (no network in sandbox)
+      # Use local Gradle distribution (no network needed)
       - sed -i 's|distributionUrl=.*|distributionUrl=gradle-bin.zip|' gradle/wrapper/gradle-wrapper.properties
+      # Configure Gradle to use the offline Maven repository (pre-downloaded dependencies)
+      - |
+        cat >> settings.gradle.kts << 'SETTINGS_EOF'
+        pluginManagement {
+            repositories.clear()
+            repositories {
+                maven { url = uri("/run/build/githubstore/offline-repository") }
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositories.clear()
+            repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+            repositories {
+                maven { url = uri("/run/build/githubstore/offline-repository") }
+            }
+        }
+        SETTINGS_EOF
       # Disable Android targets (no Android SDK in Flatpak sandbox)
       - bash packaging/flatpak/disable-android-for-flatpak.sh
-      # Build uber JAR (using non-release to avoid ProGuard duplicate jar conflicts)
+      # Build uber JAR (fully offline — all deps from offline-repository)
       - ./gradlew :composeApp:packageUberJarForCurrentOS
           --no-daemon
           --no-configuration-cache
+          --offline
           -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=2g"
           -Dorg.gradle.parallel=false
       # Install the JAR
@@ -76,12 +93,14 @@ modules:
       - install -Dm644 composeApp/src/jvmMain/resources/logo/app_icon.png
           /app/share/icons/hicolor/512x512/apps/zed.rainxch.githubstore.png
     sources:
-      # For development: use local directory (switch to type: git for releases)
-      - type: dir
-        path: ../../
+      - type: git
+        url: https://github.com/OpenHub-Store/GitHub-Store.git
+        tag: 1.6.2
       # Gradle distribution (referenced by gradle-wrapper.properties after sed patch)
       - type: file
         url: https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
         sha256: bd71102213493060956ec229d946beee57158dbd89d0e62b91bca0fa2c5f3531
         dest: gradle/wrapper
         dest-filename: gradle-bin.zip
+      # Pre-downloaded Gradle/Maven dependencies for offline build
+      - flatpak-sources.json

@@ -54,6 +54,11 @@
     <name>rainxchzed</name>
   </developer>
 
+  <branding>
+    <color type="primary" scheme_preference="light">#d4e9fc</color>
+    <color type="primary" scheme_preference="dark">#1a3a5c</color>
+  </branding>
+
   <content_rating type="oars-1.1"/>
 
   <releases>
