@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import zed.rainxch.core.domain.model.ProxyConfig
 
 object ProxyManager {
-    private val _proxyConfig = MutableStateFlow<ProxyConfig>(ProxyConfig.None)
+    private val _proxyConfig = MutableStateFlow<ProxyConfig>(ProxyConfig.System)
     val currentProxyConfig: StateFlow<ProxyConfig> = _proxyConfig.asStateFlow()
 
     fun setNoProxy() {

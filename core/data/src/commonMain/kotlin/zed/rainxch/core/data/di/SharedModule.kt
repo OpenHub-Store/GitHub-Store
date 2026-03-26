@@ -132,7 +132,7 @@ val networkModule =
                         withTimeout(1_500L) {
                             get<ProxyRepository>().getProxyConfig().first()
                         }
-                    }.getOrDefault(ProxyConfig.None)
+                    }.getOrDefault(ProxyConfig.System)
                 }
 
             when (config) {

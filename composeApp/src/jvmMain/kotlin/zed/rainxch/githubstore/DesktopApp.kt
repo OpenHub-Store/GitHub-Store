@@ -24,6 +24,12 @@ import java.awt.Desktop
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
+    // Reduce JVM DNS cache TTL so network changes (VPN on/off) are picked up quickly.
+    // Default JVM caches positive lookups for 30s and negative lookups forever,
+    // which breaks connectivity when a VPN changes DNS/routing mid-session.
+    java.security.Security.setProperty("networkaddress.cache.ttl", "30")
+    java.security.Security.setProperty("networkaddress.cache.negative.ttl", "5")
+
     initKoin()
 
     val deepLinkArg = args.firstOrNull()

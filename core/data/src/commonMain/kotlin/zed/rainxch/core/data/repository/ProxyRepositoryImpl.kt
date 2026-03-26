@@ -58,7 +58,7 @@ class ProxyRepositoryImpl(
                 }
 
                 else -> {
-                    ProxyConfig.None
+                    ProxyConfig.System
                 }
             }
         }

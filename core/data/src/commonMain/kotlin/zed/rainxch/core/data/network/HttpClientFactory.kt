@@ -29,7 +29,7 @@ fun createGitHubHttpClient(
     rateLimitRepository: RateLimitRepository,
     authenticationState: AuthenticationState? = null,
     scope: CoroutineScope? = null,
-    proxyConfig: ProxyConfig = ProxyConfig.None,
+    proxyConfig: ProxyConfig = ProxyConfig.System,
 ): HttpClient {
     val json =
         Json {
