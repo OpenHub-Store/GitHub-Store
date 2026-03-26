@@ -394,6 +394,7 @@
     <string name="bottom_nav_search_title">Search</string>
     <string name="bottom_nav_apps_title">Apps</string>
     <string name="bottom_nav_profile_title">Profile</string>
+    <string name="bottom_nav_profile_tweaks">Tweaks</string>
 
     <string name="forked_repository">Fork</string>
 
