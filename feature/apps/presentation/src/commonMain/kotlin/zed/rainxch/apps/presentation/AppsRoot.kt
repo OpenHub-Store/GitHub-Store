@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -288,7 +289,10 @@ fun AppsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onAction(AppsAction.OnAddByLinkClick) },
-                modifier = Modifier.padding(bottom = bottomNavHeight),
+                modifier =
+                    Modifier
+                        .navigationBarsPadding()
+                        .padding(bottom = bottomNavHeight),
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
