@@ -127,7 +127,7 @@ The final `xattr` command is required until the app is signed and notarized; wit
 ---
 
 <div align="center">
-  
+
 ## Features
 
 </div>
@@ -221,7 +221,7 @@ The final `xattr` command is required until the app is signed and notarized; wit
 <div align="center">
 
   ## FAQ
-  
+
 </div>
 
 <details>
@@ -290,7 +290,7 @@ automatically—no manual submission required.
 ---
 
 <div align="center">
-  
+
 ## 🏆 Featured In
 
 </div>
@@ -308,10 +308,10 @@ automatically—no manual submission required.
 ---
 
 <div align="center">
-  
+
 ## 📺 Meet the Developer
 
-</div> 
+</div>
 
 I made a video introducing myself and sharing what's next for Komi Store.
 
@@ -324,7 +324,7 @@ Help shape the future of Komi Store — take this 2-minute survey:
 ---
 
 <div align="center">
-  
+
 ## 💬 Discord
 
 </div>
@@ -340,7 +340,7 @@ You can submit any feedback in our [discord server](https://discord.github-store
 ---
 
 <div align="center">
-  
+
 ## 🔐 Komi Store APK Signing Certificate
 
 </div>
@@ -353,7 +353,7 @@ SHA-256:
 ---
 
 <div align="center">
-  
+
 ## 🔑 GitHub OAuth Configuration
 
 </div>
@@ -409,7 +409,7 @@ Sync the project and run the app. You should now be able to sign in with GitHub.
 ---
 
 <div align="center">
-  
+
 ## 📔 Wiki & Resources
 
 </div>
@@ -423,7 +423,7 @@ Check out Komi Store [Wiki](https://github.com/kurikomi-labs/komi-store/wiki) fo
 ---
 
 <div align="center">
-  
+
 ## ❤️ Support This Project
 
 </div>
@@ -438,7 +438,7 @@ Komi Store is 100% free. No ads. No tracking.
 ---
 
 <div align="center">
-  
+
 ## 💼 Business Inquiries
 
 </div>
@@ -453,7 +453,7 @@ If you're interested in working together, reach out:
 ---
 
 <div align="center">
-  
+
 ## 📋 Legal Notice
 
 </div>
@@ -465,7 +465,7 @@ GitHub® is a registered trademark of GitHub, Inc.
 ---
 
 <div align="center">
-  
+
 ## ⚠️ Disclaimer
 
 </div>
@@ -482,7 +482,7 @@ fit for any particular purpose.
 ---
 
 <div align="center">
-  
+
 ## 💫 Star History
 
 </div>
