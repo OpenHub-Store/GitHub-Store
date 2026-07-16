@@ -17,7 +17,6 @@ kotlin {
 
                 implementation(libs.touchlab.kermit)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.kotlinx.datetime)
 
                 implementation(libs.coil3.compose)
                 implementation(libs.coil3.svg)

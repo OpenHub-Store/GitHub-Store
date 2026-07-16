@@ -57,7 +57,6 @@ import zed.rainxch.tweaks.presentation.connection.parseProxyUrl
 import zed.rainxch.tweaks.presentation.utils.TweaksDeepLinkBus
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import zed.rainxch.core.domain.model.appearance.ContentWidth
@@ -1563,10 +1562,9 @@ class TweaksViewModel(
     }
 
     private suspend fun collectSettingsForExport(): SettingsBackup {
-        val now = Clock.System.now().toEpochMilliseconds()
         return SettingsBackup(
             version = 1,
-            exportedAt = now,
+            exportedAt = 0L,
             themeColor = tweaksRepository.getThemeColor().first().name,
             isDarkTheme = tweaksRepository.getIsDarkTheme().first(),
             amoledTheme = tweaksRepository.getAmoledTheme().first(),
