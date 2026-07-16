@@ -34,7 +34,9 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Decode keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/keystore.jks
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/keystore.p12
+          file ${{ github.workspace }}/keystore.p12
 
       - name: Create local.properties
         run: |
@@ -43,7 +45,7 @@ jobs:
 
       - name: Build release APK
         env:
-          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/keystore.p12
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
