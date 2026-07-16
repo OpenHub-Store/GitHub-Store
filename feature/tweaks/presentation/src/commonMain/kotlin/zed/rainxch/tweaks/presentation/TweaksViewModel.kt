@@ -25,6 +25,7 @@ import zed.rainxch.core.domain.model.settings.ProxyConfig
 import zed.rainxch.core.domain.model.settings.ProxyScope
 import zed.rainxch.core.domain.model.settings.TranslationProvider
 import zed.rainxch.core.domain.network.ProxyTestOutcome
+import zed.rainxch.core.domain.helpers.ShareManager
 import zed.rainxch.core.domain.logging.KomiStoreLogger
 import zed.rainxch.core.domain.network.ProxyTester
 import zed.rainxch.core.domain.repository.CacheRepository
@@ -54,6 +55,22 @@ import zed.rainxch.githubstore.core.presentation.res.tweaks_custom_forge_save_fa
 import zed.rainxch.tweaks.presentation.model.ProxyType
 import zed.rainxch.tweaks.presentation.connection.parseProxyUrl
 import zed.rainxch.tweaks.presentation.utils.TweaksDeepLinkBus
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import zed.rainxch.core.domain.model.appearance.ContentWidth
+import zed.rainxch.core.domain.model.appearance.FontTheme
+import zed.rainxch.core.domain.model.appearance.MangaPaperId
+import zed.rainxch.core.domain.model.installation.InstallerAttribution
+import zed.rainxch.core.domain.model.repository.DiscoveryPlatform
+import zed.rainxch.core.domain.model.appearance.AccentId
+import zed.rainxch.core.domain.model.appearance.AppPersonality
+import zed.rainxch.core.domain.model.appearance.AppTheme
+import zed.rainxch.core.domain.model.installation.InstallerType
+import zed.rainxch.core.domain.model.installation.PresetKey
+import zed.rainxch.tweaks.presentation.model.ProxyEntryBackup
+import zed.rainxch.tweaks.presentation.model.SettingsBackup
 import kotlin.time.Duration.Companion.milliseconds
 
 class TweaksViewModel(
@@ -67,8 +84,10 @@ class TweaksViewModel(
     private val logger: KomiStoreLogger,
     private val aggressiveOemDetector: AggressiveOemDetector,
     private val cacheRepository: CacheRepository,
+    private val shareManager: ShareManager,
 ) : ViewModel() {
     private companion object {
+        private val json = Json { prettyPrint = true; ignoreUnknownKeys = true }
         private const val BATTERY_OPT_PREF_READ_TIMEOUT_MS: Long = 1_000
 
         private val IPV4_PATTERN =
@@ -1492,7 +1511,231 @@ class TweaksViewModel(
                     }
                 }
             }
+
+            TweaksAction.OnExportSettings -> {
+                viewModelScope.launch {
+                    try {
+                        val backup = collectSettingsForExport()
+                        val jsonString = json.encodeToString(backup)
+                        shareManager.shareFile(
+                            "komi-store-settings-backup.json",
+                            jsonString,
+                        )
+                        _events.send(TweaksEvent.OnSettingsExported)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        _events.send(
+                            TweaksEvent.OnSettingsExportError(
+                                e.message ?: "Failed to export settings",
+                            ),
+                        )
+                    }
+                }
+            }
+
+            TweaksAction.OnImportSettings -> {
+                viewModelScope.launch {
+                    try {
+                        val content = pickSettingsFile() ?: return@launch
+                        val backup = json.decodeFromString<SettingsBackup>(content)
+                        applySettingsBackup(backup)
+                        _events.send(TweaksEvent.OnSettingsImported)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        _events.send(
+                            TweaksEvent.OnSettingsImportError(
+                                e.message ?: "Failed to import settings",
+                            ),
+                        )
+                    }
+                }
+            }
         }
+    }
+
+    private suspend fun pickSettingsFile(): String? = suspendCancellableCoroutine { continuation ->
+        shareManager.pickFile("application/json") { content ->
+            continuation.resume(content)
+        }
+    }
+
+    private suspend fun collectSettingsForExport(): SettingsBackup {
+        val now = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+        return SettingsBackup(
+            version = 1,
+            exportedAt = now,
+            themeColor = tweaksRepository.getThemeColor().first().name,
+            isDarkTheme = tweaksRepository.getIsDarkTheme().first(),
+            amoledTheme = tweaksRepository.getAmoledTheme().first(),
+            mangaPaper = tweaksRepository.getMangaPaper().first().name,
+            fontTheme = tweaksRepository.getFontTheme().first().name,
+            personality = tweaksRepository.getPersonality().first().name,
+            accentId = tweaksRepository.getAccentId().first().name,
+            scrollbarEnabled = tweaksRepository.getScrollbarEnabled().first(),
+            contentWidth = tweaksRepository.getContentWidth().first().name,
+            autoDetectClipboardLinks = tweaksRepository.getAutoDetectClipboardLinks().first(),
+            hideSeenEnabled = tweaksRepository.getHideSeenEnabled().first(),
+            discoveryPlatforms = tweaksRepository.getDiscoveryPlatforms().first().map { it.name }.toSet(),
+            showAllPlatforms = tweaksRepository.getShowAllPlatforms().first(),
+            installerType = tweaksRepository.getInstallerType().first().name,
+            installerAttribution = encodeInstallerAttributionForBackup(tweaksRepository.getInstallerAttribution().first()),
+            autoUpdateEnabled = tweaksRepository.getAutoUpdateEnabled().first(),
+            updateCheckEnabled = tweaksRepository.getUpdateCheckEnabled().first(),
+            updateCheckIntervalHours = tweaksRepository.getUpdateCheckInterval().first(),
+            includePreReleases = tweaksRepository.getIncludePreReleases().first(),
+            appLanguage = tweaksRepository.getAppLanguage().first(),
+            translationProvider = tweaksRepository.getTranslationProvider().first().name,
+            youdaoAppKey = tweaksRepository.getYoudaoAppKey().first(),
+            youdaoAppSecret = tweaksRepository.getYoudaoAppSecret().first(),
+            libreTranslateBaseUrl = tweaksRepository.getLibreTranslateBaseUrl().first(),
+            libreTranslateApiKey = tweaksRepository.getLibreTranslateApiKey().first(),
+            deeplAuthKey = tweaksRepository.getDeeplAuthKey().first(),
+            microsoftTranslatorKey = tweaksRepository.getMicrosoftTranslatorKey().first(),
+            microsoftTranslatorRegion = tweaksRepository.getMicrosoftTranslatorRegion().first(),
+            autoTranslateEnabled = tweaksRepository.getAutoTranslateEnabled().first(),
+            autoTranslateTargetLang = tweaksRepository.getAutoTranslateTargetLang().first(),
+            externalImportEnabled = tweaksRepository.getExternalImportEnabled().first(),
+            externalMatchSearchEnabled = tweaksRepository.getExternalMatchSearchEnabled().first(),
+            appsSortRule = tweaksRepository.getAppsSortRule().first(),
+            starredSortRule = tweaksRepository.getStarredSortRule().first(),
+            favouritesSortRule = tweaksRepository.getFavouritesSortRule().first(),
+            customForgeHosts = tweaksRepository.getCustomForgeHosts().first(),
+            proxyConfigs = buildMap {
+                ProxyScope.entries.forEach { scope ->
+                    val config = proxyRepository.getProxyConfig(scope).first()
+                    put(scope.name, proxyConfigToBackup(config))
+                }
+            },
+            masterProxyConfig = proxyRepository.getMasterProxyConfig().first()?.let { proxyConfigToBackup(it) },
+            useMasterByScope = buildMap {
+                ProxyScope.entries.forEach { scope ->
+                    put(scope.name, proxyRepository.getUseMaster(scope).first())
+                }
+            },
+        )
+    }
+
+    private fun proxyConfigToBackup(config: ProxyConfig): ProxyEntryBackup = when (config) {
+        is ProxyConfig.None -> ProxyEntryBackup(type = "None")
+        is ProxyConfig.System -> ProxyEntryBackup(type = "System")
+        is ProxyConfig.Http -> ProxyEntryBackup(
+            type = "Http",
+            host = config.host,
+            port = config.port,
+            username = config.username,
+            password = config.password,
+        )
+        is ProxyConfig.Socks -> ProxyEntryBackup(
+            type = "Socks",
+            host = config.host,
+            port = config.port,
+            username = config.username,
+            password = config.password,
+        )
+    }
+
+    private suspend fun applySettingsBackup(backup: SettingsBackup) {
+        backup.themeColor?.let { tweaksRepository.setThemeColor(AppTheme.valueOf(it)) }
+        backup.isDarkTheme?.let { tweaksRepository.setDarkTheme(it) }
+        backup.amoledTheme?.let { tweaksRepository.setAmoledTheme(it) }
+        backup.mangaPaper?.let { tweaksRepository.setMangaPaper(MangaPaperId.valueOf(it)) }
+        backup.fontTheme?.let { tweaksRepository.setFontTheme(FontTheme.valueOf(it)) }
+        backup.personality?.let { tweaksRepository.setPersonality(AppPersonality.valueOf(it)) }
+        backup.accentId?.let { tweaksRepository.setAccentId(AccentId.valueOf(it)) }
+        backup.scrollbarEnabled?.let { tweaksRepository.setScrollbarEnabled(it) }
+        backup.contentWidth?.let { tweaksRepository.setContentWidth(ContentWidth.valueOf(it)) }
+        backup.autoDetectClipboardLinks?.let { tweaksRepository.setAutoDetectClipboardLinks(it) }
+        backup.hideSeenEnabled?.let { tweaksRepository.setHideSeenEnabled(it) }
+        backup.discoveryPlatforms?.let { platforms ->
+            tweaksRepository.setDiscoveryPlatforms(platforms.mapNotNull { DiscoveryPlatform.fromName(it) }.toSet())
+        }
+        backup.showAllPlatforms?.let { tweaksRepository.setShowAllPlatforms(it) }
+        backup.installerType?.let { tweaksRepository.setInstallerType(InstallerType.valueOf(it)) }
+        backup.installerAttribution?.let { decodeInstallerAttributionFromBackup(it)?.let { attr -> tweaksRepository.setInstallerAttribution(attr) } }
+        backup.autoUpdateEnabled?.let { tweaksRepository.setAutoUpdateEnabled(it) }
+        backup.updateCheckEnabled?.let { tweaksRepository.setUpdateCheckEnabled(it) }
+        backup.updateCheckIntervalHours?.let { tweaksRepository.setUpdateCheckInterval(it) }
+        backup.includePreReleases?.let { tweaksRepository.setIncludePreReleases(it) }
+        backup.appLanguage?.let { tweaksRepository.setAppLanguage(it) }
+        backup.translationProvider?.let { tweaksRepository.setTranslationProvider(TranslationProvider.valueOf(it)) }
+        backup.youdaoAppKey?.let { tweaksRepository.setYoudaoAppKey(it) }
+        backup.youdaoAppSecret?.let { tweaksRepository.setYoudaoAppSecret(it) }
+        backup.libreTranslateBaseUrl?.let { tweaksRepository.setLibreTranslateBaseUrl(it) }
+        backup.libreTranslateApiKey?.let { tweaksRepository.setLibreTranslateApiKey(it) }
+        backup.deeplAuthKey?.let { tweaksRepository.setDeeplAuthKey(it) }
+        backup.microsoftTranslatorKey?.let { tweaksRepository.setMicrosoftTranslatorKey(it) }
+        backup.microsoftTranslatorRegion?.let { tweaksRepository.setMicrosoftTranslatorRegion(it) }
+        backup.autoTranslateEnabled?.let { tweaksRepository.setAutoTranslateEnabled(it) }
+        backup.autoTranslateTargetLang?.let { tweaksRepository.setAutoTranslateTargetLang(it) }
+        backup.externalImportEnabled?.let { tweaksRepository.setExternalImportEnabled(it) }
+        backup.externalMatchSearchEnabled?.let { tweaksRepository.setExternalMatchSearchEnabled(it) }
+        backup.appsSortRule?.let { tweaksRepository.setAppsSortRule(it) }
+        backup.starredSortRule?.let { tweaksRepository.setStarredSortRule(it) }
+        backup.favouritesSortRule?.let { tweaksRepository.setFavouritesSortRule(it) }
+        backup.customForgeHosts?.let { hosts ->
+            val current = tweaksRepository.getCustomForgeHosts().first()
+            val toAdd = hosts - current
+            val toRemove = current - hosts
+            toRemove.forEach { tweaksRepository.removeCustomForgeHost(it) }
+            toAdd.forEach { tweaksRepository.addCustomForgeHost(it) }
+        }
+        backup.proxyConfigs?.let { configs ->
+            configs.forEach { (scopeName, entry) ->
+                val scope = ProxyScope.valueOf(scopeName)
+                val config = proxyBackupToConfig(entry)
+                proxyRepository.setProxyConfig(scope, config)
+            }
+        }
+        backup.masterProxyConfig?.let { entry ->
+            proxyRepository.setMasterProxyConfig(proxyBackupToConfig(entry))
+        }
+        backup.useMasterByScope?.let { flags ->
+            flags.forEach { (scopeName, useMaster) ->
+                val scope = ProxyScope.valueOf(scopeName)
+                proxyRepository.setUseMaster(scope, useMaster)
+            }
+        }
+    }
+
+    private fun proxyBackupToConfig(entry: ProxyEntryBackup): ProxyConfig = when (entry.type) {
+        "None" -> ProxyConfig.None
+        "System" -> ProxyConfig.System
+        "Http" -> ProxyConfig.Http(
+            host = entry.host ?: "",
+            port = entry.port ?: 0,
+            username = entry.username,
+            password = entry.password,
+        )
+        "Socks" -> ProxyConfig.Socks(
+            host = entry.host ?: "",
+            port = entry.port ?: 0,
+            username = entry.username,
+            password = entry.password,
+        )
+        else -> ProxyConfig.None
+    }
+
+    private fun encodeInstallerAttributionForBackup(attribution: InstallerAttribution): String = when (attribution) {
+        is InstallerAttribution.SystemDefault -> ""
+        is InstallerAttribution.Preset -> "preset:${attribution.key.name}"
+        is InstallerAttribution.Custom -> "custom:${attribution.packageName.trim()}"
+    }
+
+    private fun decodeInstallerAttributionFromBackup(value: String): InstallerAttribution? = when {
+        value.isBlank() -> InstallerAttribution.SystemDefault
+        value.startsWith("preset:") -> {
+            val keyName = value.removePrefix("preset:")
+            InstallerAttribution.Preset(
+                zed.rainxch.core.domain.model.installation.PresetKey.valueOf(keyName),
+            )
+        }
+        value.startsWith("custom:") -> {
+            val packageName = value.removePrefix("custom:")
+            InstallerAttribution.Custom(packageName)
+        }
+        else -> null
     }
 
     private suspend fun runProbe(config: ProxyConfig, url: String): Long? = try {

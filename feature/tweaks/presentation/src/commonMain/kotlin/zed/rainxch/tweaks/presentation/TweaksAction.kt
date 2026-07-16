@@ -265,4 +265,7 @@ sealed interface TweaksAction {
     data object OnClearSeenHistoryRequest : TweaksAction
     data object OnClearSeenHistoryDismiss : TweaksAction
     data object OnClearSeenHistoryConfirm : TweaksAction
+
+    data object OnExportSettings : TweaksAction
+    data object OnImportSettings : TweaksAction
 }

@@ -105,6 +105,22 @@ fun TweaksRoot(
                 coroutineScope.launch { toastState.danger(event.message) }
             }
 
+            TweaksEvent.OnSettingsExported -> {
+                coroutineScope.launch { toastState.info("Settings exported") }
+            }
+
+            TweaksEvent.OnSettingsImported -> {
+                coroutineScope.launch { toastState.success("Settings imported") }
+            }
+
+            is TweaksEvent.OnSettingsExportError -> {
+                coroutineScope.launch { toastState.danger(event.message) }
+            }
+
+            is TweaksEvent.OnSettingsImportError -> {
+                coroutineScope.launch { toastState.danger(event.message) }
+            }
+
             else -> Unit
         }
     }

@@ -2,6 +2,8 @@ package zed.rainxch.tweaks.presentation.components.sections
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
@@ -42,6 +44,36 @@ fun storageSectionContent(
                     size = KomiButtonSize.Sm,
                     enabled = !isEmpty,
                     leadingIcon = Icons.Outlined.DeleteOutline,
+                )
+            },
+        )
+    }
+
+    SettingsGroup {
+        SettingsRow(
+            title = "Export settings",
+            subtitle = "Save all settings to a backup file",
+            trailing = {
+                KomiButton(
+                    onClick = { onAction(TweaksAction.OnExportSettings) },
+                    label = "Export",
+                    variant = KomiButtonVariant.Outline,
+                    size = KomiButtonSize.Sm,
+                    leadingIcon = Icons.Outlined.FileUpload,
+                )
+            },
+        )
+        SettingsRow(
+            title = "Import settings",
+            subtitle = "Restore settings from a backup file",
+            last = true,
+            trailing = {
+                KomiButton(
+                    onClick = { onAction(TweaksAction.OnImportSettings) },
+                    label = "Import",
+                    variant = KomiButtonVariant.Outline,
+                    size = KomiButtonSize.Sm,
+                    leadingIcon = Icons.Outlined.FileDownload,
                 )
             },
         )

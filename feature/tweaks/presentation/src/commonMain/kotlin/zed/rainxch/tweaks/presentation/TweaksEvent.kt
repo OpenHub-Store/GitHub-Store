@@ -40,4 +40,13 @@ sealed interface TweaksEvent {
     data object OnMicrosoftTranslatorCredentialsSaved : TweaksEvent
 
     data object OnAppLanguageChangeRequiresRestart : TweaksEvent
+
+    data object OnSettingsExported : TweaksEvent
+    data object OnSettingsImported : TweaksEvent
+    data class OnSettingsExportError(
+        val message: String,
+    ) : TweaksEvent
+    data class OnSettingsImportError(
+        val message: String,
+    ) : TweaksEvent
 }
