@@ -46,6 +46,7 @@ fun LazyListScope.stats(
         }
 
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -69,6 +70,7 @@ fun LazyListScope.stats(
         Spacer(Modifier.height(10.dp))
 
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
