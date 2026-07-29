@@ -113,12 +113,10 @@ brew install --cask github-store
 
 ### Join Community
 
-You can submit any feedback in our [discord server](https://discord.github-store.org)
-
 <p align="center">
-  <a href="https://discord.github-store.org">
-    <img src="https://invidget.switchblade.xyz/NBW4zeFcG6" />
-  </a>
+  <a href="https://discord.github-store.org"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" /></a>
+  <a href="https://t.me/komistoreapp"><img src="https://img.shields.io/badge/Telegram%20Channel-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Channel" /></a>
+  <a href="https://t.me/komistore_discussion"><img src="https://img.shields.io/badge/Telegram%20Group-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Group" /></a>
 </p>
 
 ---
