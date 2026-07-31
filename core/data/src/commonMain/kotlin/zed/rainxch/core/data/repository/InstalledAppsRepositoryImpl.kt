@@ -336,10 +336,16 @@ class InstalledAppsRepositoryImpl(
 
             val reconcilable =
                 VersionMath.versionsReconcilable(app.installedVersion, matchedRelease.tagName)
+            val opaquePair =
+                VersionMath.isOpaqueMarkerPair(app.installedVersion, matchedRelease.tagName)
+            val sameTag =
+                VersionMath.isExactSameVersion(matchedRelease.tagName, app.installedVersion)
             val isUpdateAvailable =
                 when {
                     codesAlreadyMatch -> false
                     matchesSkipped -> false
+                    opaquePair -> isNewerByTimestamp(matchedRelease, app.latestReleasePublishedAt)
+                    sameTag && !reconcilable -> isNewerByTimestamp(matchedRelease, app.latestReleasePublishedAt)
                     !reconcilable -> false
                     else ->
                         VersionMath.isVersionNewer(
@@ -374,7 +380,7 @@ class InstalledAppsRepositoryImpl(
                 latestReleasePublishedAt = matchedRelease.publishedAt,
             )
 
-            if ((codesAlreadyMatch || !reconcilable) &&
+            if ((codesAlreadyMatch || (!reconcilable && !sameTag && !isUpdateAvailable)) &&
                 app.installedVersion != matchedRelease.tagName
             ) {
                 installedAppsDao.updateInstalledVersion(
@@ -399,6 +405,14 @@ class InstalledAppsRepositoryImpl(
         }
 
         return false
+    }
+
+    private fun isNewerByTimestamp(
+        release: GithubRelease,
+        previousPublishedAt: String?,
+    ): Boolean {
+        val previous = previousPublishedAt ?: return false
+        return release.publishedAt > previous
     }
 
     override suspend fun checkAllForUpdates() {

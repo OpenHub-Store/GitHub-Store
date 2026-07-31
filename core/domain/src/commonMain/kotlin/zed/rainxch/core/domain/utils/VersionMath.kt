@@ -15,6 +15,7 @@ object VersionMath {
         if (parseSemanticVersion(deflavoured) != null) {
             return deflavoured
         }
+        if (isMarkerWithOpaqueSuffix(deflavoured)) return deflavoured
         val match = DOTTED_DIGIT_PATTERN.find(deflavoured)
         return match?.value ?: deflavoured
     }
@@ -59,6 +60,16 @@ object VersionMath {
         }
         if (M_DIGIT_TAIL_PATTERN.containsMatchIn(token)) return false
         return BUILD_VARIANT_LITERALS.contains(token)
+    }
+
+    private fun isMarkerWithOpaqueSuffix(version: String): Boolean {
+        val lower = version.lowercase()
+        val marker = KNOWN_PRE_RELEASE_PREFIXES.firstOrNull { lower.startsWith(it) } ?: return false
+        val rest = lower.substring(marker.length)
+        if (rest.isEmpty()) return true
+        if (rest.first() != '-' && rest.first() != '.') return false
+        val suffix = rest.substring(1)
+        return suffix.isNotEmpty() && !suffix.all { it.isDigit() }
     }
 
     private val BUILD_VARIANT_LITERALS =
@@ -109,6 +120,10 @@ object VersionMath {
         val bHash = b.preRelease?.let { isCommitHashPreRelease(it) } == true
         return aHash == bHash
     }
+
+    fun isOpaqueMarkerPair(a: String?, b: String?): Boolean =
+        isMarkerWithOpaqueSuffix(normalizeVersion(a)) &&
+            isMarkerWithOpaqueSuffix(normalizeVersion(b))
 
     private fun isCommitHashPreRelease(preRelease: String): Boolean =
         COMMIT_HASH_PATTERN.matches(preRelease)
