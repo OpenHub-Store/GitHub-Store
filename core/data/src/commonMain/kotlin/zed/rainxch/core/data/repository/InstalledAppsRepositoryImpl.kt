@@ -344,8 +344,9 @@ class InstalledAppsRepositoryImpl(
                 when {
                     codesAlreadyMatch -> false
                     matchesSkipped -> false
-                    opaquePair -> isNewerByTimestamp(matchedRelease, app.latestReleasePublishedAt)
-                    sameTag && !reconcilable -> isNewerByTimestamp(matchedRelease, app.latestReleasePublishedAt)
+                    opaquePair || (sameTag && !reconcilable) ->
+                        isNewerByTimestamp(matchedRelease, app.latestReleasePublishedAt) ||
+                            (app.isUpdateAvailable && app.latestVersion == matchedRelease.tagName)
                     !reconcilable -> false
                     else ->
                         VersionMath.isVersionNewer(
@@ -380,7 +381,7 @@ class InstalledAppsRepositoryImpl(
                 latestReleasePublishedAt = matchedRelease.publishedAt,
             )
 
-            if ((codesAlreadyMatch || (!reconcilable && !sameTag && !isUpdateAvailable)) &&
+            if ((codesAlreadyMatch || (!reconcilable && !opaquePair && !sameTag && !isUpdateAvailable)) &&
                 app.installedVersion != matchedRelease.tagName
             ) {
                 installedAppsDao.updateInstalledVersion(
