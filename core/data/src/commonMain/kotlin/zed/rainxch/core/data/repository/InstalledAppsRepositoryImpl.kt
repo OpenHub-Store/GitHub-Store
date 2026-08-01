@@ -345,8 +345,13 @@ class InstalledAppsRepositoryImpl(
                     codesAlreadyMatch -> false
                     matchesSkipped -> false
                     opaquePair || (sameTag && !reconcilable) ->
-                        isNewerByTimestamp(matchedRelease, app.latestReleasePublishedAt) ||
-                            (app.isUpdateAvailable && app.latestVersion == matchedRelease.tagName)
+                        VersionMath.shouldReportTimestampUpdate(
+                            matchedTag = matchedRelease.tagName,
+                            matchedPublishedAt = matchedRelease.publishedAt,
+                            previousLatestPublishedAt = app.latestReleasePublishedAt,
+                            previousWasUpdateAvailable = app.isUpdateAvailable,
+                            previousLatestTag = app.latestVersion,
+                        )
                     !reconcilable -> false
                     else ->
                         VersionMath.isVersionNewer(
@@ -406,14 +411,6 @@ class InstalledAppsRepositoryImpl(
         }
 
         return false
-    }
-
-    private fun isNewerByTimestamp(
-        release: GithubRelease,
-        previousPublishedAt: String?,
-    ): Boolean {
-        val previous = previousPublishedAt ?: return false
-        return release.publishedAt > previous
     }
 
     override suspend fun checkAllForUpdates() {

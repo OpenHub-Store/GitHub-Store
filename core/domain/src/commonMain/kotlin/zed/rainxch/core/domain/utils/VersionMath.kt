@@ -125,6 +125,27 @@ object VersionMath {
         isMarkerWithOpaqueSuffix(normalizeVersion(a)) &&
             isMarkerWithOpaqueSuffix(normalizeVersion(b))
 
+    // Whether a timestamp-tracked update (opaque markers or an unreconcilable reused
+    // tag) should still be reported as available on this scan. An update detected on a
+    // previous scan must stay surfaced until the user actually installs it: once the
+    // stored baseline timestamp equals the matched release, a pure timestamp comparison
+    // returns false, so we also retain the prior "available" flag while the matched tag
+    // still equals the stored latest tag.
+    fun shouldReportTimestampUpdate(
+        matchedTag: String?,
+        matchedPublishedAt: String?,
+        previousLatestPublishedAt: String?,
+        previousWasUpdateAvailable: Boolean,
+        previousLatestTag: String?,
+    ): Boolean {
+        val newerByTimestamp =
+            previousLatestPublishedAt != null &&
+                matchedPublishedAt != null &&
+                matchedPublishedAt > previousLatestPublishedAt
+        return newerByTimestamp ||
+            (previousWasUpdateAvailable && isExactSameVersion(matchedTag, previousLatestTag))
+    }
+
     private fun isCommitHashPreRelease(preRelease: String): Boolean =
         COMMIT_HASH_PATTERN.matches(preRelease)
 

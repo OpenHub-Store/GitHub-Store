@@ -98,4 +98,56 @@ class VersionMathTest {
         assertEquals(VersionMath.Scheme.SemVer, VersionMath.detectScheme("v1.2.3-nightly"))
         assertEquals(VersionMath.Scheme.CalVer, VersionMath.detectScheme("2026-07-31"))
     }
+
+    @Test
+    fun timestamp_update_retained_across_scans_without_install() {
+        // Regression: an opaque-marker (nightly) update detected on one scan must stay
+        // surfaced on the next scan if the user has not installed it yet.
+        //
+        // Scan 1 detects nightly-abc -> nightly-def (publishedAt T1) and stores
+        // latestVersion=nightly-def, latestReleasePublishedAt=T1, isUpdateAvailable=true.
+        //
+        // Scan 2, no install in between: the matched release is still nightly-def (T1),
+        // so the timestamp baseline no longer advances (T1 is not > T1). Without the
+        // retention rule the update would silently disappear.
+        val stillAvailable =
+            VersionMath.shouldReportTimestampUpdate(
+                matchedTag = "nightly-def",
+                matchedPublishedAt = "2026-08-01T00:00:00Z",
+                previousLatestPublishedAt = "2026-08-01T00:00:00Z",
+                previousWasUpdateAvailable = true,
+                previousLatestTag = "nightly-def",
+            )
+        assertTrue(stillAvailable)
+    }
+
+    @Test
+    fun timestamp_update_reports_newer_release() {
+        // A genuinely newer opaque release (later publishedAt) is reported even when the
+        // previous scan had not flagged an update yet.
+        assertTrue(
+            VersionMath.shouldReportTimestampUpdate(
+                matchedTag = "nightly-def",
+                matchedPublishedAt = "2026-08-02T00:00:00Z",
+                previousLatestPublishedAt = "2026-08-01T00:00:00Z",
+                previousWasUpdateAvailable = false,
+                previousLatestTag = "nightly-abc",
+            ),
+        )
+    }
+
+    @Test
+    fun timestamp_update_not_reported_after_install() {
+        // Once the user installs (isUpdateAvailable cleared) and the baseline matches the
+        // matched release, no stale update is reported.
+        assertFalse(
+            VersionMath.shouldReportTimestampUpdate(
+                matchedTag = "nightly-def",
+                matchedPublishedAt = "2026-08-01T00:00:00Z",
+                previousLatestPublishedAt = "2026-08-01T00:00:00Z",
+                previousWasUpdateAvailable = false,
+                previousLatestTag = "nightly-def",
+            ),
+        )
+    }
 }
