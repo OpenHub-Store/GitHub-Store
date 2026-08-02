@@ -269,6 +269,7 @@ object VersionMath {
             "snapshot",
             "canary",
             "nightly",
+            "rolling",
             "milestone",
             "ea",
             "dev",
@@ -296,6 +297,7 @@ object VersionMath {
             raw == "snapshot" -> "Snapshot"
             raw == "canary" -> "Canary"
             raw == "nightly" -> "Nightly"
+            raw == "rolling" -> "Rolling"
             raw == "milestone" || raw.startsWith("m") -> "Milestone"
             raw == "ea" -> "Early Access"
             raw == "dev" -> "Dev"
@@ -307,7 +309,7 @@ object VersionMath {
     private val PRE_RELEASE_MARKER_PATTERN =
 
         Regex(
-            "\\b(alpha|beta|rc|preview|prerelease|snapshot|canary|nightly|milestone|ea|dev|pre|m\\d+)\\d*\\b",
+            "\\b(alpha|beta|rc|preview|prerelease|snapshot|canary|nightly|rolling|milestone|ea|dev|pre|m\\d+)\\d*\\b",
             RegexOption.IGNORE_CASE,
         )
 

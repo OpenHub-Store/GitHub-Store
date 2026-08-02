@@ -14,12 +14,15 @@ class VersionMathTest {
         assertEquals("nightly-abc123", VersionMath.normalizeVersion("vnightly-abc123"))
         assertEquals("nightly", VersionMath.normalizeVersion("nightly"))
         assertEquals("beta-x7z92", VersionMath.normalizeVersion("beta-x7z92"))
+        assertEquals("rolling-abc123", VersionMath.normalizeVersion("rolling-abc123"))
+        assertEquals("rolling", VersionMath.normalizeVersion("rolling"))
     }
 
     @Test
     fun normalize_extracts_digits_from_calver_nightly() {
         assertEquals("20260731", VersionMath.normalizeVersion("nightly-20260731"))
         assertEquals("20260801", VersionMath.normalizeVersion("nightly-20260801"))
+        assertEquals("20260801", VersionMath.normalizeVersion("rolling-20260801"))
     }
 
     @Test
@@ -34,6 +37,7 @@ class VersionMathTest {
         assertTrue(VersionMath.isOpaqueMarkerPair("nightly-abc", "nightly-def"))
         assertTrue(VersionMath.isOpaqueMarkerPair("nightly", "nightly"))
         assertTrue(VersionMath.isOpaqueMarkerPair("canary-deadbeef", "canary-cafef00d"))
+        assertTrue(VersionMath.isOpaqueMarkerPair("rolling-a", "rolling-b"))
     }
 
     @Test
@@ -80,6 +84,8 @@ class VersionMathTest {
         assertTrue(VersionMath.isPreReleaseTag("nightly"))
         assertTrue(VersionMath.isPreReleaseTag("nightly-abc"))
         assertTrue(VersionMath.isPreReleaseTag("nightly-20260731"))
+        assertTrue(VersionMath.isPreReleaseTag("rolling"))
+        assertTrue(VersionMath.isPreReleaseTag("rolling-abc"))
         assertFalse(VersionMath.isPreReleaseTag("v1.2.3"))
         assertFalse(VersionMath.isPreReleaseTag("1.2.3"))
     }
@@ -89,6 +95,8 @@ class VersionMathTest {
         assertEquals("Nightly", VersionMath.preReleaseMarkerLabel("nightly"))
         assertEquals("Nightly", VersionMath.preReleaseMarkerLabel("nightly-abc"))
         assertEquals("Nightly", VersionMath.preReleaseMarkerLabel("v1.2.3-nightly"))
+        assertEquals("Rolling", VersionMath.preReleaseMarkerLabel("rolling"))
+        assertEquals("Rolling", VersionMath.preReleaseMarkerLabel("rolling-abc"))
     }
 
     @Test
