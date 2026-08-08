@@ -175,29 +175,31 @@ fun KomiRepoCard(
                 modifier = Modifier.padding(top = gap),
             )
 
-            FlowRow(
-                modifier = Modifier.padding(top = gap),
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                platforms.forEach { platform ->
-                    KomiChip(
-                        label = platform.toLabel(),
-                        kind = KomiChipKind.Info,
-                        size = if (compact) KomiChipSize.Sm else KomiChipSize.Md,
-                        leadingContent = {
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                platform.toIcon()?.let { icon ->
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = colors.onSurface,
-                                    )
+            if (!compact && platforms.isNotEmpty()) {
+                FlowRow(
+                    modifier = Modifier.padding(top = gap),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp),
+                ) {
+                    platforms.forEach { platform ->
+                        KomiChip(
+                            label = platform.toLabel(),
+                            kind = KomiChipKind.Info,
+                            size = if (compact) KomiChipSize.Sm else KomiChipSize.Md,
+                            leadingContent = {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    platform.toIcon()?.let { icon ->
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp),
+                                            tint = colors.onSurface,
+                                        )
+                                    }
                                 }
-                            }
-                        },
-                    )
+                            },
+                        )
+                    }
                 }
             }
 
@@ -212,8 +214,9 @@ fun KomiRepoCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(13.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 13.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
                     Stat(
                         icon = Icons.Filled.Star,
@@ -226,21 +229,26 @@ fun KomiRepoCard(
                         value = fmtCompact(downloads),
                         colors = colors
                     )
-                    formatReleasedAgo(releasedAt)?.let { ago ->
-                        Stat(
-                            icon = Icons.Outlined.Schedule,
-                            value = ago,
-                            colors = colors
-                        )
+                    if (!compact) {
+                        formatReleasedAgo(releasedAt)?.let { ago ->
+                            Stat(
+                                icon = Icons.Outlined.Schedule,
+                                value = ago,
+                                colors = colors
+                            )
+                        }
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    KomiText(
-                        text = "Read",
-                        role = KomiTextRole.Label,
-                        color = colors.onSurface,
-                        fontSize = 12.5.sp
-                    )
+                    if (!compact) {
+                        KomiText(
+                            text = "Read",
+                            role = KomiTextRole.Label,
+                            color = colors.onSurface,
+                            fontSize = 12.5.sp,
+                            modifier = Modifier.padding(end = 2.dp)
+                        )
+                    }
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
