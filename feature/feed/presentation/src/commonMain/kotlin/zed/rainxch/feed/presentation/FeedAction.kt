@@ -20,4 +20,5 @@ sealed interface FeedAction {
     data class OnHideRepository(val repo: GithubRepoSummaryUi) : FeedAction
     data class OnMarkAsSeen(val repo: GithubRepoSummaryUi) : FeedAction
     data class OnMarkAsUnseen(val repoId: Long) : FeedAction
+    data object OnToggleLayoutType : FeedAction
 }

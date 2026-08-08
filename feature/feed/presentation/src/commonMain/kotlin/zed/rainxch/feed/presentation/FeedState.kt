@@ -8,6 +8,11 @@ import zed.rainxch.core.domain.model.repository.DiscoveryPlatform
 import zed.rainxch.core.presentation.model.DiscoveryRepositoryUi
 import zed.rainxch.core.domain.model.repository.FeedCategory
 
+enum class FeedLayoutType {
+    LIST,
+    GRID
+}
+
 @Immutable
 data class FeedState(
     val repos: ImmutableList<DiscoveryRepositoryUi> = persistentListOf(),
@@ -21,4 +26,5 @@ data class FeedState(
     val hasMore: Boolean = false,
     val isOffline: Boolean = false,
     val errorMessage: String? = null,
+    val layoutType: FeedLayoutType = FeedLayoutType.LIST,
 )

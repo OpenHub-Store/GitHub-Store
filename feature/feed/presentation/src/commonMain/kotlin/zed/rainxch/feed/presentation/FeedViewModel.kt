@@ -132,6 +132,13 @@ class FeedViewModel(
                 browseFilterStore.setCategory(action.category)
             }
 
+            FeedAction.OnToggleLayoutType -> {
+                _state.update {
+                    val nextType = if (it.layoutType == FeedLayoutType.LIST) FeedLayoutType.GRID else FeedLayoutType.LIST
+                    it.copy(layoutType = nextType)
+                }
+            }
+
             is FeedAction.OnShareClick -> viewModelScope.launch {
                 runCatching {
                     shareManager.shareText("https://github-store.org/app?repo=${action.repo.fullName}")

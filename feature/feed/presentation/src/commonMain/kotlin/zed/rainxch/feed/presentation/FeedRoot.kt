@@ -37,9 +37,19 @@ import zed.rainxch.core.domain.model.repository.FeedCategory
 import zed.rainxch.core.presentation.components.bars.KomiTopBar
 import zed.rainxch.core.presentation.components.buttons.KomiButton
 import zed.rainxch.core.presentation.components.buttons.KomiButtonVariant
+import zed.rainxch.core.presentation.components.buttons.KomiIconButton
+import zed.rainxch.core.presentation.components.buttons.KomiIconButtonSize
 import zed.rainxch.core.presentation.components.cards.DiscoveryRepoCard
 import zed.rainxch.core.presentation.components.cards.KomiRepoCardFeed
 import zed.rainxch.core.presentation.components.dividers.KomiHorizontalDivider
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import zed.rainxch.core.presentation.components.overlays.KomiToastState
 import zed.rainxch.core.presentation.components.overlays.rememberKomiToastState
 import zed.rainxch.core.presentation.components.progress.KomiCircularProgress
@@ -53,11 +63,16 @@ import zed.rainxch.core.presentation.personality.usesDecor
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
 import zed.rainxch.core.presentation.utils.constrainedContentWidth
 import zed.rainxch.core.presentation.utils.toLabel
+import zed.rainxch.core.presentation.utils.toIcon
+import zed.rainxch.core.presentation.components.buttons.KomiButtonSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import zed.rainxch.feed.presentation.components.FeedCategoryStrip
 import zed.rainxch.feed.presentation.components.FeedPlatformBar
 import zed.rainxch.feed.presentation.components.FeedPlatformPicker
 import zed.rainxch.githubstore.core.presentation.res.Res
 import zed.rainxch.githubstore.core.presentation.res.feed_empty_reset
+import zed.rainxch.githubstore.core.presentation.res.feed_platform_all
 import zed.rainxch.githubstore.core.presentation.res.feed_empty_subtitle
 import zed.rainxch.githubstore.core.presentation.res.feed_empty_title
 import zed.rainxch.githubstore.core.presentation.res.feed_end_cap
@@ -79,12 +94,19 @@ fun FeedRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val toastState = rememberKomiToastState()
     val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is FeedEvent.OnMessage -> toastState.show(event.message)
-            FeedEvent.OnScrollToTop -> coroutineScope.launch { listState.scrollToItem(0) }
+            FeedEvent.OnScrollToTop -> coroutineScope.launch {
+                if (state.layoutType == FeedLayoutType.LIST) {
+                    listState.scrollToItem(0)
+                } else {
+                    gridState.scrollToItem(0)
+                }
+            }
         }
     }
 
@@ -92,6 +114,7 @@ fun FeedRoot(
         state = state,
         toastState = toastState,
         listState = listState,
+        gridState = gridState,
         onAction = { action ->
             when (action) {
                 FeedAction.OnSearchClick -> onNavigateToSearch()
@@ -109,13 +132,20 @@ private fun FeedScreen(
     state: FeedState,
     toastState: KomiToastState,
     listState: LazyListState,
+    gridState: LazyGridState,
     onAction: (FeedAction) -> Unit,
 ) {
-    val reachedEnd by remember {
+    val reachedEnd by remember(state.layoutType) {
         derivedStateOf {
-            val info = listState.layoutInfo
-            val lastIndex = info.visibleItemsInfo.lastOrNull()?.index ?: -1
-            lastIndex >= info.totalItemsCount - 4
+            if (state.layoutType == FeedLayoutType.LIST) {
+                val info = listState.layoutInfo
+                val lastIndex = info.visibleItemsInfo.lastOrNull()?.index ?: -1
+                lastIndex >= info.totalItemsCount - 4
+            } else {
+                val info = gridState.layoutInfo
+                val lastIndex = info.visibleItemsInfo.lastOrNull()?.index ?: -1
+                lastIndex >= info.totalItemsCount - 6
+            }
         }
     }
 
@@ -131,6 +161,27 @@ private fun FeedScreen(
                 title = stringResource(Res.string.feed_masthead_title),
                 titleAccent = stringResource(Res.string.feed_masthead_title_accent),
                 subtitle = if (LocalPersonality.current.usesDecor) stringResource(Res.string.feed_masthead_subtitle) else null,
+                actions = {
+                    KomiIconButton(
+                        icon = if (state.layoutType == FeedLayoutType.LIST) Icons.Default.GridView else Icons.AutoMirrored.Filled.ViewList,
+                        contentDescription = "Toggle Layout",
+                        onClick = { onAction(FeedAction.OnToggleLayoutType) },
+                        variant = KomiButtonVariant.Primary,
+                        size = KomiIconButtonSize.Sm,
+                        modifier = Modifier.padding(end = 8.dp),
+                    )
+
+                    val platform = state.selectedPlatform
+                    KomiButton(
+                        onClick = { onAction(FeedAction.OnPlatformPickerOpen) },
+                        label = if (platform == DiscoveryPlatform.All) stringResource(Res.string.feed_platform_all) else platform.toLabel(),
+                        variant = KomiButtonVariant.Primary,
+                        size = KomiButtonSize.Sm,
+                        leadingIcon = if (platform == DiscoveryPlatform.All) null else platform.toIcon(),
+                        trailingIcon = Icons.Rounded.KeyboardArrowDown,
+                        modifier = Modifier.padding(end = 12.dp),
+                    )
+                }
             )
         },
         toastState = toastState,
@@ -145,6 +196,7 @@ private fun FeedScreen(
             ) {
                 FeedContent(
                     listState = listState,
+                    gridState = gridState,
                     state = state,
                     onAction = onAction,
                 )
@@ -157,6 +209,7 @@ private fun FeedScreen(
             ) {
                 FeedContent(
                     listState = listState,
+                    gridState = gridState,
                     state = state,
                     onAction = onAction,
                 )
@@ -176,109 +229,210 @@ private fun FeedScreen(
 @Composable
 private fun BoxScope.FeedContent(
     listState: LazyListState,
+    gridState: LazyGridState,
     state: FeedState,
     onAction: (FeedAction) -> Unit,
 ) {
     val colors = LocalPersonality.current.colors
     val isManga = LocalPersonality.current is MangaPersonality
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .constrainedContentWidth()
-            .fillMaxSize()
-            .align(Alignment.TopCenter),
-        contentPadding = PaddingValues(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        if (!isDesktop()) {
-            stickyHeader(key = "feed_controls", contentType = "controls") {
-                Column(modifier = Modifier.fillMaxWidth().background(colors.background)) {
-                    FeedPlatformBar(
-                        platform = state.selectedPlatform,
-                        onOpenPicker = { onAction(FeedAction.OnPlatformPickerOpen) },
-                    )
+    if (state.layoutType == FeedLayoutType.LIST) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .constrainedContentWidth()
+                .fillMaxSize()
+                .align(Alignment.TopCenter),
+            contentPadding = PaddingValues(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (!isDesktop()) {
+                stickyHeader(key = "feed_controls", contentType = "controls") {
+                    Column(modifier = Modifier.fillMaxWidth().background(colors.background).padding(top = 6.dp)) {
+                        FeedCategoryStrip(
+                            categories = state.categories,
+                            selected = state.selectedCategory,
+                            onSelect = { onAction(FeedAction.OnCategorySelected(it)) },
+                        )
 
-                    FeedCategoryStrip(
-                        categories = state.categories,
-                        selected = state.selectedCategory,
-                        onSelect = { onAction(FeedAction.OnCategorySelected(it)) },
-                    )
+                        if (isManga) {
+                            KomiHorizontalDivider(thickness = 3.dp, color = colors.outline)
+                        }
+                    }
+                }
+            }
 
-                    if (isManga) {
-                        KomiHorizontalDivider(thickness = 3.dp, color = colors.outline)
+            when {
+                state.isLoading && state.repos.isEmpty() -> {
+                    item(key = "feed_loading") { FeedLoading() }
+                }
+
+                state.errorMessage != null && state.repos.isEmpty() -> {
+                    item(key = "feed_error") {
+                        FeedError(
+                            message = state.errorMessage,
+                            onRetry = { onAction(FeedAction.OnRetry) },
+                        )
+                    }
+                }
+
+                else -> {
+                    if (state.isOffline) {
+                        item(key = "feed_offline") {
+                            KomiText(
+                                text = stringResource(Res.string.feed_offline),
+                                role = KomiTextRole.Label,
+                                color = colors.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+
+                    if (state.repos.isEmpty()) {
+                        item(key = "feed_empty") {
+                            FeedEmpty(
+                                category = state.selectedCategory,
+                                platform = state.selectedPlatform,
+                                onReset = { onAction(FeedAction.OnResetFilters) },
+                            )
+                        }
+                    } else {
+                        items(state.repos, key = { "feed_${it.repository.id}" }) { card ->
+                            DiscoveryRepoCard(
+                                discoveryRepositoryUi = card,
+                                onClick = { onAction(FeedAction.OnRepoClick(card.repository)) },
+                                onShareClick = { onAction(FeedAction.OnShareClick(card.repository)) },
+                                onHideClick = { onAction(FeedAction.OnHideRepository(card.repository)) },
+                                onToggleSeen = {
+                                    if (card.isSeen) {
+                                        onAction(FeedAction.OnMarkAsUnseen(card.repository.id))
+                                    } else {
+                                        onAction(FeedAction.OnMarkAsSeen(card.repository))
+                                    }
+                                },
+                                feed = KomiRepoCardFeed.Release,
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                                    .animateItem(),
+                            )
+                        }
+
+                        if (state.isLoadingMore) {
+                            item(key = "feed_loading_more") {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    KomiCircularProgress(modifier = Modifier.size(28.dp))
+                                }
+                            }
+                        } else if (!state.hasMore) {
+                            item(key = "feed_end_cap") { FeedEndCap() }
+                        }
                     }
                 }
             }
         }
-
-        when {
-            state.isLoading && state.repos.isEmpty() -> {
-                item(key = "feed_loading") { FeedLoading() }
-            }
-
-            state.errorMessage != null && state.repos.isEmpty() -> {
-                item(key = "feed_error") {
-                    FeedError(
-                        message = state.errorMessage,
-                        onRetry = { onAction(FeedAction.OnRetry) },
-                    )
-                }
-            }
-
-            else -> {
-                if (state.isOffline) {
-                    item(key = "feed_offline") {
-                        KomiText(
-                            text = stringResource(Res.string.feed_offline),
-                            role = KomiTextRole.Label,
-                            color = colors.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 2.dp),
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 170.dp),
+            state = gridState,
+            modifier = Modifier
+                .constrainedContentWidth()
+                .fillMaxSize()
+                .align(Alignment.TopCenter),
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 32.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (!isDesktop()) {
+                item(
+                    key = "feed_controls",
+                    span = { GridItemSpan(maxLineSpan) }
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth().background(colors.background).padding(top = 6.dp)) {
+                        FeedCategoryStrip(
+                            categories = state.categories,
+                            selected = state.selectedCategory,
+                            onSelect = { onAction(FeedAction.OnCategorySelected(it)) },
                         )
-                    }
-                }
 
-                if (state.repos.isEmpty()) {
-                    item(key = "feed_empty") {
-                        FeedEmpty(
-                            category = state.selectedCategory,
-                            platform = state.selectedPlatform,
-                            onReset = { onAction(FeedAction.OnResetFilters) },
-                        )
-                    }
-                } else {
-                    items(state.repos, key = { "feed_${it.repository.id}" }) { card ->
-                        DiscoveryRepoCard(
-                            discoveryRepositoryUi = card,
-                            onClick = { onAction(FeedAction.OnRepoClick(card.repository)) },
-                            onShareClick = { onAction(FeedAction.OnShareClick(card.repository)) },
-                            onHideClick = { onAction(FeedAction.OnHideRepository(card.repository)) },
-                            onToggleSeen = {
-                                if (card.isSeen) {
-                                    onAction(FeedAction.OnMarkAsUnseen(card.repository.id))
-                                } else {
-                                    onAction(FeedAction.OnMarkAsSeen(card.repository))
-                                }
-                            },
-                            feed = KomiRepoCardFeed.Release,
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(horizontal = 12.dp)
-                                .animateItem(),
-                        )
-                    }
-
-                    if (state.isLoadingMore) {
-                        item(key = "feed_loading_more") {
-                            Box(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                KomiCircularProgress(modifier = Modifier.size(28.dp))
-                            }
+                        if (isManga) {
+                            KomiHorizontalDivider(thickness = 3.dp, color = colors.outline)
                         }
-                    } else if (!state.hasMore) {
-                        item(key = "feed_end_cap") { FeedEndCap() }
+                    }
+                }
+            }
+
+            when {
+                state.isLoading && state.repos.isEmpty() -> {
+                    item(key = "feed_loading", span = { GridItemSpan(maxLineSpan) }) { FeedLoading() }
+                }
+
+                state.errorMessage != null && state.repos.isEmpty() -> {
+                    item(key = "feed_error", span = { GridItemSpan(maxLineSpan) }) {
+                        FeedError(
+                            message = state.errorMessage,
+                            onRetry = { onAction(FeedAction.OnRetry) },
+                        )
+                    }
+                }
+
+                else -> {
+                    if (state.isOffline) {
+                        item(key = "feed_offline", span = { GridItemSpan(maxLineSpan) }) {
+                            KomiText(
+                                text = stringResource(Res.string.feed_offline),
+                                role = KomiTextRole.Label,
+                                color = colors.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(vertical = 2.dp),
+                            )
+                        }
+                    }
+
+                    if (state.repos.isEmpty()) {
+                        item(key = "feed_empty", span = { GridItemSpan(maxLineSpan) }) {
+                            FeedEmpty(
+                                category = state.selectedCategory,
+                                platform = state.selectedPlatform,
+                                onReset = { onAction(FeedAction.OnResetFilters) },
+                            )
+                        }
+                    } else {
+                        items(state.repos, key = { "feed_${it.repository.id}" }) { card ->
+                            DiscoveryRepoCard(
+                                discoveryRepositoryUi = card,
+                                onClick = { onAction(FeedAction.OnRepoClick(card.repository)) },
+                                onShareClick = { onAction(FeedAction.OnShareClick(card.repository)) },
+                                onHideClick = { onAction(FeedAction.OnHideRepository(card.repository)) },
+                                onToggleSeen = {
+                                    if (card.isSeen) {
+                                        onAction(FeedAction.OnMarkAsUnseen(card.repository.id))
+                                    } else {
+                                        onAction(FeedAction.OnMarkAsSeen(card.repository))
+                                    }
+                                },
+                                feed = KomiRepoCardFeed.Release,
+                                compact = true,
+                                modifier = Modifier.fillMaxWidth()
+                                    .animateItem(),
+                            )
+                        }
+
+                        if (state.isLoadingMore) {
+                            item(key = "feed_loading_more", span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    KomiCircularProgress(modifier = Modifier.size(28.dp))
+                                }
+                            }
+                        } else if (!state.hasMore) {
+                            item(key = "feed_end_cap", span = { GridItemSpan(maxLineSpan) }) { FeedEndCap() }
+                        }
                     }
                 }
             }
