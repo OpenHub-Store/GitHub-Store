@@ -375,7 +375,7 @@ private data class ButtonMetrics(
 
 private fun buttonMetrics(size: KomiButtonSize): ButtonMetrics =
     when (size) {
-        KomiButtonSize.Sm -> ButtonMetrics(34.dp, 14.dp, 12.sp, 15.dp, 7.dp, 3.dp, 2.5.dp)
+        KomiButtonSize.Sm -> ButtonMetrics(34.dp, 14.dp, 12.sp, 15.dp, 7.dp, 3.dp, 1.5.dp)
         KomiButtonSize.Md -> ButtonMetrics(44.dp, 20.dp, 13.5.sp, 18.dp, 9.dp, 4.dp, 2.5.dp)
         KomiButtonSize.Lg -> ButtonMetrics(54.dp, 26.dp, 16.sp, 22.dp, 10.dp, 5.dp, 3.dp)
     }
