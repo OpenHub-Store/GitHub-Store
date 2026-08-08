@@ -77,6 +77,8 @@ import zed.rainxch.githubstore.core.presentation.res.feed_empty_subtitle
 import zed.rainxch.githubstore.core.presentation.res.feed_empty_title
 import zed.rainxch.githubstore.core.presentation.res.feed_end_cap
 import zed.rainxch.githubstore.core.presentation.res.feed_failed_to_load
+import zed.rainxch.githubstore.core.presentation.res.feed_layout_description_grid
+import zed.rainxch.githubstore.core.presentation.res.feed_layout_description_list
 import zed.rainxch.githubstore.core.presentation.res.feed_loading
 import zed.rainxch.githubstore.core.presentation.res.feed_masthead_subtitle
 import zed.rainxch.githubstore.core.presentation.res.feed_masthead_title
@@ -164,7 +166,11 @@ private fun FeedScreen(
                 actions = {
                     KomiIconButton(
                         icon = if (state.layoutType == FeedLayoutType.LIST) Icons.Default.GridView else Icons.AutoMirrored.Filled.ViewList,
-                        contentDescription = "Toggle Layout",
+                        contentDescription = if (state.layoutType == FeedLayoutType.LIST) {
+                            stringResource(Res.string.feed_layout_description_grid)
+                        } else {
+                            stringResource(Res.string.feed_layout_description_list)
+                        },
                         onClick = { onAction(FeedAction.OnToggleLayoutType) },
                         variant = KomiButtonVariant.Primary,
                         size = KomiIconButtonSize.Sm,
