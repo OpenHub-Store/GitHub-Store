@@ -191,6 +191,7 @@ private fun ClassicIconButton(
 ) {
     val colors = LocalPersonality.current.colors
     val metrics = size.metrics
+    val sizeModifier = Modifier.size(metrics.box)
     val content: @Composable () -> Unit = {
         Icon(
             imageVector = icon,
@@ -203,7 +204,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Primary -> {
             FilledIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -212,7 +213,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Tonal -> {
             FilledTonalIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -221,7 +222,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Outline -> {
             OutlinedIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -230,7 +231,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Text -> {
             IconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -239,7 +240,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Destructive -> {
             FilledIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 colors =
                     IconButtonDefaults.filledIconButtonColors(
