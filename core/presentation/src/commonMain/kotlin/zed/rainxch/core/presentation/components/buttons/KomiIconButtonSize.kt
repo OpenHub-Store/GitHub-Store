@@ -2,12 +2,21 @@ package zed.rainxch.core.presentation.components.buttons
 
 import androidx.compose.ui.unit.dp
 
+/**
+ * Defines the size configurations for icon buttons.
+ */
 enum class KomiIconButtonSize {
+    /** Small size (e.g., 34.dp box). */
     Sm,
+    /** Medium size (e.g., 42.dp box). */
     Md,
+    /** Large size (e.g., 48.dp box). */
     Lg,
 }
 
+/**
+ * Returns the layout/border/shadow metrics corresponding to this icon button size.
+ */
 val KomiIconButtonSize.metrics: KomiIconButtonMetrics
     get() =
         when (this) {
