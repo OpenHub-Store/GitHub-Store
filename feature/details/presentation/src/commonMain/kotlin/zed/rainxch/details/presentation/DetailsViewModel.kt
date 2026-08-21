@@ -857,14 +857,9 @@ class DetailsViewModel(
                         sourceHost = sourceHostParam,
                     )
 
-                val byPrevCategory = when (prevCategory) {
-                    ReleaseCategory.STABLE -> releases.firstOrNull { !it.isEffectivelyPreRelease() }
-                    ReleaseCategory.PRE_RELEASE -> releases.firstOrNull { it.isEffectivelyPreRelease() }
-                    ReleaseCategory.ALL -> releases.firstOrNull()
-                }
+                val byPrevCategory = releases.firstReleaseForCategory(prevCategory)
                 val selected = byPrevCategory
-                    ?: releases.firstOrNull { !it.isEffectivelyPreRelease() }
-                    ?: releases.firstOrNull()
+                    ?: releases.firstReleaseForCategory(ReleaseCategory.STABLE)
 
                 val resolvedCategory = when {
                     byPrevCategory != null -> prevCategory
@@ -1122,13 +1117,8 @@ class DetailsViewModel(
 
     private fun selectReleaseCategory(action: DetailsAction.SelectReleaseCategory) {
         val newCategory = action.category
-        val filtered =
-            when (newCategory) {
-                ReleaseCategory.STABLE -> _state.value.allReleases.filter { !it.isEffectivelyPreRelease() }
-                ReleaseCategory.PRE_RELEASE -> _state.value.allReleases.filter { it.isEffectivelyPreRelease() }
-                ReleaseCategory.ALL -> _state.value.allReleases
-            }
-        val newSelected = filtered.firstOrNull()
+        val newSelected =
+            _state.value.allReleases.firstReleaseForCategory(newCategory)
         val (installable, primary) = recomputeAssetsForRelease(newSelected)
 
         whatsNewTranslationJob?.cancel()
@@ -2480,8 +2470,7 @@ class DetailsViewModel(
                 }
 
                 val selectedRelease =
-                    allReleases.firstOrNull { !it.isEffectivelyPreRelease() }
-                        ?: allReleases.firstOrNull()
+                    allReleases.firstReleaseForCategory(ReleaseCategory.STABLE)
 
                 val (installable, primary) = recomputeAssetsForRelease(
                     selectedRelease,

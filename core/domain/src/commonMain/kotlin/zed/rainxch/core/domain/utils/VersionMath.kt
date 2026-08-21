@@ -149,6 +149,38 @@ object VersionMath {
     private fun isCommitHashPreRelease(preRelease: String): Boolean =
         COMMIT_HASH_PATTERN.matches(preRelease)
 
+    private fun isMarkerWithOpaqueSuffix(version: String): Boolean {
+        val lower = version.lowercase()
+        val marker = KNOWN_PRE_RELEASE_PREFIXES.firstOrNull { lower.startsWith(it) } ?: return false
+        val rest = lower.substring(marker.length)
+        if (rest.isEmpty()) return true
+        if (rest.first() != '-' && rest.first() != '.') return false
+        val suffix = rest.substring(1)
+        return suffix.isNotEmpty() && !suffix.all { it.isDigit() }
+    }
+
+    fun isOpaqueMarker(version: String?): Boolean =
+        isMarkerWithOpaqueSuffix(normalizeVersion(version))
+
+    fun isOpaqueMarkerPair(a: String?, b: String?): Boolean =
+        isOpaqueMarker(a) && isOpaqueMarker(b)
+
+    fun shouldReportTimestampUpdate(
+        matchedTag: String?,
+        matchedPublishedAt: String?,
+        previousLatestPublishedAt: String?,
+        previousWasUpdateAvailable: Boolean,
+        previousLatestTag: String?,
+    ): Boolean {
+        if (previousLatestPublishedAt == null && matchedPublishedAt != null) return true
+        val newerByTimestamp =
+            matchedPublishedAt != null &&
+                previousLatestPublishedAt != null &&
+                matchedPublishedAt > previousLatestPublishedAt
+        return newerByTimestamp ||
+            (previousWasUpdateAvailable && isExactSameVersion(matchedTag, previousLatestTag))
+    }
+
     fun compareVersions(a: String?, b: String?): Int {
         val normA = normalizeVersion(a)
         val normB = normalizeVersion(b)

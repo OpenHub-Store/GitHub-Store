@@ -33,6 +33,15 @@ class VersionMathTest {
     }
 
     @Test
+    fun opaque_marker_detects_release_tag_alone() {
+        assertTrue(VersionMath.isOpaqueMarker("nightly"))
+        assertTrue(VersionMath.isOpaqueMarker("nightly-abc"))
+        assertTrue(VersionMath.isOpaqueMarker("rolling"))
+        assertFalse(VersionMath.isOpaqueMarker("1.0.0"))
+        assertFalse(VersionMath.isOpaqueMarker("nightly-20260731"))
+    }
+
+    @Test
     fun opaque_marker_pair_detects_hash_suffixes() {
         assertTrue(VersionMath.isOpaqueMarkerPair("nightly-abc", "nightly-def"))
         assertTrue(VersionMath.isOpaqueMarkerPair("nightly", "nightly"))
@@ -155,6 +164,19 @@ class VersionMathTest {
                 previousLatestPublishedAt = "2026-08-01T00:00:00Z",
                 previousWasUpdateAvailable = false,
                 previousLatestTag = "nightly-def",
+            ),
+        )
+    }
+
+    @Test
+    fun timestamp_update_first_scan_with_no_baseline() {
+        assertTrue(
+            VersionMath.shouldReportTimestampUpdate(
+                matchedTag = "nightly",
+                matchedPublishedAt = "2026-08-02T00:00:00Z",
+                previousLatestPublishedAt = null,
+                previousWasUpdateAvailable = false,
+                previousLatestTag = null,
             ),
         )
     }

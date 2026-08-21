@@ -93,11 +93,13 @@ fun SmartInstallButton(
     val shape = LocalPersonality.current.shape
     val installedApp = state.installedApp
     val isInstalled = installedApp != null && !installedApp.isPendingInstall
-    val isUpdateAvailable =
-        installedApp?.isUpdateAvailable == true && !installedApp.isPendingInstall
-
     val normInstalled = installedApp?.installedVersion?.trim()?.takeIf { it.isNotBlank() }
     val normSelected = state.selectedRelease?.tagName?.trim()?.takeIf { it.isNotBlank() }
+    val isUpdateAvailable =
+        installedApp?.isUpdateAvailable == true &&
+            !installedApp.isPendingInstall &&
+            normSelected != null &&
+            VersionMath.isExactSameVersion(installedApp.latestVersion, normSelected)
     val displaySelected = normSelected?.let { tag ->
         VersionMath.normalizeVersion(tag).takeIf { it.isNotBlank() } ?: tag
     }

@@ -97,6 +97,13 @@ internal fun RawDetailsState.latestStableRelease(): GithubRelease? =
         .filter { !it.isEffectivelyPreRelease() }
         .maxByOrNull { it.publishedAt }
 
+internal fun List<GithubRelease>.firstReleaseForCategory(category: ReleaseCategory): GithubRelease? =
+    when (category) {
+        ReleaseCategory.STABLE -> firstOrNull { !it.isEffectivelyPreRelease() }
+        ReleaseCategory.PRE_RELEASE -> firstOrNull { it.isEffectivelyPreRelease() }
+        ReleaseCategory.ALL -> firstOrNull()
+    }
+
 private fun RawDetailsState.computeCanSwitchToStable(latestStable: GithubRelease?): Boolean {
     val app = installedApp ?: return false
     val stable = latestStable ?: return false
