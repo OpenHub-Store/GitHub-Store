@@ -367,6 +367,8 @@ class InstalledAppsRepositoryImpl(
 
             val (matchedRelease, primaryAsset, variantWasLost) = resolved
 
+            val reconcilable =
+                VersionMath.versionsReconcilable(app.installedVersion, matchedRelease.tagName)
             val installedCode = app.installedVersionCode
             val latestCode = app.latestVersionCode
             val codesAlreadyMatch =

@@ -89,6 +89,12 @@ class VersionMathTest {
     }
 
     @Test
+    fun beta_release_comparison_detects_newer_build() {
+        assertTrue(VersionMath.isVersionNewer("3.26.16-beta.20", "3.26.16-beta.19"))
+        assertFalse(VersionMath.isVersionNewer("3.26.16-beta.19", "3.26.16-beta.20"))
+    }
+
+    @Test
     fun nightly_is_prerelease_tag() {
         assertTrue(VersionMath.isPreReleaseTag("nightly"))
         assertTrue(VersionMath.isPreReleaseTag("nightly-abc"))

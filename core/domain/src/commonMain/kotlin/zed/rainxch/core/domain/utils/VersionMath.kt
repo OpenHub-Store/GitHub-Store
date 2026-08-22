@@ -62,16 +62,6 @@ object VersionMath {
         return BUILD_VARIANT_LITERALS.contains(token)
     }
 
-    private fun isMarkerWithOpaqueSuffix(version: String): Boolean {
-        val lower = version.lowercase()
-        val marker = KNOWN_PRE_RELEASE_PREFIXES.firstOrNull { lower.startsWith(it) } ?: return false
-        val rest = lower.substring(marker.length)
-        if (rest.isEmpty()) return true
-        if (rest.first() != '-' && rest.first() != '.') return false
-        val suffix = rest.substring(1)
-        return suffix.isNotEmpty() && !suffix.all { it.isDigit() }
-    }
-
     private val BUILD_VARIANT_LITERALS =
         setOf(
 
@@ -119,31 +109,6 @@ object VersionMath {
         val aHash = a.preRelease?.let { isCommitHashPreRelease(it) } == true
         val bHash = b.preRelease?.let { isCommitHashPreRelease(it) } == true
         return aHash == bHash
-    }
-
-    fun isOpaqueMarkerPair(a: String?, b: String?): Boolean =
-        isMarkerWithOpaqueSuffix(normalizeVersion(a)) &&
-            isMarkerWithOpaqueSuffix(normalizeVersion(b))
-
-    // Whether a timestamp-tracked update (opaque markers or an unreconcilable reused
-    // tag) should still be reported as available on this scan. An update detected on a
-    // previous scan must stay surfaced until the user actually installs it: once the
-    // stored baseline timestamp equals the matched release, a pure timestamp comparison
-    // returns false, so we also retain the prior "available" flag while the matched tag
-    // still equals the stored latest tag.
-    fun shouldReportTimestampUpdate(
-        matchedTag: String?,
-        matchedPublishedAt: String?,
-        previousLatestPublishedAt: String?,
-        previousWasUpdateAvailable: Boolean,
-        previousLatestTag: String?,
-    ): Boolean {
-        val newerByTimestamp =
-            previousLatestPublishedAt != null &&
-                matchedPublishedAt != null &&
-                matchedPublishedAt > previousLatestPublishedAt
-        return newerByTimestamp ||
-            (previousWasUpdateAvailable && isExactSameVersion(matchedTag, previousLatestTag))
     }
 
     private fun isCommitHashPreRelease(preRelease: String): Boolean =
