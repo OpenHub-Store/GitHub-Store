@@ -1,5 +1,7 @@
 package zed.rainxch.details.presentation.components
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import zed.rainxch.core.presentation.utils.formatFileSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -265,8 +267,10 @@ private fun ReleaseAssetsItemsPicker(
                 assetsList.map { it.id }.toSet()
             }
             LazyColumn(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .animateContentSize(animationSpec = tween(durationMillis = 250))
+                    .heightIn(max = 420.dp),
+                contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
 
