@@ -33,6 +33,22 @@ class VersionMathTest {
     }
 
     @Test
+    fun unparseable_hash_prereleases_are_not_reconcilable() {
+        assertFalse(
+            VersionMath.versionsReconcilable(
+                "26.08.21fae85",
+                "26.08.11f15e4",
+            ),
+        )
+        assertFalse(
+            VersionMath.versionsReconcilable(
+                "26.08.ac0a687",
+                "26.08.11f15e4",
+            ),
+        )
+    }
+
+    @Test
     fun opaque_marker_detects_release_tag_alone() {
         assertTrue(VersionMath.isOpaqueMarker("nightly"))
         assertTrue(VersionMath.isOpaqueMarker("nightly-abc"))

@@ -16,6 +16,7 @@ object VersionMath {
             return deflavoured
         }
         if (isMarkerWithOpaqueSuffix(deflavoured)) return deflavoured
+        if (hasHexTailAfterNumericPrefix(deflavoured)) return deflavoured
         val match = DOTTED_DIGIT_PATTERN.find(deflavoured)
         return match?.value ?: deflavoured
     }
@@ -104,8 +105,15 @@ object VersionMath {
     // pre-release and makes the real build look older. Callers should then track by
     // release tag instead of nagging on a bogus numeric diff (GH#729).
     fun versionsReconcilable(installed: String?, latest: String?): Boolean {
-        val a = parseSemanticVersion(normalizeVersion(installed)) ?: return false
-        val b = parseSemanticVersion(normalizeVersion(latest)) ?: return false
+        val normalizedInstalled = normalizeVersion(installed)
+        val normalizedLatest = normalizeVersion(latest)
+        if (hasHexTailAfterNumericPrefix(normalizedInstalled) ||
+            hasHexTailAfterNumericPrefix(normalizedLatest)
+        ) {
+            return false
+        }
+        val a = parseSemanticVersion(normalizedInstalled) ?: return false
+        val b = parseSemanticVersion(normalizedLatest) ?: return false
         val aHash = a.preRelease?.let { isCommitHashPreRelease(it) } == true
         val bHash = b.preRelease?.let { isCommitHashPreRelease(it) } == true
         return aHash == bHash
@@ -235,6 +243,13 @@ object VersionMath {
     }
 
     private val DOTTED_DIGIT_PATTERN = Regex("""\d+(?:\.\d+)*(?:-[\w.]+)?""")
+
+    private val HEX_TAIL_AFTER_NUMERIC_PREFIX =
+        Regex("""^\d+(?:\.\d+)*[0-9a-f]{6,}$""", RegexOption.IGNORE_CASE)
+
+    private fun hasHexTailAfterNumericPrefix(version: String): Boolean =
+        HEX_TAIL_AFTER_NUMERIC_PREFIX.containsMatchIn(version) &&
+            version.any { it in 'a'..'f' || it in 'A'..'F' }
 
     private val VERSION_WORD_PREFIX =
         Regex(

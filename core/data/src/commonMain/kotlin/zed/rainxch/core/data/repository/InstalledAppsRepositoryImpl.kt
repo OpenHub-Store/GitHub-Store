@@ -393,7 +393,10 @@ class InstalledAppsRepositoryImpl(
             val opaqueMatched = VersionMath.isOpaqueMarker(matchedRelease.tagName)
             val sameTag =
                 VersionMath.isExactSameVersion(matchedRelease.tagName, app.installedVersion)
-            val usedTimestampLogic = opaqueMatched || (sameTag && !reconcilable)
+            val usedTimestampLogic =
+                opaqueMatched ||
+                    (sameTag && !reconcilable) ||
+                    (!reconcilable && matchedRelease.isEffectivelyPreRelease())
             val timestampWouldReport =
                 if (usedTimestampLogic) {
                     VersionMath.shouldReportTimestampUpdate(
