@@ -4,12 +4,6 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonTest {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)

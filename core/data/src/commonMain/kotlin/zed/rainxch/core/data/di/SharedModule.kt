@@ -141,7 +141,6 @@ val coreModule =
                 clientProvider = get(),
                 backendApiClient = get(),
                 forgejoClientRegistry = get(),
-                fileLocationsProvider = get(),
             )
         }
 

@@ -58,7 +58,6 @@ data class InstalledApp(
 
     val skippedReleaseTag: String? = null,
     val sourceHost: String? = null,
-    val lastUpdateCheckReport: String? = null,
 )
 
 fun InstalledApp?.isReallyInstalled(): Boolean = this != null && !this.isPendingInstall

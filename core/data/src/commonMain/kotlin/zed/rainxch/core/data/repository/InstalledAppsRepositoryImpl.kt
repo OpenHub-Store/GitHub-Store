@@ -31,11 +31,8 @@ import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.model.account.github.isEffectivelyPreRelease
 import zed.rainxch.core.domain.utils.AssetFilter
 import zed.rainxch.core.domain.utils.AssetVariant
-import zed.rainxch.core.data.services.FileLocationsProvider
-import zed.rainxch.core.domain.utils.UpdateCheckReport
 import zed.rainxch.core.domain.utils.UpdateVerdict
 import zed.rainxch.core.domain.utils.VersionMath
-import java.io.File
 
 class InstalledAppsRepositoryImpl(
     private val database: AppDatabase,
@@ -45,7 +42,6 @@ class InstalledAppsRepositoryImpl(
     private val clientProvider: GitHubClientProvider,
     private val backendApiClient: zed.rainxch.core.data.network.BackendApiClient,
     private val forgejoClientRegistry: zed.rainxch.core.data.network.ForgejoClientRegistry,
-    private val fileLocationsProvider: FileLocationsProvider,
 ) : InstalledAppsRepository {
 
     private val httpClient: HttpClient get() = clientProvider.client
@@ -283,18 +279,7 @@ class InstalledAppsRepositoryImpl(
         val app = installedAppsDao.getAppByPackage(packageName) ?: return false
 
         if (!app.updateCheckEnabled) {
-            persistCheckReport(
-                packageName = packageName,
-                report = baseReport(
-                    app = app,
-                    usedTimestampLogic = false,
-                    branch = "disabled",
-                    reason = "update_check_disabled",
-                    windowSource = "skipped",
-                    windowSize = 0,
-                ),
-                keepMetadata = true,
-            )
+            Logger.d { "[UPDATE-CHECK] $packageName disabled -> branch=disabled reason=update_check_disabled" }
             return false
         }
 
@@ -309,18 +294,10 @@ class InstalledAppsRepositoryImpl(
             val releases = window.releases
 
             if (releases.isEmpty()) {
-                persistCheckReport(
-                    packageName = packageName,
-                    report = baseReport(
-                        app = app,
-                        usedTimestampLogic = false,
-                        branch = "empty_window",
-                        reason = "no_releases_in_window",
-                        windowSource = window.source,
-                        windowSize = 0,
-                    ),
-                    keepMetadata = false,
-                )
+                Logger.i {
+                    "[UPDATE-CHECK] $packageName branch=empty_window reason=no_releases_in_window " +
+                        "windowSource=${window.source} windowSize=0"
+                }
                 return false
             }
 
@@ -351,18 +328,11 @@ class InstalledAppsRepositoryImpl(
                     "No matching release found for ${app.appName} in window of ${releases.size}; " +
                             "filter=${app.assetFilterRegex}, fallback=${app.fallbackToOlderReleases}"
                 }
-                persistCheckReport(
-                    packageName = packageName,
-                    report = baseReport(
-                        app = app,
-                        usedTimestampLogic = false,
-                        branch = "no_match",
-                        reason = "no_matching_release",
-                        windowSource = window.source,
-                        windowSize = releases.size,
-                    ),
-                    keepMetadata = false,
-                )
+                Logger.i {
+                    "[UPDATE-CHECK] ${app.appName} $packageName branch=no_match " +
+                        "reason=no_matching_release windowSource=${window.source} " +
+                        "windowSize=${releases.size}"
+                }
                 return false
             }
 
@@ -395,29 +365,27 @@ class InstalledAppsRepositoryImpl(
             val branch = verdict.branch
             val reason = verdict.reason
 
-            val report =
-                UpdateCheckReport(
-                    usedTimestampLogic = usedTimestampLogic,
-                    branch = branch,
-                    reason = reason,
-                    windowSource = window.source,
-                    windowSize = releases.size,
-                    includePreReleases = app.includePreReleases,
-                    opaqueMatched = opaqueMatched,
-                    sameTag = sameTag,
-                    reconcilable = reconcilable,
-                    installedTag = app.installedVersion,
-                    matchedTag = matchedRelease.tagName,
-                    matchedAssetName = primaryAsset.name,
-                    matchedAssetUrl = primaryAsset.downloadUrl,
-                    storedPublishedAt = app.latestReleasePublishedAt,
-                    matchedPublishedAt = matchedRelease.publishedAt,
-                    codesAlreadyMatch = codesAlreadyMatch,
-                    isUpdate = isUpdateAvailable,
-                )
-            val reportText = report.format()
-            writeCheckReportFile(packageName, app.appName, reportText)
-            Logger.i { "[NIGHTLY-CHECK] ${app.appName} $packageName\n$reportText" }
+            val reportText =
+                listOf(
+                    "usedTimestampLogic=$usedTimestampLogic",
+                    "branch=$branch",
+                    "reason=$reason",
+                    "windowSource=${window.source}",
+                    "windowSize=${releases.size}",
+                    "includePreReleases=${app.includePreReleases}",
+                    "opaqueMatched=$opaqueMatched",
+                    "sameTag=$sameTag",
+                    "reconcilable=$reconcilable",
+                    "installedTag=${app.installedVersion}",
+                    "matchedTag=${matchedRelease.tagName}",
+                    "matchedAssetName=${primaryAsset.name}",
+                    "matchedAssetUrl=${primaryAsset.downloadUrl}",
+                    "storedPublishedAt=${app.latestReleasePublishedAt}",
+                    "matchedPublishedAt=${matchedRelease.publishedAt}",
+                    "codesAlreadyMatch=$codesAlreadyMatch",
+                    "isUpdate=$isUpdateAvailable",
+                ).joinToString("\n")
+            Logger.i { "[UPDATE-CHECK] ${app.appName} $packageName\n$reportText" }
 
             val resolvedLatestVersionCode =
                 if (matchedRelease.tagName == app.latestVersion) app.latestVersionCode else null
@@ -434,7 +402,6 @@ class InstalledAppsRepositoryImpl(
                 latestVersionName = matchedRelease.tagName,
                 latestVersionCode = resolvedLatestVersionCode,
                 latestReleasePublishedAt = matchedRelease.publishedAt,
-                lastUpdateCheckReport = reportText,
             )
 
             if (UpdateVerdict.mayRewriteInstalledTag(verdict) &&
@@ -458,91 +425,9 @@ class InstalledAppsRepositoryImpl(
             throw e
         } catch (e: Exception) {
             Logger.e { "Failed to check updates for $packageName: ${e.message}" }
-            persistCheckReport(
-                packageName = packageName,
-                report = baseReport(
-                    app = app,
-                    usedTimestampLogic = false,
-                    branch = "error",
-                    reason = e.message ?: "check_failed",
-                    windowSource = "exception",
-                    windowSize = 0,
-                ),
-                keepMetadata = true,
-            )
         }
 
         return false
-    }
-
-    private fun baseReport(
-        app: zed.rainxch.core.data.local.db.entities.InstalledAppEntity,
-        usedTimestampLogic: Boolean,
-        branch: String,
-        reason: String,
-        windowSource: String,
-        windowSize: Int,
-        matchedTag: String? = null,
-        matchedAssetName: String? = null,
-        matchedAssetUrl: String? = null,
-        matchedPublishedAt: String? = null,
-        opaqueMatched: Boolean = false,
-        sameTag: Boolean = false,
-        reconcilable: Boolean = false,
-        codesAlreadyMatch: Boolean = false,
-        isUpdate: Boolean = false,
-    ): UpdateCheckReport =
-        UpdateCheckReport(
-            usedTimestampLogic = usedTimestampLogic,
-            branch = branch,
-            reason = reason,
-            windowSource = windowSource,
-            windowSize = windowSize,
-            includePreReleases = app.includePreReleases,
-            opaqueMatched = opaqueMatched,
-            sameTag = sameTag,
-            reconcilable = reconcilable,
-            installedTag = app.installedVersion,
-            matchedTag = matchedTag,
-            matchedAssetName = matchedAssetName,
-            matchedAssetUrl = matchedAssetUrl,
-            storedPublishedAt = app.latestReleasePublishedAt,
-            matchedPublishedAt = matchedPublishedAt,
-            codesAlreadyMatch = codesAlreadyMatch,
-            isUpdate = isUpdate,
-        )
-
-    private suspend fun persistCheckReport(
-        packageName: String,
-        report: UpdateCheckReport,
-        keepMetadata: Boolean,
-    ) {
-        val reportText = report.format()
-        writeCheckReportFile(packageName, packageName, reportText)
-        Logger.i { "[NIGHTLY-CHECK] $packageName\n$reportText" }
-        val now = System.currentTimeMillis()
-        if (keepMetadata) {
-            installedAppsDao.updateLastCheckedWithReport(packageName, now, reportText)
-        } else {
-            installedAppsDao.clearUpdateMetadata(packageName, now, reportText)
-        }
-    }
-
-    private fun writeCheckReportFile(
-        packageName: String,
-        appName: String,
-        reportText: String,
-    ) {
-        try {
-            val dir = File(fileLocationsProvider.appDownloadsDir(), "nightly-check")
-            if (!dir.exists()) dir.mkdirs()
-            val safeName = packageName.replace(Regex("[^A-Za-z0-9._-]"), "_")
-            val file = File(dir, "$safeName.txt")
-            file.writeText("$appName\n$packageName\n$reportText\n")
-            Logger.i { "[NIGHTLY-CHECK] wrote ${file.absolutePath}" }
-        } catch (t: Throwable) {
-            Logger.w { "[NIGHTLY-CHECK] failed to write report file: ${t.message}" }
-        }
     }
 
     override suspend fun checkAllForUpdates() {

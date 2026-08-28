@@ -62,8 +62,7 @@ interface InstalledAppDao {
         lastCheckedAt = :timestamp,
         latestVersionName = :latestVersionName,
         latestVersionCode = :latestVersionCode,
-        latestReleasePublishedAt = :latestReleasePublishedAt,
-        lastUpdateCheckReport = :lastUpdateCheckReport
+        latestReleasePublishedAt = :latestReleasePublishedAt
     WHERE packageName = :packageName
 """,
     )
@@ -79,7 +78,6 @@ interface InstalledAppDao {
         latestVersionName: String?,
         latestVersionCode: Long?,
         latestReleasePublishedAt: String?,
-        lastUpdateCheckReport: String?,
     )
 
     @Query("UPDATE installed_apps SET includePreReleases = :enabled WHERE packageName = :packageName")
@@ -139,20 +137,6 @@ interface InstalledAppDao {
     suspend fun updateLastChecked(
         packageName: String,
         timestamp: Long,
-    )
-
-    @Query(
-        """
-        UPDATE installed_apps
-           SET lastCheckedAt = :timestamp,
-               lastUpdateCheckReport = :report
-         WHERE packageName = :packageName
-        """,
-    )
-    suspend fun updateLastCheckedWithReport(
-        packageName: String,
-        timestamp: Long,
-        report: String?,
     )
 
     @Query(
@@ -223,14 +207,12 @@ interface InstalledAppDao {
                latestVersionCode = NULL,
                latestReleasePublishedAt = NULL,
                releaseNotes = NULL,
-               lastCheckedAt = :timestamp,
-               lastUpdateCheckReport = :lastUpdateCheckReport
+               lastCheckedAt = :timestamp
          WHERE packageName = :packageName
         """,
     )
     suspend fun clearUpdateMetadata(
         packageName: String,
         timestamp: Long,
-        lastUpdateCheckReport: String? = null,
     )
 }

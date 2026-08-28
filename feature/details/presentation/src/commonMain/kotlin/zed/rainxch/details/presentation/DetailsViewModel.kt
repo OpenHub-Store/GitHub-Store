@@ -857,9 +857,14 @@ class DetailsViewModel(
                         sourceHost = sourceHostParam,
                     )
 
-                val byPrevCategory = releases.firstReleaseForCategory(prevCategory)
+                val byPrevCategory = when (prevCategory) {
+                    ReleaseCategory.STABLE -> releases.firstOrNull { !it.isEffectivelyPreRelease() }
+                    ReleaseCategory.PRE_RELEASE -> releases.firstOrNull { it.isEffectivelyPreRelease() }
+                    ReleaseCategory.ALL -> releases.firstOrNull()
+                }
                 val selected = byPrevCategory
-                    ?: releases.firstReleaseForCategory(ReleaseCategory.STABLE)
+                    ?: releases.firstOrNull { !it.isEffectivelyPreRelease() }
+                    ?: releases.firstOrNull()
 
                 val resolvedCategory = when {
                     byPrevCategory != null -> prevCategory
@@ -1117,8 +1122,13 @@ class DetailsViewModel(
 
     private fun selectReleaseCategory(action: DetailsAction.SelectReleaseCategory) {
         val newCategory = action.category
-        val newSelected =
-            _state.value.allReleases.firstReleaseForCategory(newCategory)
+        val filtered =
+            when (newCategory) {
+                ReleaseCategory.STABLE -> _state.value.allReleases.filter { !it.isEffectivelyPreRelease() }
+                ReleaseCategory.PRE_RELEASE -> _state.value.allReleases.filter { it.isEffectivelyPreRelease() }
+                ReleaseCategory.ALL -> _state.value.allReleases
+            }
+        val newSelected = filtered.firstOrNull()
         val (installable, primary) = recomputeAssetsForRelease(newSelected)
 
         whatsNewTranslationJob?.cancel()
@@ -2470,7 +2480,8 @@ class DetailsViewModel(
                 }
 
                 val selectedRelease =
-                    allReleases.firstReleaseForCategory(ReleaseCategory.STABLE)
+                    allReleases.firstOrNull { !it.isEffectivelyPreRelease() }
+                        ?: allReleases.firstOrNull()
 
                 val (installable, primary) = recomputeAssetsForRelease(
                     selectedRelease,
@@ -2630,8 +2641,8 @@ class DetailsViewModel(
                 }
                 val selectedRelease = freshReleases?.let { list ->
                     carried
-                        ?: list.firstReleaseForCategory(previousCategory)
-                        ?: list.firstReleaseForCategory(ReleaseCategory.STABLE)
+                        ?: list.firstOrNull { !it.isEffectivelyPreRelease() }
+                        ?: list.firstOrNull()
                 } ?: previousSelected
 
                 val resolvedCategory = when {
