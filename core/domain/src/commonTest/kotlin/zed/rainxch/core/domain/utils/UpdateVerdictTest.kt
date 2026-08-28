@@ -191,6 +191,24 @@ class UpdateVerdictTest {
     // ── skipped tag ──────────────────────────────────────────────────────
 
     @Test
+    fun skipped_nightly_stays_skipped_when_republished() {
+        // A skipped opaque tag must not be re-offered just because CI recreated
+        // the release with a newer publishedAt — the skip rule wins.
+        val result =
+            decide(
+                installedTag = "nightly",
+                matchedTag = "nightly",
+                skippedTag = "nightly",
+                matchedPublishedAt = "2026-08-02T00:00:00Z",
+                storedPublishedAt = "2026-08-01T00:00:00Z",
+                matchedIsPrerelease = true,
+            )
+        assertEquals("skipped", result.branch)
+        assertEquals("matches_skipped_tag", result.reason)
+        assertFalse(result.isUpdateAvailable)
+    }
+
+    @Test
     fun skipped_tag_is_silent() {
         val result = decide(skippedTag = "1.1.0", matchedTag = "1.1.0")
         assertEquals("skipped", result.branch)

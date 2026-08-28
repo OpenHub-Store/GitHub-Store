@@ -71,6 +71,11 @@ object UpdateVerdict {
 
         val (branch, reason, isUpdateAvailable) =
             when {
+                // A release the user deliberately skipped must never be re-offered,
+                // including an opaque nightly tag that CI re-publishes. It is cleared
+                // again only by a strictly newer release (skipBecameStale).
+                matchesSkipped ->
+                    Triple("skipped", "matches_skipped_tag", false)
                 usedTimestampLogic ->
                     Triple(
                         "timestamp",
@@ -84,8 +89,6 @@ object UpdateVerdict {
                     )
                 codesAlreadyMatch ->
                     Triple("codes_match", "codes_already_match", false)
-                matchesSkipped ->
-                    Triple("skipped", "matches_skipped_tag", false)
                 !reconcilable ->
                     Triple("irreconcilable", "versions_not_reconcilable", false)
                 else -> {

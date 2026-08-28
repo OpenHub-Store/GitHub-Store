@@ -2630,8 +2630,8 @@ class DetailsViewModel(
                 }
                 val selectedRelease = freshReleases?.let { list ->
                     carried
-                        ?: list.firstOrNull { !it.isEffectivelyPreRelease() }
-                        ?: list.firstOrNull()
+                        ?: list.firstReleaseForCategory(previousCategory)
+                        ?: list.firstReleaseForCategory(ReleaseCategory.STABLE)
                 } ?: previousSelected
 
                 val resolvedCategory = when {

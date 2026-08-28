@@ -245,7 +245,7 @@ object VersionMath {
     private val DOTTED_DIGIT_PATTERN = Regex("""\d+(?:\.\d+)*(?:-[\w.]+)?""")
 
     private val HEX_TAIL_AFTER_NUMERIC_PREFIX =
-        Regex("""^\d+(?:\.\d+)*[0-9a-f]{6,}$""", RegexOption.IGNORE_CASE)
+        Regex("""^\d+(?:\.\d+)*(?:\.)?[0-9a-f]{6,}$""", RegexOption.IGNORE_CASE)
 
     private fun hasHexTailAfterNumericPrefix(version: String): Boolean =
         HEX_TAIL_AFTER_NUMERIC_PREFIX.containsMatchIn(version) &&
