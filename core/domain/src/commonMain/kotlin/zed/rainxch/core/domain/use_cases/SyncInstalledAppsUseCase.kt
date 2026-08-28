@@ -254,6 +254,9 @@ class SyncInstalledAppsUseCase(
 
     private suspend fun syncVersion(app: InstalledApp, systemInfo: SystemPackageInfo?) {
         try {
+            // installedVersion is the GitHub release tag and is owned by install
+            // events only. External install sync must never touch it — it only
+            // refreshes the versionName/versionCode observed from the system.
             if (systemInfo != null && systemInfo.versionCode != app.installedVersionCode) {
                 val wasDowngrade = systemInfo.versionCode < app.installedVersionCode
                 val latestVersionCode = app.latestVersionCode ?: 0L
@@ -263,7 +266,6 @@ class SyncInstalledAppsUseCase(
                     app.copy(
                         installedVersionName = systemInfo.versionName,
                         installedVersionCode = systemInfo.versionCode,
-                        installedVersion = systemInfo.versionName,
                         isUpdateAvailable = isUpdateAvailable,
                     ),
                 )

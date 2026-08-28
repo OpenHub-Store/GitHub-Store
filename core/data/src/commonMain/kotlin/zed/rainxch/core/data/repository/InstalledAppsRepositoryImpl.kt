@@ -33,6 +33,7 @@ import zed.rainxch.core.domain.utils.AssetFilter
 import zed.rainxch.core.domain.utils.AssetVariant
 import zed.rainxch.core.data.services.FileLocationsProvider
 import zed.rainxch.core.domain.utils.UpdateCheckReport
+import zed.rainxch.core.domain.utils.UpdateVerdict
 import zed.rainxch.core.domain.utils.VersionMath
 import java.io.File
 
@@ -367,80 +368,32 @@ class InstalledAppsRepositoryImpl(
 
             val (matchedRelease, primaryAsset, variantWasLost) = resolved
 
-            val reconcilable =
-                VersionMath.versionsReconcilable(app.installedVersion, matchedRelease.tagName)
-            val installedCode = app.installedVersionCode
-            val latestCode = app.latestVersionCode
-            val codesAlreadyMatch =
-                installedCode > 0L &&
-                        latestCode != null &&
-                        latestCode > 0L &&
-                        installedCode == latestCode &&
-                        matchedRelease.tagName == app.latestVersion
+            val verdict =
+                UpdateVerdict.decide(
+                    installedTag = app.installedVersion,
+                    installedVersionCode = app.installedVersionCode,
+                    storedLatestTag = app.latestVersion,
+                    storedLatestVersionCode = app.latestVersionCode,
+                    storedPublishedAt = app.latestReleasePublishedAt,
+                    wasUpdateAvailable = app.isUpdateAvailable,
+                    skippedTag = app.skippedReleaseTag,
+                    matchedTag = matchedRelease.tagName,
+                    matchedPublishedAt = matchedRelease.publishedAt,
+                    matchedIsPrerelease = matchedRelease.isPrerelease,
+                )
 
-            val skippedTag = app.skippedReleaseTag
-            val matchesSkipped =
-                skippedTag != null &&
-                        VersionMath.isExactSameVersion(matchedRelease.tagName, skippedTag)
-            val skipBecameStale =
-                skippedTag != null &&
-                        !matchesSkipped &&
-                        VersionMath.isVersionNewer(matchedRelease.tagName, skippedTag)
-            if (skipBecameStale) {
+            if (verdict.skipBecameStale) {
                 installedAppsDao.setSkippedReleaseTag(packageName, null)
             }
 
-            val opaqueMatched = VersionMath.isOpaqueMarker(matchedRelease.tagName)
-            val sameTag =
-                VersionMath.isExactSameVersion(matchedRelease.tagName, app.installedVersion)
-            val usedTimestampLogic =
-                opaqueMatched ||
-                    (sameTag && !reconcilable) ||
-                    (!reconcilable && matchedRelease.isEffectivelyPreRelease())
-            val timestampWouldReport =
-                if (usedTimestampLogic) {
-                    VersionMath.shouldReportTimestampUpdate(
-                        matchedTag = matchedRelease.tagName,
-                        matchedPublishedAt = matchedRelease.publishedAt,
-                        previousLatestPublishedAt = app.latestReleasePublishedAt,
-                        previousWasUpdateAvailable = app.isUpdateAvailable,
-                        previousLatestTag = app.latestVersion,
-                    )
-                } else {
-                    false
-                }
-            val (branch, reason, isUpdateAvailable) =
-                when {
-                    usedTimestampLogic ->
-                        Triple(
-                            "timestamp",
-                            timestampReason(
-                                isUpdate = timestampWouldReport,
-                                matchedPublishedAt = matchedRelease.publishedAt,
-                                storedPublishedAt = app.latestReleasePublishedAt,
-                                previousWasUpdateAvailable = app.isUpdateAvailable,
-                            ),
-                            timestampWouldReport,
-                        )
-                    codesAlreadyMatch ->
-                        Triple("codes_match", "codes_already_match", false)
-                    matchesSkipped ->
-                        Triple("skipped", "matches_skipped_tag", false)
-                    !reconcilable ->
-                        Triple("irreconcilable", "versions_not_reconcilable", false)
-                    else -> {
-                        val newer =
-                            VersionMath.isVersionNewer(
-                                candidate = matchedRelease.tagName,
-                                current = app.installedVersion,
-                            )
-                        Triple(
-                            "semver",
-                            if (newer) "semver_newer" else "semver_not_newer",
-                            newer,
-                        )
-                    }
-                }
+            val reconcilable = verdict.reconcilable
+            val opaqueMatched = verdict.opaqueMatched
+            val sameTag = verdict.sameTag
+            val usedTimestampLogic = verdict.usedTimestampLogic
+            val codesAlreadyMatch = verdict.codesAlreadyMatch
+            val isUpdateAvailable = verdict.isUpdateAvailable
+            val branch = verdict.branch
+            val reason = verdict.reason
 
             val report =
                 UpdateCheckReport(
@@ -484,14 +437,14 @@ class InstalledAppsRepositoryImpl(
                 lastUpdateCheckReport = reportText,
             )
 
-            if ((codesAlreadyMatch || (!reconcilable && !opaqueMatched && !sameTag && !isUpdateAvailable)) &&
+            if (UpdateVerdict.mayRewriteInstalledTag(verdict) &&
                 app.installedVersion != matchedRelease.tagName
             ) {
                 installedAppsDao.updateInstalledVersion(
                     packageName = packageName,
                     installedVersion = matchedRelease.tagName,
                     installedVersionName = app.installedVersionName,
-                    installedVersionCode = installedCode,
+                    installedVersionCode = app.installedVersionCode,
                     isUpdateAvailable = false,
                 )
             }
@@ -591,24 +544,6 @@ class InstalledAppsRepositoryImpl(
             Logger.w { "[NIGHTLY-CHECK] failed to write report file: ${t.message}" }
         }
     }
-
-    private fun timestampReason(
-        isUpdate: Boolean,
-        matchedPublishedAt: String?,
-        storedPublishedAt: String?,
-        previousWasUpdateAvailable: Boolean,
-    ): String =
-        when {
-            isUpdate && storedPublishedAt == null -> "timestamp_first_scan_null_baseline"
-            isUpdate && matchedPublishedAt != null &&
-                storedPublishedAt != null &&
-                matchedPublishedAt > storedPublishedAt -> "timestamp_newer"
-            isUpdate && previousWasUpdateAvailable -> "timestamp_retained"
-            matchedPublishedAt == null -> "timestamp_matched_published_at_null"
-            storedPublishedAt != null && matchedPublishedAt <= storedPublishedAt ->
-                "timestamp_not_newer"
-            else -> "timestamp_false"
-        }
 
     override suspend fun checkAllForUpdates() {
         val apps = installedAppsDao.getAllInstalledApps().first()

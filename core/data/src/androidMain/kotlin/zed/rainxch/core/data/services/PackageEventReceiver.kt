@@ -255,7 +255,7 @@ class PackageEventReceiver() :
 
         repo.updateInstalledVersion(
             packageName = packageName,
-            installedVersion = systemInfo.versionName,
+            installedVersion = app.installedVersion,
             installedVersionName = systemInfo.versionName,
             installedVersionCode = systemInfo.versionCode,
             isUpdateAvailable = newIsUpdateAvailable,
