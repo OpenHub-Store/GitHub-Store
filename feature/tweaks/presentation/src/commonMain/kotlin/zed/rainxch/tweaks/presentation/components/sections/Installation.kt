@@ -309,7 +309,10 @@ private fun RootActions(availability: RootAvailability, onRequest: () -> Unit) {
     when (availability) {
         RootAvailability.PERMISSION_NEEDED ->
             ActionButton(stringResource(Res.string.root_grant_permission), onRequest)
-        RootAvailability.UNAVAILABLE -> HintRow(stringResource(Res.string.root_unavailable_hint))
+        RootAvailability.UNAVAILABLE -> {
+            HintRow(stringResource(Res.string.root_unavailable_hint))
+            ActionButton(stringResource(Res.string.retry), onRequest)
+        }
         RootAvailability.READY -> Unit
     }
 }

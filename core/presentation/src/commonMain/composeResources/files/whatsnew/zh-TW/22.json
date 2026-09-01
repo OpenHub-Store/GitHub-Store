@@ -9,6 +9,12 @@
       "bullets": [
         "現已支援繁體中文 — 隨時可在「設定 → 語言」中切換。"
       ]
+    },
+    {
+      "type": "FIXED",
+      "bullets": [
+        "Root 安裝現已支援以 KernelSU 為基礎的管理器，例如 SukiSU Ultra 與 APatch — 系統會正確重新偵測 Root 權限，若首次授權未生效也可再次嘗試。"
+      ]
     }
   ]
 }

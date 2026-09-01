@@ -49,6 +49,7 @@ class RootServiceManager(
         configureDefaultShell()
         scope.launch(Dispatchers.IO) {
             Logger.d(TAG) { "requestPermission() — forcing main shell creation" }
+            dropStaleNonRootShell()
             try {
                 val shell = Shell.getShell()
                 Logger.d(TAG) { "requestPermission() — shell rootStatus=${shell.status}" }
@@ -56,6 +57,23 @@ class RootServiceManager(
                 Logger.w(TAG) { "requestPermission() — getShell failed: ${e.javaClass.simpleName}: ${e.message}" }
             }
             refreshStatusBlocking()
+        }
+    }
+
+    // libsu caches the main shell and only rebuilds it once it dies (status < 0). A non-root
+    // shell stays cached at status 0, so a single failed probe makes Shell.getShell() keep
+    // returning that non-root shell forever — retry becomes impossible without killing the
+    // process. kprobe-based su managers (KernelSU / SukiSU / APatch) can transiently deny the
+    // first probe (grant prompt timeout, app profile not yet applied), so we close a stale
+    // non-root shell here to force libsu to re-exec `su` on the next getShell() (GH#693).
+    private fun dropStaleNonRootShell() {
+        try {
+            Shell.getCachedShell()?.takeIf { !it.isRoot }?.let {
+                Logger.d(TAG) { "dropStaleNonRootShell() — closing cached non-root shell to force re-probe" }
+                it.close()
+            }
+        } catch (e: Exception) {
+            Logger.w(TAG) { "dropStaleNonRootShell() — close failed: ${e.message}" }
         }
     }
 
@@ -192,7 +210,7 @@ class RootServiceManager(
         private const val KEY_GRANTED_BEFORE = "root_granted_before"
         private const val STATUS_SUCCESS = 0
         private const val STATUS_FAILURE = -1
-        private const val SHELL_TIMEOUT_SECONDS = 10L
+        private const val SHELL_TIMEOUT_SECONDS = 20L
 
         private val PACKAGE_NAME_PATTERN =
             Regex("""^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$""")

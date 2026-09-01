@@ -9,6 +9,12 @@
       "bullets": [
         "Traditional Chinese (繁體中文) is now available — switch to it anytime under Tweaks → Language."
       ]
+    },
+    {
+      "type": "FIXED",
+      "bullets": [
+        "Root install now works with KernelSU-based managers like SukiSU Ultra and APatch — root is re-checked properly and you can retry granting access if the first attempt doesn't take."
+      ]
     }
   ]
 }
