@@ -25,14 +25,23 @@ import zed.rainxch.core.domain.model.account.github.GithubAsset
 import zed.rainxch.core.domain.model.account.github.GithubRelease
 import zed.rainxch.core.domain.model.installation.InstallSource
 import zed.rainxch.core.domain.model.installation.InstalledApp
+import zed.rainxch.core.domain.model.installation.clearPending
+import zed.rainxch.core.domain.model.installation.confirmInstall
+import zed.rainxch.core.domain.model.installation.markPending
 import zed.rainxch.core.domain.model.smart_detect.MatchingPreview
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.model.account.github.isEffectivelyPreRelease
 import zed.rainxch.core.domain.utils.AssetFilter
 import zed.rainxch.core.domain.utils.AssetVariant
+import zed.rainxch.core.data.services.FileLocationsProvider
 import zed.rainxch.core.domain.utils.UpdateVerdict
 import zed.rainxch.core.domain.utils.VersionMath
+import java.io.File
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 class InstalledAppsRepositoryImpl(
     private val database: AppDatabase,
@@ -42,6 +51,7 @@ class InstalledAppsRepositoryImpl(
     private val clientProvider: GitHubClientProvider,
     private val backendApiClient: zed.rainxch.core.data.network.BackendApiClient,
     private val forgejoClientRegistry: zed.rainxch.core.data.network.ForgejoClientRegistry,
+    private val fileLocationsProvider: FileLocationsProvider,
 ) : InstalledAppsRepository {
 
     private val httpClient: HttpClient get() = clientProvider.client
@@ -49,6 +59,7 @@ class InstalledAppsRepositoryImpl(
     private companion object {
 
         const val RELEASE_WINDOW = 50
+        const val MAX_CHECK_LOG_BYTES = 262_144
     }
 
     override suspend fun <R> executeInTransaction(block: suspend () -> R): R =
@@ -298,6 +309,7 @@ class InstalledAppsRepositoryImpl(
                     "[UPDATE-CHECK] $packageName branch=empty_window reason=no_releases_in_window " +
                         "windowSource=${window.source} windowSize=0"
                 }
+                appendCheckLog(packageName, null, "-")
                 return false
             }
 
@@ -333,6 +345,7 @@ class InstalledAppsRepositoryImpl(
                         "reason=no_matching_release windowSource=${window.source} " +
                         "windowSize=${releases.size}"
                 }
+                appendCheckLog(packageName, null, "-")
                 return false
             }
 
@@ -420,11 +433,14 @@ class InstalledAppsRepositoryImpl(
                 installedAppsDao.updateVariantStaleness(packageName, variantWasLost)
             }
 
+            appendCheckLog(packageName, matchedRelease.publishedAt, if (isUpdateAvailable) "1" else "0")
+
             return isUpdateAvailable
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Logger.e { "Failed to check updates for $packageName: ${e.message}" }
+            appendCheckLog(packageName, null, "E")
         }
 
         return false
@@ -475,32 +491,21 @@ class InstalledAppsRepositoryImpl(
             ),
         )
 
-        val snapshotLatestVersion = app.latestVersion
-        val isUpdateStillAvailable =
-            !snapshotLatestVersion.isNullOrBlank() &&
-                    VersionMath.isVersionNewer(snapshotLatestVersion, newTag)
+        appendCheckLog(packageName, app.latestReleasePublishedAt, "I")
 
         installedAppsDao.updateApp(
-            app.copy(
-                installedVersion = newTag,
-                installedAssetName = newAssetName,
-                installedAssetUrl = newAssetUrl,
-                installedVersionName = newVersionName,
-                installedVersionCode = newVersionCode,
-                isUpdateAvailable = isUpdateStillAvailable,
-                latestVersionCode = if (isUpdateStillAvailable) app.latestVersionCode else newVersionCode,
-                isPendingInstall = isPendingInstall,
-                lastUpdatedAt = System.currentTimeMillis(),
-                lastCheckedAt = System.currentTimeMillis(),
-                signingFingerprint = signingFingerprint,
-
-                pendingInstallFilePath =
-                    if (isPendingInstall) app.pendingInstallFilePath else null,
-                pendingInstallVersion =
-                    if (isPendingInstall) app.pendingInstallVersion else null,
-                pendingInstallAssetName =
-                    if (isPendingInstall) app.pendingInstallAssetName else null,
-            ),
+            app.toDomain()
+                .confirmInstall(
+                    tag = newTag,
+                    assetName = newAssetName,
+                    assetUrl = newAssetUrl,
+                    versionName = newVersionName,
+                    versionCode = newVersionCode,
+                    signingFingerprint = signingFingerprint,
+                    isPending = isPendingInstall,
+                    at = System.currentTimeMillis(),
+                )
+                .toEntity(),
         )
     }
 
@@ -529,7 +534,11 @@ class InstalledAppsRepositoryImpl(
         isPending: Boolean,
     ) {
         val app = installedAppsDao.getAppByPackage(packageName) ?: return
-        installedAppsDao.updateApp(app.copy(isPendingInstall = isPending))
+        installedAppsDao.updateApp(
+            app.toDomain()
+                .let { if (isPending) it.markPending() else it.clearPending() }
+                .toEntity(),
+        )
     }
 
     override suspend fun setIncludePreReleases(
@@ -722,4 +731,39 @@ class InstalledAppsRepositoryImpl(
             emptyList()
         }
     }
+
+    // Debug trace, one line per check. Format:
+    //   <packageName> <release publishedAt|-> <device-local check time> <flag>
+    // Flags: 1 = judged as update, 0 = checked but not an update, I = installed,
+    //        - = ran but nothing matched, E = check threw.
+    // Appended to {appDownloadsDir}/update-check.log. Debug-only: never read by
+    // app logic, never surfaced in the UI.
+    private fun appendCheckLog(
+        packageName: String,
+        releaseTimestamp: String?,
+        flag: String,
+    ) {
+        try {
+            val dir = File(fileLocationsProvider.appDownloadsDir())
+            if (!dir.exists() && !dir.mkdirs()) return
+            val file = File(dir, "update-check.log")
+            if (file.length() > MAX_CHECK_LOG_BYTES) file.writeText("")
+            val stamp = releaseTimestamp?.takeIf { it.isNotBlank() } ?: "-"
+            file.appendText("$packageName $stamp ${localNow()} $flag\n")
+        } catch (t: Throwable) {
+            Logger.w { "update-check log write failed: ${t.message}" }
+        }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun localNow(): String =
+        try {
+            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            val h = now.hour.toString().padStart(2, '0')
+            val m = now.minute.toString().padStart(2, '0')
+            val s = now.second.toString().padStart(2, '0')
+            "${now.date} $h:$m:$s"
+        } catch (t: Throwable) {
+            System.currentTimeMillis().toString()
+        }
 }
