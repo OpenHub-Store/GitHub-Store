@@ -298,12 +298,11 @@ private fun StarredTopBar(
         },
         actions = {
             if (isSyncing) {
-                KomiCircularProgress(
-                    modifier =
-                        Modifier
-                            .size(24.dp)
-                            .padding(end = 12.dp),
-                )
+                Box(modifier = Modifier.padding(end = 12.dp)) {
+                    KomiCircularProgress(
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
             }
 
             if (hasRepos) {
