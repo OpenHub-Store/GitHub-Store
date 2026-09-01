@@ -21,6 +21,8 @@ import zed.rainxch.core.data.services.UpdateScheduler
 import zed.rainxch.core.domain.logging.KomiStoreLogger
 import zed.rainxch.core.domain.model.installation.InstallSource
 import zed.rainxch.core.domain.model.installation.InstalledApp
+import zed.rainxch.core.domain.model.installation.normalizeInstalledTag
+import zed.rainxch.core.domain.model.installation.resolvePendingFromSystem
 import zed.rainxch.core.domain.repository.ExternalImportRepository
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.repository.ProxyRepository
@@ -266,10 +268,7 @@ class GithubStoreApp : Application() {
             val systemInfo = packageMonitor.getInstalledPackageInfo(packageName) ?: return
             if (systemInfo.versionCode != existing.installedVersionCode) return
             repo.updateApp(
-                existing.copy(
-                    installedVersion = latestTag,
-                    isUpdateAvailable = false,
-                ),
+                existing.normalizeInstalledTag(latestTag),
             )
             Logger.i { "Normalized stale self installedVersion tag to $latestTag" }
         } catch (e: Exception) {
@@ -285,16 +284,12 @@ class GithubStoreApp : Application() {
             val packageMonitor = get<PackageMonitor>()
             val systemInfo = packageMonitor.getInstalledPackageInfo(packageName)
             if (systemInfo != null) {
-                val latestVersionCode = existing.latestVersionCode ?: 0L
-
                 val resolvedTag = existing.latestVersion ?: systemInfo.versionName
                 repo.updateApp(
-                    existing.copy(
-                        isPendingInstall = false,
-                        installedVersion = resolvedTag,
-                        installedVersionName = systemInfo.versionName,
-                        installedVersionCode = systemInfo.versionCode,
-                        isUpdateAvailable = latestVersionCode > systemInfo.versionCode,
+                    existing.resolvePendingFromSystem(
+                        resolvedTag = resolvedTag,
+                        versionName = systemInfo.versionName,
+                        versionCode = systemInfo.versionCode,
                     ),
                 )
                 Logger.i {

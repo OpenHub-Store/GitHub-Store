@@ -26,6 +26,8 @@ import zed.rainxch.core.data.services.shizuku.ShizukuServiceManager
 import zed.rainxch.core.data.services.shizuku.model.ShizukuStatus
 import zed.rainxch.core.domain.model.installation.InstalledApp
 import zed.rainxch.core.domain.model.installation.InstallerType
+import zed.rainxch.core.domain.model.installation.markPending
+import zed.rainxch.core.domain.model.installation.withLatestSnapshot
 import zed.rainxch.core.domain.network.Downloader
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.repository.TweaksRepository
@@ -200,14 +202,15 @@ class AutoUpdateWorker(
 
         if (currentApp != null) {
             installedAppsRepository.updateApp(
-                currentApp.copy(
-                    isPendingInstall = true,
-                    latestVersion = latestVersion,
-                    latestAssetName = assetName,
-                    latestAssetUrl = assetUrl,
-                    latestVersionName = apkInfo?.versionName ?: latestVersion,
-                    latestVersionCode = apkInfo?.versionCode ?: 0L,
-                ),
+                currentApp
+                    .markPending()
+                    .withLatestSnapshot(
+                        version = latestVersion,
+                        assetName = assetName,
+                        assetUrl = assetUrl,
+                        versionName = apkInfo?.versionName ?: latestVersion,
+                        versionCode = apkInfo?.versionCode ?: 0L,
+                    ),
             )
         }
 
