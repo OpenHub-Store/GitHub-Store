@@ -53,8 +53,9 @@ import zed.rainxch.search.presentation.mappers.toDomain
 import zed.rainxch.search.presentation.model.ProgrammingLanguageUi
 import zed.rainxch.search.presentation.model.SearchSourceUi
 import zed.rainxch.search.presentation.model.SortByUi
-import zed.rainxch.search.presentation.utils.isEntirelyGithubUrls
+import zed.rainxch.search.presentation.utils.isEntirelyGithubSearchInput
 import zed.rainxch.search.presentation.utils.parseGithubUrls
+import zed.rainxch.search.presentation.utils.parseGithubSearchInput
 
 class SearchViewModel(
     private val searchRepository: SearchRepository,
@@ -574,7 +575,7 @@ class SearchViewModel(
             }
 
             is SearchAction.OnSearchChange -> {
-                val links = parseGithubUrls(action.query)
+                val links = parseGithubSearchInput(action.query)
                 _state.update {
                     it.copy(
                         query = action.query,
@@ -593,7 +594,7 @@ class SearchViewModel(
                             totalCount = null,
                         )
                     }
-                } else if (isEntirelyGithubUrls(action.query)) {
+                } else if (isEntirelyGithubSearchInput(action.query)) {
                     currentSearchJob?.cancel()
                     _state.update {
                         it.copy(
@@ -620,7 +621,10 @@ class SearchViewModel(
             }
 
             SearchAction.OnSearchImeClick -> {
-                if (_state.value.detectedLinks.isNotEmpty() && isEntirelyGithubUrls(_state.value.query)) {
+                if (
+                    _state.value.detectedLinks.isNotEmpty() &&
+                    isEntirelyGithubSearchInput(_state.value.query)
+                ) {
                     val link = _state.value.detectedLinks.first()
                     viewModelScope.launch {
                         _events.send(SearchEvent.NavigateToRepo(link.owner, link.repo))
