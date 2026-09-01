@@ -915,6 +915,13 @@ class DetailsViewModel(
         }
     }
 
+    private fun List<GithubRelease>.firstInCategory(category: ReleaseCategory): GithubRelease? =
+        when (category) {
+            ReleaseCategory.STABLE -> firstOrNull { !it.isEffectivelyPreRelease() }
+            ReleaseCategory.PRE_RELEASE -> firstOrNull { it.isEffectivelyPreRelease() }
+            ReleaseCategory.ALL -> firstOrNull()
+        }
+
     private fun recomputeAssetsForRelease(
         release: GithubRelease?,
         installedAppOverride: InstalledApp? = _state.value.installedApp,
@@ -2479,9 +2486,35 @@ class DetailsViewModel(
                     return@launch
                 }
 
+                // Open on the channel the user is actually on. A device running a
+                // nightly must land on the pre-release channel: defaulting to stable
+                // shows v2.0.0 next to an "update to nightly" button, and the primary
+                // asset then belongs to the stable release.
+                val installedIsPreRelease =
+                    allReleases
+                        .firstOrNull {
+                            VersionMath.isSameVersion(it.tagName, installedApp?.installedVersion)
+                        }?.isEffectivelyPreRelease() == true
                 val selectedRelease =
-                    allReleases.firstOrNull { !it.isEffectivelyPreRelease() }
-                        ?: allReleases.firstOrNull()
+                    if (installedIsPreRelease) {
+                        allReleases.firstOrNull { it.isEffectivelyPreRelease() }
+                    } else {
+                        allReleases.firstOrNull { !it.isEffectivelyPreRelease() }
+                    } ?: allReleases.firstOrNull()
+                val resolvedCategory =
+                    if (selectedRelease?.isEffectivelyPreRelease() == true) {
+                        ReleaseCategory.PRE_RELEASE
+                    } else {
+                        ReleaseCategory.STABLE
+                    }
+
+                logger.debug(
+                    "DETAILS-INIT repo=${repo.name} installed=${installedApp?.installedVersion} " +
+                        "installedIsPreRelease=$installedIsPreRelease " +
+                        "selected=${selectedRelease?.tagName} category=$resolvedCategory " +
+                        "all=" +
+                        allReleases.joinToString { "${it.tagName}:${it.isEffectivelyPreRelease()}" },
+                )
 
                 val (installable, primary) = recomputeAssetsForRelease(
                     selectedRelease,
@@ -2504,7 +2537,7 @@ class DetailsViewModel(
                         releasesLoadFailed = releasesFailed,
                         isRetryingReleases = false,
                         selectedRelease = selectedRelease,
-                        selectedReleaseCategory = ReleaseCategory.STABLE,
+                        selectedReleaseCategory = resolvedCategory,
                         stats = stats,
                         readmeMarkdown = readme?.first,
                         readmeLanguage = readme?.second,
@@ -2639,8 +2672,11 @@ class DetailsViewModel(
                             ?: list.firstOrNull { it.tagName == prev.tagName }
                     }
                 }
+                // Keep the user on their channel across refreshes: fall back within the
+                // previously selected category instead of always sliding back to stable.
                 val selectedRelease = freshReleases?.let { list ->
                     carried
+                        ?: list.firstInCategory(previousCategory)
                         ?: list.firstOrNull { !it.isEffectivelyPreRelease() }
                         ?: list.firstOrNull()
                 } ?: previousSelected
