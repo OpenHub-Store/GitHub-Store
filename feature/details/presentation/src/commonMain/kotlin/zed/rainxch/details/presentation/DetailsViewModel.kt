@@ -1513,6 +1513,9 @@ class DetailsViewModel(
                     try {
                         installer.install(warning.pendingFilePath, ext)
                     } catch (e: CancellationException) {
+                        if (gatePackageName != null) {
+                            systemInstallSerializer.markCompleted(gatePackageName)
+                        }
                         throw e
                     } catch (e: Throwable) {
                         if (gatePackageName != null) {
@@ -1520,6 +1523,9 @@ class DetailsViewModel(
                         }
                         throw e
                     }
+                if (gatePackageName != null) {
+                    systemInstallSerializer.markCompleted(gatePackageName)
+                }
 
                 if (platform == Platform.ANDROID) {
                     saveInstalledAppToDatabase(
@@ -2018,6 +2024,9 @@ class DetailsViewModel(
             try {
                 installer.install(filePath, ext)
             } catch (e: CancellationException) {
+                if (gatePackageName != null) {
+                    systemInstallSerializer.markCompleted(gatePackageName)
+                }
                 throw e
             } catch (e: Throwable) {
                 if (gatePackageName != null) {
@@ -2025,6 +2034,9 @@ class DetailsViewModel(
                 }
                 throw e
             }
+        if (gatePackageName != null) {
+            systemInstallSerializer.markCompleted(gatePackageName)
+        }
 
         launchAttestationCheck(filePath)
 

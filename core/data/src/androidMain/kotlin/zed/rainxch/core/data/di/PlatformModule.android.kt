@@ -15,6 +15,7 @@ import zed.rainxch.core.data.services.AndroidDownloadProgressNotifier
 import zed.rainxch.core.data.services.AndroidFileLocationsProvider
 import zed.rainxch.core.data.services.AndroidInstaller
 import zed.rainxch.core.data.services.AndroidInstallerInfoExtractor
+import zed.rainxch.core.data.services.CurrentActivityHolder
 import zed.rainxch.core.data.services.AndroidLocalizationManager
 import zed.rainxch.core.data.services.AndroidPackageMonitor
 import zed.rainxch.core.data.services.AndroidPendingInstallNotifier
@@ -62,8 +63,9 @@ actual val corePlatformModule =
         }
 
         single {
+            CurrentActivityHolder.install(androidContext() as android.app.Application)
             AndroidInstaller(
-                context = get(),
+                context = androidContext(),
                 installerInfoExtractor = AndroidInstallerInfoExtractor(androidContext()),
             )
         }
