@@ -47,9 +47,11 @@
         <provider android:authorities="com.rosan.dhizuku.server.provider" />
     </queries>
 
+    <!-- targetSdk 36 enables this by default; CN OEMs often break it. -->
     <application
         android:name=".app.GithubStoreApp"
         android:allowBackup="true"
+        android:enableOnBackInvokedCallback="false"
         android:hasFragileUserData="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
