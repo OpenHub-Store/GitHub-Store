@@ -3,8 +3,12 @@ package zed.rainxch.githubstore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
@@ -108,6 +112,26 @@ class MainViewModel(
             tweaksRepository.getAppLanguage().collect { tag ->
                 _state.update { it.copy(appLanguageTag = tag) }
             }
+        }
+
+        // Hold the first frame until every persisted appearance preference has
+        // emitted its stored value, so the UI never flashes the hardcoded
+        // defaults (MANGA personality, NORD theme) on startup.
+        viewModelScope.launch {
+            coroutineScope {
+                listOf(
+                    async { tweaksRepository.getPersonality().first() },
+                    async { tweaksRepository.getThemeColor().first() },
+                    async { tweaksRepository.getAmoledTheme().first() },
+                    async { tweaksRepository.getIsDarkTheme().first() },
+                    async { tweaksRepository.getAccentId().first() },
+                    async { tweaksRepository.getMangaPaper().first() },
+                    async { tweaksRepository.getScrollbarEnabled().first() },
+                    async { tweaksRepository.getContentWidth().first() },
+                    async { tweaksRepository.getAppLanguage().first() },
+                ).awaitAll()
+            }
+            _state.update { it.copy(appearanceLoaded = true) }
         }
 
         viewModelScope.launch {

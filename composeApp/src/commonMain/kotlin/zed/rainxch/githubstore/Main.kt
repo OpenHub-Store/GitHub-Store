@@ -1,9 +1,13 @@
 package zed.rainxch.githubstore
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -86,6 +90,19 @@ fun App(
         }
 
     PersonalityTheme(personality, languageTag = mainState.appLanguageTag) {
+        if (!mainState.appearanceLoaded) {
+            // Persisted appearance preferences are still loading — hold the
+            // frame on the (already correct) theme background instead of
+            // rendering navigation with hardcoded default values.
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(personality.colors.background),
+            )
+            return@PersonalityTheme
+        }
+
         AppNavigation(
             navController = navController,
             isScrollbarEnabled = mainState.isScrollbarEnabled,

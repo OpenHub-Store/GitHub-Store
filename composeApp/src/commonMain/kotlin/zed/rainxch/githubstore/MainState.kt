@@ -23,4 +23,11 @@ data class MainState(
     val isScrollbarEnabled: Boolean = false,
     val contentWidth: ContentWidth = ContentWidth.COMPACT,
     val appLanguageTag: String? = null,
+    /**
+     * True once every persisted appearance preference has emitted its first
+     * value. The first frame is held until then so the UI never renders with
+     * the hardcoded defaults (MANGA personality, NORD theme) before the
+     * user's actual choices arrive from storage.
+     */
+    val appearanceLoaded: Boolean = false,
 )
