@@ -7,11 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -45,11 +41,6 @@ fun App(
     val whatsNewViewModel: WhatsNewViewModel = koinViewModel()
 
     val mainState by mainViewModel.state.collectAsStateWithLifecycle()
-
-    // True once AppNavigation's first real frame has been drawn. The splash
-    // (Android) holds until this — data-ready alone still leaves a visible
-    // placeholder window while Compose composes the actual UI.
-    var contentDrawn by remember { androidx.compose.runtime.mutableStateOf(false) }
 
     val navController = rememberNavController()
 
@@ -116,16 +107,6 @@ fun App(
             navController = navController,
             isScrollbarEnabled = mainState.isScrollbarEnabled,
             contentWidth = mainState.contentWidth,
-            // First drawn frame of real content releases the splash (Android
-            // MainActivity observes contentDrawn). Desktop has no splash and
-            // simply ignores the flag.
-            modifier =
-                Modifier.drawWithContent {
-                    drawContent()
-                    if (!contentDrawn) {
-                        contentDrawn = true
-                    }
-                },
         )
 
         if (mainState.showRateLimitDialog && mainState.rateLimitInfo != null && !onAuthScreen) {
