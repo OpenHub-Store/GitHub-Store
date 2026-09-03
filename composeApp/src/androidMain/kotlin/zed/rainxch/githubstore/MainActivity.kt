@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import zed.rainxch.core.data.services.LocalizationManager
 import zed.rainxch.core.data.utils.AndroidShareManager
 import zed.rainxch.core.domain.helpers.ShareManager
@@ -38,10 +39,12 @@ private const val LANGUAGE_PREF_READ_TIMEOUT_MS = 2000L
 class MainActivity : ComponentActivity() {
     private var deepLinkUri by mutableStateOf<String?>(null)
 
-    // Flipped by Compose when AppNavigation's first real frame has drawn.
-    // The splash holds until this — data-ready alone still shows a
-    // placeholder frame while Compose composes the actual UI.
-    private var contentDrawn by mutableStateOf(false)
+    // Mirror of MainViewModel.appearanceLoaded, collected here so the splash
+    // hold reads the SAME single source of truth the Compose gate uses.
+    // While true, the keep-on-screen condition cancels every draw request —
+    // the placeholder frame is never rendered, so the user goes
+    // splash -> their real theme with zero intermediate frames.
+    private var appearanceLoaded = false
     private val shareManager: ShareManager by inject()
     private val tweaksRepository: TweaksRepository by inject()
     private val localizationManager: LocalizationManager by inject()
@@ -50,9 +53,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
-        // The splash covers preference load AND the first real content frame;
-        // see contentDrawn.
-        splash.setKeepOnScreenCondition { !contentDrawn }
+        // Hold while the persisted appearance preferences are still loading.
+        // While held, draw requests are cancelled so no placeholder frame is
+        // ever rendered; the first frame released is the real themed UI.
+        splash.setKeepOnScreenCondition { !appearanceLoaded }
         enableEdgeToEdge()
 
         (shareManager as? AndroidShareManager)?.registerActivityResultLauncher(this)
@@ -82,6 +86,19 @@ class MainActivity : ComponentActivity() {
                         localizationManager.setActiveLanguageTag(newTag)
                         recreate()
                     }
+            }
+        }
+
+        // Mirror the MainViewModel appearance gate into this activity so the
+        // splash hold reads the same value the Compose gate does. MainViewModel
+        // is a Koin single-activity-scoped view model resolved with the same
+        // factory inside setContent's koinViewModel().
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val viewModel = getViewModel<MainViewModel>()
+                viewModel.state.collect { state ->
+                    appearanceLoaded = state.appearanceLoaded
+                }
             }
         }
 
