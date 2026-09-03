@@ -1,7 +1,6 @@
 package zed.rainxch.core.domain.utils
 
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -39,16 +38,12 @@ class UpdateVerdictTest {
     @Test
     fun semver_newer_reports_update() {
         val result = decide(installedTag = "1.0.0", matchedTag = "1.1.0")
-        assertEquals("semver", result.branch)
-        assertEquals("semver_newer", result.reason)
         assertTrue(result.isUpdateAvailable)
     }
 
     @Test
     fun semver_not_newer_stays_silent() {
         val result = decide(installedTag = "1.2.0", matchedTag = "1.1.0")
-        assertEquals("semver", result.branch)
-        assertEquals("semver_not_newer", result.reason)
         assertFalse(result.isUpdateAvailable)
     }
 
@@ -61,7 +56,6 @@ class UpdateVerdictTest {
                 matchedTag = "3.26.16-beta.20",
                 matchedIsPrerelease = true,
             )
-        assertEquals("semver", result.branch)
         assertTrue(result.isUpdateAvailable)
     }
 
@@ -77,10 +71,7 @@ class UpdateVerdictTest {
                 storedPublishedAt = null,
                 matchedIsPrerelease = true,
             )
-        assertEquals("timestamp", result.branch)
-        assertEquals("timestamp_first_scan_null_baseline", result.reason)
         assertTrue(result.isUpdateAvailable)
-        assertTrue(result.usedTimestampLogic)
     }
 
     @Test
@@ -94,8 +85,6 @@ class UpdateVerdictTest {
                 matchedPublishedAt = "2026-08-02T00:00:00Z",
                 matchedIsPrerelease = true,
             )
-        assertEquals("timestamp", result.branch)
-        assertEquals("timestamp_newer", result.reason)
         assertTrue(result.isUpdateAvailable)
     }
 
@@ -113,8 +102,6 @@ class UpdateVerdictTest {
                 matchedPublishedAt = "2026-08-01T00:00:00Z",
                 matchedIsPrerelease = true,
             )
-        assertEquals("timestamp", result.branch)
-        assertEquals("timestamp_retained", result.reason)
         assertTrue(result.isUpdateAvailable)
     }
 
@@ -131,8 +118,6 @@ class UpdateVerdictTest {
                 matchedPublishedAt = "2026-08-01T00:00:00Z",
                 matchedIsPrerelease = true,
             )
-        assertEquals("timestamp", result.branch)
-        assertEquals("timestamp_not_newer", result.reason)
         assertFalse(result.isUpdateAvailable)
     }
 
@@ -148,9 +133,7 @@ class UpdateVerdictTest {
                 storedPublishedAt = null,
                 matchedIsPrerelease = true,
             )
-        assertEquals("timestamp", result.branch)
         assertTrue(result.isUpdateAvailable)
-        assertFalse(result.reconcilable)
     }
 
     @Test
@@ -166,7 +149,6 @@ class UpdateVerdictTest {
                 storedPublishedAt = "2026-08-01T00:00:00Z",
                 matchedIsPrerelease = true,
             )
-        assertEquals("timestamp", result.branch)
         assertTrue(result.isUpdateAvailable)
     }
 
@@ -182,8 +164,6 @@ class UpdateVerdictTest {
                 storedLatestVersionCode = 100L,
                 matchedTag = "1.0.0",
             )
-        assertEquals("codes_match", result.branch)
-        assertEquals("codes_already_match", result.reason)
         assertFalse(result.isUpdateAvailable)
         assertTrue(result.codesAlreadyMatch)
     }
@@ -203,15 +183,12 @@ class UpdateVerdictTest {
                 storedPublishedAt = "2026-08-01T00:00:00Z",
                 matchedIsPrerelease = true,
             )
-        assertEquals("skipped", result.branch)
-        assertEquals("matches_skipped_tag", result.reason)
         assertFalse(result.isUpdateAvailable)
     }
 
     @Test
     fun skipped_tag_is_silent() {
         val result = decide(skippedTag = "1.1.0", matchedTag = "1.1.0")
-        assertEquals("skipped", result.branch)
         assertFalse(result.isUpdateAvailable)
     }
 
@@ -235,7 +212,6 @@ class UpdateVerdictTest {
                 matchedTag = "2.0.0",
                 matchedIsPrerelease = false,
             )
-        assertEquals("irreconcilable", result.branch)
         assertFalse(result.isUpdateAvailable)
     }
 
@@ -244,7 +220,7 @@ class UpdateVerdictTest {
     @Test
     fun rewrite_gate_allows_only_codes_already_match() {
         val matched = decide(installedTag = "1.0.0", installedVersionCode = 100L)
-        assertFalse(UpdateVerdict.mayRewriteInstalledTag(matched))
+        assertFalse(matched.codesAlreadyMatch)
 
         val codesMatched =
             decide(
@@ -254,6 +230,6 @@ class UpdateVerdictTest {
                 storedLatestVersionCode = 100L,
                 matchedTag = "1.0.0",
             )
-        assertTrue(UpdateVerdict.mayRewriteInstalledTag(codesMatched))
+        assertTrue(codesMatched.codesAlreadyMatch)
     }
 }

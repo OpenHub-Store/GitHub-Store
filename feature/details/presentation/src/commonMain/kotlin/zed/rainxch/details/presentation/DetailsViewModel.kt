@@ -2508,14 +2508,6 @@ class DetailsViewModel(
                         ReleaseCategory.STABLE
                     }
 
-                logger.debug(
-                    "DETAILS-INIT repo=${repo.name} installed=${installedApp?.installedVersion} " +
-                        "installedIsPreRelease=$installedIsPreRelease " +
-                        "selected=${selectedRelease?.tagName} category=$resolvedCategory " +
-                        "all=" +
-                        allReleases.joinToString { "${it.tagName}:${it.isEffectivelyPreRelease()}" },
-                )
-
                 val (installable, primary) = recomputeAssetsForRelease(
                     selectedRelease,
                     installedApp

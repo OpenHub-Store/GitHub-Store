@@ -101,44 +101,33 @@ class InstalledAppsRepositoryImpl(
         installedAppsDao.deleteByPackageName(packageName)
     }
 
-    private data class ReleaseWindow(
-        val releases: List<GithubRelease>,
-        val source: String,
-    )
-
     private suspend fun fetchReleaseWindow(
         owner: String,
         repo: String,
         includePreReleases: Boolean,
         sourceHost: String? = null,
-    ): ReleaseWindow {
+    ): List<GithubRelease> {
         if (sourceHost != null) {
-            return ReleaseWindow(
-                releases = fetchForgejoReleaseWindow(sourceHost, owner, repo, includePreReleases),
-                source = "forgejo",
-            )
+            return fetchForgejoReleaseWindow(sourceHost, owner, repo, includePreReleases)
         }
         val backendResult = backendApiClient.getReleases(owner, repo, perPage = RELEASE_WINDOW)
         val backendReleases = backendResult.fold(
             onSuccess = { it },
             onFailure = { error ->
                 if (!zed.rainxch.core.data.network.shouldFallbackToGithubOrRethrow(error)) {
-                    return ReleaseWindow(emptyList(), "backend_blocked")
+                    return emptyList()
                 }
                 null
             },
         )
         if (backendReleases != null) {
-            return ReleaseWindow(
-                releases = backendReleases
-                    .asSequence()
-                    .filter { it.draft != true }
-                    .sortedByDescending { it.publishedAt ?: it.createdAt ?: "" }
-                    .map { it.toDomain() }
-                    .filter { includePreReleases || !it.isEffectivelyPreRelease() }
-                    .toList(),
-                source = "backend",
-            )
+            return backendReleases
+                .asSequence()
+                .filter { it.draft != true }
+                .sortedByDescending { it.publishedAt ?: it.createdAt ?: "" }
+                .map { it.toDomain() }
+                .filter { includePreReleases || !it.isEffectivelyPreRelease() }
+                .toList()
         }
 
         return try {
@@ -149,39 +138,33 @@ class InstalledAppsRepositoryImpl(
                             header(HttpHeaders.Accept, "application/vnd.github+json")
                             parameter("per_page", RELEASE_WINDOW)
                         }
-                    }.getOrNull()
-            if (releases == null) {
-                return ReleaseWindow(emptyList(), "github_empty")
-            }
+                    }.getOrNull() ?: return emptyList()
 
-            ReleaseWindow(
-                releases = releases
-                    .asSequence()
-                    .filter { it.draft != true }
-                    .sortedByDescending { it.publishedAt ?: it.createdAt ?: "" }
-                    .map { it.toDomain() }
-                    .onEach { release ->
-                        val flagSays = release.isPrerelease
-                        val tagSays = VersionMath.isPreReleaseTag(release.tagName)
-                        if (flagSays != tagSays) {
-                            Logger.w {
-                                "Pre-release flag/tag mismatch for $owner/$repo " +
-                                        "release '${release.tagName}' (name='${release.name}'): " +
-                                        "apiFlag=$flagSays, tagMarker=$tagSays — " +
-                                        "treating as pre-release=${true}"
-                            }
+            releases
+                .asSequence()
+                .filter { it.draft != true }
+                .sortedByDescending { it.publishedAt ?: it.createdAt ?: "" }
+                .map { it.toDomain() }
+                .onEach { release ->
+                    val flagSays = release.isPrerelease
+                    val tagSays = VersionMath.isPreReleaseTag(release.tagName)
+                    if (flagSays != tagSays) {
+                        Logger.w {
+                            "Pre-release flag/tag mismatch for $owner/$repo " +
+                                    "release '${release.tagName}' (name='${release.name}'): " +
+                                    "apiFlag=$flagSays, tagMarker=$tagSays — " +
+                                    "treating as pre-release=${true}"
                         }
                     }
-                    .filter { includePreReleases || !it.isEffectivelyPreRelease() }
-                    .toList(),
-                source = "github",
-            )
+                }
+                .filter { includePreReleases || !it.isEffectivelyPreRelease() }
+                .toList()
         } catch (e: CancellationException) {
 
             throw e
         } catch (e: Exception) {
             Logger.e { "Failed to fetch releases for $owner/$repo: ${e.message}" }
-            ReleaseWindow(emptyList(), "github_error")
+            emptyList()
         }
     }
 
@@ -282,24 +265,25 @@ class InstalledAppsRepositoryImpl(
         val app = installedAppsDao.getAppByPackage(packageName) ?: return false
 
         if (!app.updateCheckEnabled) {
-            Logger.d { "[UPDATE-CHECK] $packageName disabled -> branch=disabled reason=update_check_disabled" }
             return false
         }
 
         try {
-            val window =
+            val releases =
                 fetchReleaseWindow(
                     owner = app.repoOwner,
                     repo = app.repoName,
                     includePreReleases = app.includePreReleases,
                     sourceHost = app.sourceHost,
                 )
-            val releases = window.releases
 
             if (releases.isEmpty()) {
-                Logger.i {
-                    "[UPDATE-CHECK] $packageName branch=empty_window reason=no_releases_in_window " +
-                        "windowSource=${window.source} windowSize=0"
+                // Keep an opaque-marker (nightly) flag through transient empty
+                // windows: clearing it drops latestReleasePublishedAt and the
+                // next scan would re-report from a null baseline. Regular
+                // repositories still self-heal.
+                if (!VersionMath.isOpaqueMarker(app.latestVersion)) {
+                    installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
                 }
                 return false
             }
@@ -331,12 +315,10 @@ class InstalledAppsRepositoryImpl(
                     "No matching release found for ${app.appName} in window of ${releases.size}; " +
                             "filter=${app.assetFilterRegex}, fallback=${app.fallbackToOlderReleases}"
                 }
-                Logger.i {
-                    "[UPDATE-CHECK] ${app.appName} $packageName branch=no_match " +
-                        "reason=no_matching_release windowSource=${window.source} " +
-                        "windowSize=${releases.size}"
+                if (!VersionMath.isOpaqueMarker(app.latestVersion)) {
+                    installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
                 }
-                    return false
+                return false
             }
 
             val (matchedRelease, primaryAsset, variantWasLost) = resolved
@@ -359,36 +341,15 @@ class InstalledAppsRepositoryImpl(
                 installedAppsDao.setSkippedReleaseTag(packageName, null)
             }
 
-            val reconcilable = verdict.reconcilable
-            val opaqueMatched = verdict.opaqueMatched
-            val sameTag = verdict.sameTag
-            val usedTimestampLogic = verdict.usedTimestampLogic
-            val codesAlreadyMatch = verdict.codesAlreadyMatch
             val isUpdateAvailable = verdict.isUpdateAvailable
-            val branch = verdict.branch
-            val reason = verdict.reason
 
-            val reportText =
-                listOf(
-                    "usedTimestampLogic=$usedTimestampLogic",
-                    "branch=$branch",
-                    "reason=$reason",
-                    "windowSource=${window.source}",
-                    "windowSize=${releases.size}",
-                    "includePreReleases=${app.includePreReleases}",
-                    "opaqueMatched=$opaqueMatched",
-                    "sameTag=$sameTag",
-                    "reconcilable=$reconcilable",
-                    "installedTag=${app.installedVersion}",
-                    "matchedTag=${matchedRelease.tagName}",
-                    "matchedAssetName=${primaryAsset.name}",
-                    "matchedAssetUrl=${primaryAsset.downloadUrl}",
-                    "storedPublishedAt=${app.latestReleasePublishedAt}",
-                    "matchedPublishedAt=${matchedRelease.publishedAt}",
-                    "codesAlreadyMatch=$codesAlreadyMatch",
-                    "isUpdate=$isUpdateAvailable",
-                ).joinToString("\n")
-            Logger.i { "[UPDATE-CHECK] ${app.appName} $packageName\n$reportText" }
+            Logger.d {
+                "[UPDATE-CHECK] ${app.appName} $packageName " +
+                        "installedTag=${app.installedVersion} matchedTag=${matchedRelease.tagName} " +
+                        "storedPublishedAt=${app.latestReleasePublishedAt} " +
+                        "matchedPublishedAt=${matchedRelease.publishedAt} " +
+                        "isUpdate=$isUpdateAvailable"
+            }
 
             val resolvedLatestVersionCode =
                 if (matchedRelease.tagName == app.latestVersion) app.latestVersionCode else null
@@ -407,7 +368,7 @@ class InstalledAppsRepositoryImpl(
                 latestReleasePublishedAt = matchedRelease.publishedAt,
             )
 
-            if (UpdateVerdict.mayRewriteInstalledTag(verdict) &&
+            if (verdict.codesAlreadyMatch &&
                 app.installedVersion != matchedRelease.tagName
             ) {
                 installedAppsDao.updateInstalledVersion(
@@ -428,6 +389,7 @@ class InstalledAppsRepositoryImpl(
             throw e
         } catch (e: Exception) {
             Logger.e { "Failed to check updates for $packageName: ${e.message}" }
+            installedAppsDao.updateLastChecked(packageName, System.currentTimeMillis())
         }
 
         return false
@@ -663,7 +625,7 @@ class InstalledAppsRepositoryImpl(
         }
         val filter = parseResult?.getOrNull()
 
-        val releases = fetchReleaseWindow(owner, repo, includePreReleases).releases
+        val releases = fetchReleaseWindow(owner, repo, includePreReleases)
         if (releases.isEmpty()) {
             return MatchingPreview(release = null, matchedAssets = emptyList())
         }

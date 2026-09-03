@@ -135,9 +135,6 @@ object VersionMath {
     fun isOpaqueMarker(version: String?): Boolean =
         isMarkerWithOpaqueSuffix(normalizeVersion(version))
 
-    fun isOpaqueMarkerPair(a: String?, b: String?): Boolean =
-        isOpaqueMarker(a) && isOpaqueMarker(b)
-
     fun shouldReportTimestampUpdate(
         matchedTag: String?,
         matchedPublishedAt: String?,

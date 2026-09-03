@@ -58,27 +58,6 @@ class VersionMathTest {
     }
 
     @Test
-    fun opaque_marker_pair_detects_hash_suffixes() {
-        assertTrue(VersionMath.isOpaqueMarkerPair("nightly-abc", "nightly-def"))
-        assertTrue(VersionMath.isOpaqueMarkerPair("nightly", "nightly"))
-        assertTrue(VersionMath.isOpaqueMarkerPair("canary-deadbeef", "canary-cafef00d"))
-        assertTrue(VersionMath.isOpaqueMarkerPair("rolling-a", "rolling-b"))
-    }
-
-    @Test
-    fun opaque_marker_pair_rejects_numeric_suffixes() {
-        assertFalse(VersionMath.isOpaqueMarkerPair("nightly-abc", "nightly-20260731"))
-        assertFalse(VersionMath.isOpaqueMarkerPair("nightly-20260731", "nightly-20260801"))
-    }
-
-    @Test
-    fun opaque_marker_pair_rejects_semver() {
-        assertFalse(VersionMath.isOpaqueMarkerPair("nightly-abc", "1.2.3"))
-        assertFalse(VersionMath.isOpaqueMarkerPair("1.2.3", "1.2.4"))
-        assertFalse(VersionMath.isOpaqueMarkerPair("1.2.3-beta", "1.2.3-rc1"))
-    }
-
-    @Test
     fun versions_reconcilable_semver() {
         assertTrue(VersionMath.versionsReconcilable("1.2.3", "1.2.4"))
         assertTrue(VersionMath.versionsReconcilable("v1.2.3", "1.2.3"))
