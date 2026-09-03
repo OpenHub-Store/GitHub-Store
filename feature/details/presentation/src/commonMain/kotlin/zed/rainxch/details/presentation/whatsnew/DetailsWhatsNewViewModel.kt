@@ -14,6 +14,7 @@ import zed.rainxch.details.domain.repository.TranslationRepository
 import zed.rainxch.details.presentation.model.SupportedLanguages
 import zed.rainxch.details.presentation.model.TranslationState
 import zed.rainxch.details.presentation.model.WhatsNewReleaseUi
+import zed.rainxch.core.presentation.utils.formatIsoDate
 import zed.rainxch.githubstore.core.presentation.res.Res
 import zed.rainxch.githubstore.core.presentation.res.failed_to_load
 import zed.rainxch.githubstore.core.presentation.res.no_release_notes
@@ -168,7 +169,8 @@ class DetailsWhatsNewViewModel(
             WhatsNewReleaseUi(
                 id = release.id,
                 tagName = release.tagName,
-                publishedDate = release.publishedAt.take(10),
+                publishedDate = formatIsoDate(release.publishedAt)
+                    ?: release.publishedAt.take(10),
                 body = body,
             )
         }.toImmutableList()
