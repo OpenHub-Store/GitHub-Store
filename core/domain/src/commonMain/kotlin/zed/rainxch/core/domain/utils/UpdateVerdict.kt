@@ -1,27 +1,11 @@
 package zed.rainxch.core.domain.utils
 
-/**
- * Decides how a matched GitHub release relates to the locally tracked app.
- * Pure decision logic — no repository, no DAO, no IO. The repository calls
- * [decide] with an app snapshot plus the matched release, and persists
- * whatever the verdict says. Every branch that used to live inline in
- * `InstalledAppsRepositoryImpl.checkForUpdates()` is answerable here by a
- * unit test, without a device.
- */
+// Pure update-decision logic — no repository, no DAO, no IO. Branch order:
+// skipped tag wins over everything, then timestamp, then code equality,
+// then reconcilability, then semver. Every branch is pinned by
+// UpdateVerdictTest.
 object UpdateVerdict {
 
-    /**
-     * @param installedTag        GitHub release tag recorded for the installed app.
-     * @param installedVersionCode versionCode of the installed package (0 when unknown).
-     * @param storedLatestTag     previously seen latest release tag (null on first scan).
-     * @param storedLatestVersionCode previously seen latest versionCode (null when unknown).
-     * @param storedPublishedAt   publishedAt of the previously seen latest release.
-     * @param wasUpdateAvailable  value of isUpdateAvailable before this scan.
-     * @param skippedTag          user-skipped release tag, if any.
-     * @param matchedTag          tag of the release matched by this scan.
-     * @param matchedPublishedAt  publishedAt of the matched release.
-     * @param matchedIsPrerelease GitHub prerelease flag of the matched release.
-     */
     fun decide(
         installedTag: String?,
         installedVersionCode: Long,
@@ -118,11 +102,8 @@ object UpdateVerdict {
         )
     }
 
-    /**
-     * True when the caller may overwrite [installedTag] with the matched tag —
-     * only legitimate when the installed APK's versionCode already equals the
-     * matched release's versionCode (the package really is that build).
-     */
+    // only legitimate when the installed APK's versionCode already equals the
+    // matched release's versionCode (the package really is that build)
     fun mayRewriteInstalledTag(result: Result): Boolean = result.codesAlreadyMatch
 
     private fun timestampReason(
