@@ -91,6 +91,7 @@ fun AppNavigation(
     navController: NavHostController,
     isScrollbarEnabled: Boolean,
     contentWidth: ContentWidth,
+    modifier: Modifier = Modifier,
 ) {
     val appsViewModel = koinViewModel<AppsViewModel>()
     val appsState by appsViewModel.state.collectAsStateWithLifecycle()
@@ -103,7 +104,7 @@ fun AppNavigation(
         LocalScrollbarEnabled provides isScrollbarEnabled,
         LocalContentWidth provides contentWidth,
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(modifier = modifier.fillMaxSize()) {
             val rail = maxWidth < 1140.dp
             Row(modifier = Modifier.fillMaxSize()) {
                 val desktopDrawerCurrent =
