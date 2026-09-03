@@ -116,14 +116,14 @@ fun App(
             navController = navController,
             isScrollbarEnabled = mainState.isScrollbarEnabled,
             contentWidth = mainState.contentWidth,
+            // First drawn frame of real content releases the splash (Android
+            // MainActivity observes contentDrawn). Desktop has no splash and
+            // simply ignores the flag.
             modifier =
                 Modifier.drawWithContent {
-                    if (mainState.appearanceLoaded && !contentDrawn) {
-                        // first real frame is about to hit the screen — release the splash
-                        drawContent()
+                    drawContent()
+                    if (!contentDrawn) {
                         contentDrawn = true
-                    } else {
-                        drawContent()
                     }
                 },
         )

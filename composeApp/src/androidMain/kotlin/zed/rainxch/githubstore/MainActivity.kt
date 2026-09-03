@@ -18,15 +18,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.android.ext.android.inject
 import zed.rainxch.core.data.services.LocalizationManager
@@ -42,6 +37,11 @@ private const val LANGUAGE_PREF_READ_TIMEOUT_MS = 2000L
 
 class MainActivity : ComponentActivity() {
     private var deepLinkUri by mutableStateOf<String?>(null)
+
+    // Flipped by Compose when AppNavigation's first real frame has drawn.
+    // The splash holds until this — data-ready alone still shows a
+    // placeholder frame while Compose composes the actual UI.
+    private var contentDrawn by mutableStateOf(false)
     private val shareManager: ShareManager by inject()
     private val tweaksRepository: TweaksRepository by inject()
     private val localizationManager: LocalizationManager by inject()
@@ -50,33 +50,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
-        // Keep the system splash on screen until the persisted appearance
-        // preferences have loaded, so the first Compose frame the user sees
-        // is already in their theme instead of a themed placeholder frame.
-        var appearanceReady = false
-        splash.setKeepOnScreenCondition { !appearanceReady }
-        lifecycleScope.launch {
-            withContext(kotlinx.coroutines.Dispatchers.IO) {
-                try {
-                    coroutineScope {
-                        listOf(
-                            async { tweaksRepository.getPersonality().first() },
-                            async { tweaksRepository.getThemeColor().first() },
-                            async { tweaksRepository.getAmoledTheme().first() },
-                            async { tweaksRepository.getIsDarkTheme().first() },
-                            async { tweaksRepository.getAccentId().first() },
-                            async { tweaksRepository.getMangaPaper().first() },
-                            async { tweaksRepository.getScrollbarEnabled().first() },
-                            async { tweaksRepository.getContentWidth().first() },
-                            async { tweaksRepository.getAppLanguage().first() },
-                        ).awaitAll()
-                    }
-                } catch (e: Exception) {
-                    Logger.w(e) { "appearance pre-read failed; releasing splash anyway" }
-                }
-            }
-            appearanceReady = true
-        }
+        // The splash covers preference load AND the first real content frame;
+        // see contentDrawn.
+        splash.setKeepOnScreenCondition { !contentDrawn }
         enableEdgeToEdge()
 
         (shareManager as? AndroidShareManager)?.registerActivityResultLauncher(this)
