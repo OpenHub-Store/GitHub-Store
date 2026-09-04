@@ -11,6 +11,7 @@ import org.jetbrains.compose.resources.getString
 import zed.rainxch.core.domain.model.account.github.GithubRelease
 import zed.rainxch.details.domain.repository.DetailsRepository
 import zed.rainxch.details.domain.repository.TranslationRepository
+import zed.rainxch.core.presentation.utils.formatIsoDate
 import zed.rainxch.details.presentation.model.SupportedLanguages
 import zed.rainxch.details.presentation.model.TranslationState
 import zed.rainxch.details.presentation.model.WhatsNewReleaseUi
@@ -168,7 +169,8 @@ class DetailsWhatsNewViewModel(
             WhatsNewReleaseUi(
                 id = release.id,
                 tagName = release.tagName,
-                publishedDate = release.publishedAt.take(10),
+                publishedDate = formatIsoDate(release.publishedAt)
+                    ?: release.publishedAt.take(10),
                 body = body,
             )
         }.toImmutableList()

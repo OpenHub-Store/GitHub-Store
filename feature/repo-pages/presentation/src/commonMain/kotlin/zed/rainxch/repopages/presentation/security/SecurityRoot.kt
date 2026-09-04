@@ -25,6 +25,7 @@ import zed.rainxch.core.presentation.components.text.KomiText
 import zed.rainxch.core.presentation.components.text.KomiTextRole
 import zed.rainxch.core.presentation.locals.LocalPersonality
 import zed.rainxch.core.presentation.locals.LocalStatusColors
+import zed.rainxch.core.presentation.utils.formatIsoDate
 import zed.rainxch.githubstore.core.presentation.res.Res
 import zed.rainxch.githubstore.core.presentation.res.repo_pages_security_advisories_header
 import zed.rainxch.githubstore.core.presentation.res.repo_pages_security_no_advisories
@@ -183,7 +184,7 @@ private fun AdvisoryCard(advisory: SecurityAdvisory) {
                     advisory.cveId?.let { append(it) }
                     advisory.publishedAt?.let {
                         if (isNotEmpty()) append(" · ")
-                        append(it.take(10))
+                        append(formatIsoDate(it) ?: it.take(10))
                     }
                 }
                 if (meta.isNotEmpty()) {
