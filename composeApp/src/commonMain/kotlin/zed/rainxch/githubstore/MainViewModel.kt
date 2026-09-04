@@ -2,11 +2,12 @@ package zed.rainxch.githubstore
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -62,12 +63,17 @@ class MainViewModel(
                 }
         }
 
-        // Sole writer of the gated appearance fields. combine emits only after
-        // all five sources have their first value, so state and the gate flag
-        // land in one update. The timeout releases the gate on defaults if a
-        // source never emits (same guard as the language read in MainActivity).
+        // Sole writer of the gated appearance fields: combine emits only after
+        // all five sources have a first value, so fields and flag land in one
+        // update. The watchdog releases the gate on defaults if that emission
+        // never arrives, mirroring the guarded language read in MainActivity.
         viewModelScope.launch {
-            val appearance =
+            val firstEmitted = CompletableDeferred<Unit>()
+            launch {
+                withTimeoutOrNull(APPEARANCE_LOAD_TIMEOUT_MS.milliseconds) { firstEmitted.await() }
+                _state.update { it.copy(appearanceLoaded = true) }
+            }
+            try {
                 combine(
                     tweaksRepository.getPersonality(),
                     tweaksRepository.getAccentId(),
@@ -76,23 +82,14 @@ class MainViewModel(
                     tweaksRepository.getIsDarkTheme(),
                 ) { personality, accent, paper, amoled, isDark ->
                     Appearance(personality, accent, paper, amoled, isDark)
+                }.collect { snapshot ->
+                    _state.update { it.withAppearance(snapshot).copy(appearanceLoaded = true) }
+                    firstEmitted.complete(Unit)
                 }
-            val loaded =
-                try {
-                    withTimeoutOrNull(APPEARANCE_LOAD_TIMEOUT_MS.milliseconds) {
-                        appearance.first()
-                    }
-                } catch (_: Exception) {
-                    null
-                }
-            if (loaded != null) {
-                _state.update { it.withAppearance(loaded).copy(appearanceLoaded = true) }
-            } else {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
                 _state.update { it.copy(appearanceLoaded = true) }
-            }
-
-            appearance.collect { snapshot ->
-                _state.update { it.withAppearance(snapshot) }
             }
         }
 
