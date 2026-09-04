@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import zed.rainxch.core.data.services.LocalizationManager
 import zed.rainxch.core.data.utils.AndroidShareManager
 import zed.rainxch.core.domain.helpers.ShareManager
@@ -37,6 +38,7 @@ private const val LANGUAGE_PREF_READ_TIMEOUT_MS = 2000L
 
 class MainActivity : ComponentActivity() {
     private var deepLinkUri by mutableStateOf<String?>(null)
+
     private val shareManager: ShareManager by inject()
     private val tweaksRepository: TweaksRepository by inject()
     private val localizationManager: LocalizationManager by inject()
@@ -44,7 +46,14 @@ class MainActivity : ComponentActivity() {
     private val appScope: CoroutineScope by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splash = installSplashScreen()
+        // KeepOnScreenCondition is polled before each draw: while it returns
+        // true every draw request is cancelled, so no placeholder frame is
+        // ever rendered. The frame released is the real themed UI; only on
+        // the rare watchdog timeout can it hold defaults briefly (see
+        // MainViewModel). Same StateFlow the Compose gate reads.
+        val mainViewModel = getViewModel<MainViewModel>()
+        splash.setKeepOnScreenCondition { !mainViewModel.state.value.isAppearanceLoaded }
         enableEdgeToEdge()
 
         (shareManager as? AndroidShareManager)?.registerActivityResultLauncher(this)

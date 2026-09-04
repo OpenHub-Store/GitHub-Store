@@ -23,4 +23,7 @@ data class MainState(
     val isScrollbarEnabled: Boolean = false,
     val contentWidth: ContentWidth = ContentWidth.COMPACT,
     val appLanguageTag: String? = null,
+    // False until persisted appearance preferences have loaded (or the load
+    // timed out). The first frame must not render before it flips.
+    val isAppearanceLoaded: Boolean = false,
 )

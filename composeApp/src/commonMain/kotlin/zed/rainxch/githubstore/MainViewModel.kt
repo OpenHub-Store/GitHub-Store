@@ -2,16 +2,24 @@ package zed.rainxch.githubstore
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import zed.rainxch.core.domain.model.appearance.AccentId
+import zed.rainxch.core.domain.model.appearance.AppPersonality
+import zed.rainxch.core.domain.model.appearance.MangaPaperId
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.repository.RateLimitRepository
 import zed.rainxch.core.domain.repository.TweaksRepository
 import zed.rainxch.core.domain.repository.UserSessionRepository
 import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
+import kotlin.time.Duration.Companion.milliseconds
 
 class MainViewModel(
     private val tweaksRepository: TweaksRepository,
@@ -47,25 +55,6 @@ class MainViewModel(
         }
         viewModelScope.launch {
             tweaksRepository
-                .getAmoledTheme()
-                .collect { isAmoled ->
-                    _state.update {
-                        it.copy(isAmoledTheme = isAmoled)
-                    }
-                }
-        }
-        viewModelScope.launch {
-            tweaksRepository
-                .getIsDarkTheme()
-                .collect { isDarkTheme ->
-                    _state.update {
-                        it.copy(isDarkTheme = isDarkTheme)
-                    }
-                }
-        }
-
-        viewModelScope.launch {
-            tweaksRepository
                 .getFontTheme()
                 .collect { fontTheme ->
                     _state.update {
@@ -74,21 +63,39 @@ class MainViewModel(
                 }
         }
 
+        // Sole writer of the gated appearance fields: combine emits only after
+        // all five sources have a first value, so fields and flag land in one
+        // update. If that emission never arrives within the timeout — or the
+        // collector throws — the watchdog releases the gate on defaults so
+        // the splash can never be held indefinitely.
         viewModelScope.launch {
-            tweaksRepository.getPersonality().collect { personality ->
-                _state.update { it.copy(personality = personality) }
+            val firstEmitted = CompletableDeferred<Unit>()
+            launch {
+                if (
+                    withTimeoutOrNull(APPEARANCE_LOAD_TIMEOUT_MS.milliseconds) {
+                        firstEmitted.await()
+                    } == null
+                ) {
+                    _state.update { it.copy(isAppearanceLoaded = true) }
+                }
             }
-        }
-
-        viewModelScope.launch {
-            tweaksRepository.getAccentId().collect { accent ->
-                _state.update { it.copy(accent = accent) }
-            }
-        }
-
-        viewModelScope.launch {
-            tweaksRepository.getMangaPaper().collect { paper ->
-                _state.update { it.copy(mangaPaper = paper) }
+            try {
+                combine(
+                    tweaksRepository.getPersonality(),
+                    tweaksRepository.getAccentId(),
+                    tweaksRepository.getMangaPaper(),
+                    tweaksRepository.getAmoledTheme(),
+                    tweaksRepository.getIsDarkTheme(),
+                ) { personality, accent, paper, amoled, isDark ->
+                    Appearance(personality, accent, paper, amoled, isDark)
+                }.collect { snapshot ->
+                    _state.update { it.withAppearance(snapshot).copy(isAppearanceLoaded = true) }
+                    firstEmitted.complete(Unit)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _state.update { it.copy(isAppearanceLoaded = true) }
             }
         }
 
@@ -149,3 +156,22 @@ class MainViewModel(
         }
     }
 }
+
+private const val APPEARANCE_LOAD_TIMEOUT_MS = 2000L
+
+private data class Appearance(
+    val personality: AppPersonality,
+    val accent: AccentId,
+    val mangaPaper: MangaPaperId,
+    val isAmoledTheme: Boolean,
+    val isDarkTheme: Boolean?,
+)
+
+private fun MainState.withAppearance(snapshot: Appearance): MainState =
+    copy(
+        personality = snapshot.personality,
+        accent = snapshot.accent,
+        mangaPaper = snapshot.mangaPaper,
+        isAmoledTheme = snapshot.isAmoledTheme,
+        isDarkTheme = snapshot.isDarkTheme,
+    )

@@ -1,9 +1,12 @@
 package zed.rainxch.githubstore
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -45,6 +48,15 @@ fun App(
             .Builder(context)
             .components { add(SvgDecoder.Factory()) }
             .build()
+    }
+
+    // Nothing below may run before persisted appearance preferences load: the
+    // deep-link effect navigates a NavHost that is only composed after this
+    // gate, and the theme would be built from untrusted defaults. Android
+    // covers the wait with the splash; desktop shows a plain window frame.
+    if (!mainState.isAppearanceLoaded) {
+        Box(modifier = Modifier.fillMaxSize())
+        return
     }
 
     val currentScreen = navController.currentBackStackEntryAsState().value.getCurrentScreen()
