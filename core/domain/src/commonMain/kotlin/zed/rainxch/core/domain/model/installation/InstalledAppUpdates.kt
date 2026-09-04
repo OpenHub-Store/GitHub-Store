@@ -4,10 +4,11 @@ import zed.rainxch.core.domain.utils.VersionMath
 
 // Zone-scoped write surface for InstalledApp. A bare copy() with dozens of
 // named args let any writer overwrite fields owned by another writer (the
-// overwrite-bug class); each function below copies ONLY the fields of its
-// declared zone, pinned by InstalledAppUpdatesTest. The migrate zone is
-// deliberately cross-side: it is the one-time import normalizer and owns the
-// version name/code fields on both sides, never tags, flags, or assets.
+// overwrite-bug class); each function below copies the fields of its declared
+// zone, pinned by InstalledAppUpdatesTest. Two declared cross-side owners:
+// the migrate zone (one-time import normalizer owning both sides' version
+// name/code, never tags, flags, or assets) and confirmInstall reconciling
+// latestVersionCode to the installed code when the install caught up to it.
 
 // install zone — real install/confirm events only
 
@@ -56,16 +57,18 @@ fun InstalledApp.resolvePendingFromSystem(
     resolvedTag: String,
     versionName: String?,
     versionCode: Long,
-): InstalledApp {
-    val latestCode = latestVersionCode ?: 0L
-    return copy(
-        isPendingInstall = false,
-        installedVersion = resolvedTag,
-        installedVersionName = versionName,
-        installedVersionCode = versionCode,
-        isUpdateAvailable = latestCode > versionCode,
-    )
-}
+): InstalledApp = copy(
+    isPendingInstall = false,
+    installedVersion = resolvedTag,
+    installedVersionName = versionName,
+    installedVersionCode = versionCode,
+    isUpdateAvailable = updateFlagAgainstSnapshot(versionCode),
+)
+
+// an installed code below the stored snapshot means an update is still on
+// the table; a null snapshot means nothing newer is known
+private fun InstalledApp.updateFlagAgainstSnapshot(installedCode: Long): Boolean =
+    (latestVersionCode ?: 0L) > installedCode
 
 // only valid when the system confirms the installed code already matches
 fun InstalledApp.normalizeInstalledTag(tag: String): InstalledApp = copy(
@@ -89,14 +92,11 @@ fun InstalledApp.withMigratedVersionInfo(
 fun InstalledApp.observeExternalInstall(
     versionName: String?,
     versionCode: Long,
-): InstalledApp {
-    val latestCode = latestVersionCode ?: 0L
-    return copy(
-        installedVersionName = versionName,
-        installedVersionCode = versionCode,
-        isUpdateAvailable = latestCode > versionCode,
-    )
-}
+): InstalledApp = copy(
+    installedVersionName = versionName,
+    installedVersionCode = versionCode,
+    isUpdateAvailable = updateFlagAgainstSnapshot(versionCode),
+)
 
 // pending zone
 
