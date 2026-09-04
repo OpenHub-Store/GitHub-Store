@@ -53,6 +53,18 @@ import kotlin.math.roundToInt
 
 private val MinTouchTarget = 44.dp
 
+/**
+ * A highly customizable icon button component supporting multiple sizes, variants,
+ * and visual personalities (e.g., Manga or Classic themes).
+ *
+ * @param icon The vector asset to display as the icon content.
+ * @param contentDescription Description for accessibility screen readers.
+ * @param onClick Lambda callback executed when the button is clicked.
+ * @param modifier Optional Compose [Modifier] to configure layout behavior.
+ * @param variant Visual button variant (Tonal, Primary, Outline, Text, or Destructive).
+ * @param size Layout size variant of the button (Sm, Md, or Lg).
+ * @param enabled Whether the button responds to click interactions.
+ */
 @Composable
 fun KomiIconButton(
     icon: ImageVector,
@@ -191,6 +203,7 @@ private fun ClassicIconButton(
 ) {
     val colors = LocalPersonality.current.colors
     val metrics = size.metrics
+    val sizeModifier = Modifier.size(maxOf(metrics.box, MinTouchTarget))
     val content: @Composable () -> Unit = {
         Icon(
             imageVector = icon,
@@ -203,7 +216,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Primary -> {
             FilledIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -212,7 +225,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Tonal -> {
             FilledTonalIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -221,7 +234,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Outline -> {
             OutlinedIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -230,7 +243,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Text -> {
             IconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 content = content,
             )
@@ -239,7 +252,7 @@ private fun ClassicIconButton(
         KomiButtonVariant.Destructive -> {
             FilledIconButton(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = modifier.then(sizeModifier),
                 enabled = enabled,
                 colors =
                     IconButtonDefaults.filledIconButtonColors(

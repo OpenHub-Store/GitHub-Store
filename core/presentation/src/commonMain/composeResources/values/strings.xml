@@ -1497,6 +1497,8 @@
     <string name="feed_offline">Offline — showing a saved feed</string>
     <string name="feed_failed_to_load">Couldn\'t load the feed</string>
     <string name="feed_end_cap">続く · TO BE CONTINUED</string>
+    <string name="feed_layout_description_grid">Switch to grid layout</string>
+    <string name="feed_layout_description_list">Switch to list layout</string>
     <string name="feed_category_ai">AI</string>
     <string name="feed_category_privacy">Privacy</string>
     <string name="feed_category_networking">Networking</string>

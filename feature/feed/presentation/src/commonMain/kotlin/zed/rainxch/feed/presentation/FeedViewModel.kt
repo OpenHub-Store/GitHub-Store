@@ -41,6 +41,10 @@ import zed.rainxch.githubstore.core.presentation.res.failed_to_share_link
 import zed.rainxch.githubstore.core.presentation.res.feed_failed_to_load
 import zed.rainxch.githubstore.core.presentation.res.link_copied_to_clipboard
 
+/**
+ * ViewModel responsible for managing the state, loading feed repositories,
+ * filtering by platforms and categories, and handling user interactions on the Feed screen.
+ */
 class FeedViewModel(
     private val feedRepository: FeedRepository,
     private val installedAppsRepository: InstalledAppsRepository,
@@ -104,6 +108,11 @@ class FeedViewModel(
     private val _events = Channel<FeedEvent>(capacity = Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
+    /**
+     * Handles UI actions dispatched from the feed composables.
+     *
+     * @param action The user action to process.
+     */
     fun onAction(action: FeedAction) {
         when (action) {
             FeedAction.OnRefresh -> reload(isRefresh = true)
@@ -130,6 +139,13 @@ class FeedViewModel(
 
             is FeedAction.OnCategorySelected -> {
                 browseFilterStore.setCategory(action.category)
+            }
+
+            FeedAction.OnToggleLayoutType -> {
+                _state.update {
+                    val nextType = if (it.layoutType == FeedLayoutType.LIST) FeedLayoutType.GRID else FeedLayoutType.LIST
+                    it.copy(layoutType = nextType)
+                }
             }
 
             is FeedAction.OnShareClick -> viewModelScope.launch {
