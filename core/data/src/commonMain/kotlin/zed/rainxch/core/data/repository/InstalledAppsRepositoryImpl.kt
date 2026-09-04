@@ -261,17 +261,21 @@ class InstalledAppsRepositoryImpl(
         return null
     }
 
-    // Keep an opaque-marker (nightly) flag through transient failures:
+    // Transient-failure bookkeeping: regular repositories clear the stored
+    // snapshot (self-heal); an opaque-marker (nightly) flag survives, since
     // clearing it drops latestReleasePublishedAt and the next scan would
-    // re-report from a null baseline. Regular repositories self-heal.
-    private suspend fun preserveOpaqueOrClear(
+    // re-report from a null baseline. Both paths still record lastCheckedAt
+    // so retry pacing and the "last checked" UI keep working.
+    private suspend fun recordTransientFailure(
         storedLatestTag: String?,
         packageName: String,
-    ): Boolean {
-        if (!VersionMath.isOpaqueMarker(storedLatestTag)) {
-            installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
+    ) {
+        val now = System.currentTimeMillis()
+        if (VersionMath.isOpaqueMarker(storedLatestTag)) {
+            installedAppsDao.updateLastChecked(packageName, now)
+        } else {
+            installedAppsDao.clearUpdateMetadata(packageName, now)
         }
-        return false
     }
 
     override suspend fun checkForUpdates(packageName: String): Boolean {
@@ -291,7 +295,8 @@ class InstalledAppsRepositoryImpl(
                 )
 
             if (releases.isEmpty()) {
-                return preserveOpaqueOrClear(app.latestVersion, packageName)
+                recordTransientFailure(app.latestVersion, packageName)
+                return false
             }
 
             val compiledFilter =
@@ -321,7 +326,8 @@ class InstalledAppsRepositoryImpl(
                     "No matching release found for ${app.appName} in window of ${releases.size}; " +
                             "filter=${app.assetFilterRegex}, fallback=${app.fallbackToOlderReleases}"
                 }
-                return preserveOpaqueOrClear(app.latestVersion, packageName)
+                recordTransientFailure(app.latestVersion, packageName)
+                return false
             }
 
             val (matchedRelease, primaryAsset, variantWasLost) = resolved

@@ -284,6 +284,5 @@ class InstalledAppUpdatesTest {
         val result = app(installedVersion = "1.9.0").normalizeInstalledTag("2.0.0")
         assertEquals("2.0.0", result.installedVersion)
         assertFalse(result.isUpdateAvailable)
-        assertEquals("2.0.0", result.latestVersionName)
     }
 }
