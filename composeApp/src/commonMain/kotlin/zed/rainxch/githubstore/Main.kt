@@ -1,6 +1,5 @@
 package zed.rainxch.githubstore
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +50,15 @@ fun App(
             .build()
     }
 
+    // Nothing below may run before persisted appearance preferences load: the
+    // deep-link effect navigates a NavHost that is only composed after this
+    // gate, and the theme would be built from untrusted defaults. Android
+    // covers the wait with the splash; desktop shows a plain window frame.
+    if (!mainState.appearanceLoaded) {
+        Box(modifier = Modifier.fillMaxSize())
+        return
+    }
+
     val currentScreen = navController.currentBackStackEntryAsState().value.getCurrentScreen()
 
     HandleKeyboardEvents(navController)
@@ -90,19 +98,6 @@ fun App(
         }
 
     PersonalityTheme(personality, languageTag = mainState.appLanguageTag) {
-        if (!mainState.appearanceLoaded) {
-            // Persisted appearance preferences are still loading — hold the
-            // frame on the (already correct) theme background instead of
-            // rendering navigation with hardcoded default values.
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(personality.colors.background),
-            )
-            return@PersonalityTheme
-        }
-
         AppNavigation(
             navController = navController,
             isScrollbarEnabled = mainState.isScrollbarEnabled,

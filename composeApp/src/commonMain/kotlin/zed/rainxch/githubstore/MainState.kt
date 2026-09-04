@@ -23,9 +23,7 @@ data class MainState(
     val isScrollbarEnabled: Boolean = false,
     val contentWidth: ContentWidth = ContentWidth.COMPACT,
     val appLanguageTag: String? = null,
-    // Held false until every persisted appearance preference has emitted, so
-    // the first frame never renders the hardcoded defaults. Awaited in
-    // MainViewModel.init; getFontTheme is intentionally excluded (font does
-    // not affect the placeholder background).
+    // False until persisted appearance preferences have loaded (or the load
+    // timed out). The first frame must not render before it flips.
     val appearanceLoaded: Boolean = false,
 )

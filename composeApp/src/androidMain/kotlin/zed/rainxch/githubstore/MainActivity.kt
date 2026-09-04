@@ -39,12 +39,6 @@ private const val LANGUAGE_PREF_READ_TIMEOUT_MS = 2000L
 class MainActivity : ComponentActivity() {
     private var deepLinkUri by mutableStateOf<String?>(null)
 
-    // Mirror of MainViewModel.appearanceLoaded, collected here so the splash
-    // hold reads the SAME single source of truth the Compose gate uses.
-    // While true, the keep-on-screen condition cancels every draw request —
-    // the placeholder frame is never rendered, so the user goes
-    // splash -> their real theme with zero intermediate frames.
-    private var appearanceLoaded = false
     private val shareManager: ShareManager by inject()
     private val tweaksRepository: TweaksRepository by inject()
     private val localizationManager: LocalizationManager by inject()
@@ -53,10 +47,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
-        // Hold while the persisted appearance preferences are still loading.
-        // While held, draw requests are cancelled so no placeholder frame is
-        // ever rendered; the first frame released is the real themed UI.
-        splash.setKeepOnScreenCondition { !appearanceLoaded }
+        // KeepOnScreenCondition is polled before each draw: while it returns
+        // true every draw request is cancelled, so the first frame the user
+        // ever sees is the real themed UI, never the unthemed placeholder.
+        // Same StateFlow the Compose gate in App() reads — single source.
+        val mainViewModel = getViewModel<MainViewModel>()
+        splash.setKeepOnScreenCondition { !mainViewModel.state.value.appearanceLoaded }
         enableEdgeToEdge()
 
         (shareManager as? AndroidShareManager)?.registerActivityResultLauncher(this)
@@ -86,19 +82,6 @@ class MainActivity : ComponentActivity() {
                         localizationManager.setActiveLanguageTag(newTag)
                         recreate()
                     }
-            }
-        }
-
-        // Mirror the MainViewModel appearance gate into this activity so the
-        // splash hold reads the same value the Compose gate does. MainViewModel
-        // is a Koin single-activity-scoped view model resolved with the same
-        // factory inside setContent's koinViewModel().
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                val viewModel = getViewModel<MainViewModel>()
-                viewModel.state.collect { state ->
-                    appearanceLoaded = state.appearanceLoaded
-                }
             }
         }
 
