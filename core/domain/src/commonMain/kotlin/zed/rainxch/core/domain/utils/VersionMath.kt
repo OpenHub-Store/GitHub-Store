@@ -16,6 +16,10 @@ object VersionMath {
             return deflavoured
         }
         if (isMarkerWithOpaqueSuffix(deflavoured)) return deflavoured
+        // Must stay ahead of the numeric-prefix truncation below: a tag like
+        // 26.08.11f15e4 returned verbatim is what lets versionsReconcilable
+        // see the hex tail. Dropping it to "26.08.11" here would silently
+        // route hash builds into the numeric comparison this guards against.
         if (hasHexTailAfterNumericPrefix(deflavoured)) return deflavoured
         val match = DOTTED_DIGIT_PATTERN.find(deflavoured)
         return match?.value ?: deflavoured
