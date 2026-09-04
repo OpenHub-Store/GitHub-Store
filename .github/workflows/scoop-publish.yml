@@ -15,5 +15,5 @@ jobs:
           GH_TOKEN: ${{ secrets.SCOOP_BUCKET_TOKEN }}
         run: |
           gh api --method POST \
-            repos/kurikomi-labs/komi-store-scoop-bucket/dispatches \
+            repos/komi-store/komi-store-scoop-bucket/dispatches \
             -f event_type=komi-store-release

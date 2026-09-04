@@ -603,7 +603,7 @@ jobs:
           pkgname = ${PKG_NAME}
           pkgver = ${VERSION}-1
           pkgdesc = Cross-platform app store for GitHub releases
-          url = https://github.com/kurikomi-labs/komi-store
+          url = https://github.com/komi-store/komi-store
           builddate = $(date +%s)
           packager = GitHub Actions
           arch = x86_64

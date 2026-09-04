@@ -61,7 +61,7 @@ jobs:
       - name: Checkout tap repo
         uses: actions/checkout@v4
         with:
-          repository: kurikomi-labs/homebrew-komi-store
+          repository: komi-store/homebrew-komi-store
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-tap
 
