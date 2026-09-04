@@ -21,16 +21,16 @@ class UpdateVerdictTest {
         matchedIsPrerelease: Boolean = false,
     ): UpdateVerdict.Result =
         UpdateVerdict.decide(
-            installedTag = installedTag,
-            installedVersionCode = installedVersionCode,
-            storedLatestTag = storedLatestTag,
-            storedLatestVersionCode = storedLatestVersionCode,
-            storedPublishedAt = storedPublishedAt,
-            wasUpdateAvailable = wasUpdateAvailable,
+            installed = UpdateVerdict.Installed(installedTag, installedVersionCode),
+            stored =
+                UpdateVerdict.Stored(
+                    latestTag = storedLatestTag,
+                    latestVersionCode = storedLatestVersionCode,
+                    publishedAt = storedPublishedAt,
+                    wasUpdateAvailable = wasUpdateAvailable,
+                ),
+            matched = UpdateVerdict.Matched(matchedTag, matchedPublishedAt, matchedIsPrerelease),
             skippedTag = skippedTag,
-            matchedTag = matchedTag,
-            matchedPublishedAt = matchedPublishedAt,
-            matchedIsPrerelease = matchedIsPrerelease,
         )
 
     // ── semver branch ────────────────────────────────────────────────────

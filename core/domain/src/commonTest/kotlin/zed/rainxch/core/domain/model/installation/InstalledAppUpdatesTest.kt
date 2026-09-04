@@ -5,10 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Pins the write-ownership contract of the zone-scoped update functions:
- * each function must copy ONLY its own zone's fields.
- */
 class InstalledAppUpdatesTest {
 
     // ── fixture ──────────────────────────────────────────────────────────

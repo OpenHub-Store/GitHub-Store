@@ -6,48 +6,60 @@ package zed.rainxch.core.domain.utils
 // UpdateVerdictTest.
 object UpdateVerdict {
 
+    data class Installed(
+        val tag: String?,
+        val versionCode: Long,
+    )
+
+    data class Stored(
+        val latestTag: String?,
+        val latestVersionCode: Long?,
+        val publishedAt: String?,
+        val wasUpdateAvailable: Boolean,
+    )
+
+    data class Matched(
+        val tag: String,
+        val publishedAt: String?,
+        val isPrerelease: Boolean,
+    )
+
     fun decide(
-        installedTag: String?,
-        installedVersionCode: Long,
-        storedLatestTag: String?,
-        storedLatestVersionCode: Long?,
-        storedPublishedAt: String?,
-        wasUpdateAvailable: Boolean,
+        installed: Installed,
+        stored: Stored,
+        matched: Matched,
         skippedTag: String?,
-        matchedTag: String,
-        matchedPublishedAt: String?,
-        matchedIsPrerelease: Boolean,
     ): Result {
-        val reconcilable = VersionMath.versionsReconcilable(installedTag, matchedTag)
+        val reconcilable = VersionMath.versionsReconcilable(installed.tag, matched.tag)
         val codesAlreadyMatch =
-            installedVersionCode > 0L &&
-                storedLatestVersionCode != null &&
-                storedLatestVersionCode > 0L &&
-                installedVersionCode == storedLatestVersionCode &&
-                matchedTag == storedLatestTag
+            installed.versionCode > 0L &&
+                stored.latestVersionCode != null &&
+                stored.latestVersionCode > 0L &&
+                installed.versionCode == stored.latestVersionCode &&
+                matched.tag == stored.latestTag
 
         val matchesSkipped =
-            skippedTag != null && VersionMath.isExactSameVersion(matchedTag, skippedTag)
+            skippedTag != null && VersionMath.isExactSameVersion(matched.tag, skippedTag)
         val skipBecameStale =
             skippedTag != null &&
                 !matchesSkipped &&
-                VersionMath.isVersionNewer(matchedTag, skippedTag)
+                VersionMath.isVersionNewer(matched.tag, skippedTag)
 
-        val opaqueMatched = VersionMath.isOpaqueMarker(matchedTag)
-        val sameTag = VersionMath.isExactSameVersion(matchedTag, installedTag)
+        val opaqueMatched = VersionMath.isOpaqueMarker(matched.tag)
+        val sameTag = VersionMath.isExactSameVersion(matched.tag, installed.tag)
         val usedTimestampLogic =
             opaqueMatched ||
                 (sameTag && !reconcilable) ||
-                (!reconcilable && (matchedIsPrerelease || VersionMath.isPreReleaseTag(matchedTag)))
+                (!reconcilable && (matched.isPrerelease || VersionMath.isPreReleaseTag(matched.tag)))
 
         val timestampWouldReport =
             if (usedTimestampLogic) {
                 VersionMath.shouldReportTimestampUpdate(
-                    matchedTag = matchedTag,
-                    matchedPublishedAt = matchedPublishedAt,
-                    previousLatestPublishedAt = storedPublishedAt,
-                    previousWasUpdateAvailable = wasUpdateAvailable,
-                    previousLatestTag = storedLatestTag,
+                    matchedTag = matched.tag,
+                    matchedPublishedAt = matched.publishedAt,
+                    previousLatestPublishedAt = stored.publishedAt,
+                    previousWasUpdateAvailable = stored.wasUpdateAvailable,
+                    previousLatestTag = stored.latestTag,
                 )
             } else {
                 false
@@ -64,8 +76,8 @@ object UpdateVerdict {
                 !reconcilable -> false
                 else ->
                     VersionMath.isVersionNewer(
-                        candidate = matchedTag,
-                        current = installedTag,
+                        candidate = matched.tag,
+                        current = installed.tag,
                     )
             }
 

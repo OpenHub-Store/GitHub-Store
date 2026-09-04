@@ -4,10 +4,10 @@ import zed.rainxch.core.domain.utils.VersionMath
 
 // Zone-scoped write surface for InstalledApp. A bare copy() with dozens of
 // named args let any writer overwrite fields owned by another writer (the
-// overwrite-bug class); each function below copies ONLY its own zone, so
-// cross-zone overwrites are impossible by construction. Zone ownership is
-// pinned by InstalledAppUpdatesTest. One exception: withLatestSnapshot is a
-// check-zone writer used to park the install target before a download.
+// overwrite-bug class); each function below copies ONLY the fields of its
+// declared zone, pinned by InstalledAppUpdatesTest. The migrate zone is
+// deliberately cross-side: it is the one-time import normalizer and owns the
+// version name/code fields on both sides, never tags, flags, or assets.
 
 // install zone — real install/confirm events only
 
@@ -28,6 +28,12 @@ fun InstalledApp.confirmInstall(
         !snapshotLatestVersion.isNullOrBlank() &&
                 VersionMath.isVersionNewer(snapshotLatestVersion, tag)
 
+    // Non-pending confirmations finish the install, so pending metadata goes
+    // with them; a system-installer handoff keeps the parked file alive.
+    val parkedFile = if (isPending) pendingInstallFilePath else null
+    val parkedVersion = if (isPending) pendingInstallVersion else null
+    val parkedAsset = if (isPending) pendingInstallAssetName else null
+
     return copy(
         installedVersion = tag,
         installedAssetName = assetName,
@@ -40,9 +46,9 @@ fun InstalledApp.confirmInstall(
         lastUpdatedAt = at,
         lastCheckedAt = at,
         signingFingerprint = signingFingerprint,
-        pendingInstallFilePath = if (isPending) pendingInstallFilePath else null,
-        pendingInstallVersion = if (isPending) pendingInstallVersion else null,
-        pendingInstallAssetName = if (isPending) pendingInstallAssetName else null,
+        pendingInstallFilePath = parkedFile,
+        pendingInstallVersion = parkedVersion,
+        pendingInstallAssetName = parkedAsset,
     )
 }
 
@@ -67,7 +73,7 @@ fun InstalledApp.normalizeInstalledTag(tag: String): InstalledApp = copy(
     isUpdateAvailable = false,
 )
 
-// one-time import/migration normalization; the ONLY sanctioned dual-zone write
+// one-time import/migration normalization; owns both sides' version fields by design
 fun InstalledApp.withMigratedVersionInfo(
     versionName: String?,
     versionCode: Long,

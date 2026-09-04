@@ -261,6 +261,19 @@ class InstalledAppsRepositoryImpl(
         return null
     }
 
+    // Keep an opaque-marker (nightly) flag through transient failures:
+    // clearing it drops latestReleasePublishedAt and the next scan would
+    // re-report from a null baseline. Regular repositories self-heal.
+    private suspend fun preserveOpaqueOrClear(
+        storedLatestTag: String?,
+        packageName: String,
+    ): Boolean {
+        if (!VersionMath.isOpaqueMarker(storedLatestTag)) {
+            installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
+        }
+        return false
+    }
+
     override suspend fun checkForUpdates(packageName: String): Boolean {
         val app = installedAppsDao.getAppByPackage(packageName) ?: return false
 
@@ -278,14 +291,7 @@ class InstalledAppsRepositoryImpl(
                 )
 
             if (releases.isEmpty()) {
-                // Keep an opaque-marker (nightly) flag through transient empty
-                // windows: clearing it drops latestReleasePublishedAt and the
-                // next scan would re-report from a null baseline. Regular
-                // repositories still self-heal.
-                if (!VersionMath.isOpaqueMarker(app.latestVersion)) {
-                    installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
-                }
-                return false
+                return preserveOpaqueOrClear(app.latestVersion, packageName)
             }
 
             val compiledFilter =
@@ -315,26 +321,32 @@ class InstalledAppsRepositoryImpl(
                     "No matching release found for ${app.appName} in window of ${releases.size}; " +
                             "filter=${app.assetFilterRegex}, fallback=${app.fallbackToOlderReleases}"
                 }
-                if (!VersionMath.isOpaqueMarker(app.latestVersion)) {
-                    installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
-                }
-                return false
+                return preserveOpaqueOrClear(app.latestVersion, packageName)
             }
 
             val (matchedRelease, primaryAsset, variantWasLost) = resolved
 
             val verdict =
                 UpdateVerdict.decide(
-                    installedTag = app.installedVersion,
-                    installedVersionCode = app.installedVersionCode,
-                    storedLatestTag = app.latestVersion,
-                    storedLatestVersionCode = app.latestVersionCode,
-                    storedPublishedAt = app.latestReleasePublishedAt,
-                    wasUpdateAvailable = app.isUpdateAvailable,
+                    installed =
+                        UpdateVerdict.Installed(
+                            tag = app.installedVersion,
+                            versionCode = app.installedVersionCode,
+                        ),
+                    stored =
+                        UpdateVerdict.Stored(
+                            latestTag = app.latestVersion,
+                            latestVersionCode = app.latestVersionCode,
+                            publishedAt = app.latestReleasePublishedAt,
+                            wasUpdateAvailable = app.isUpdateAvailable,
+                        ),
+                    matched =
+                        UpdateVerdict.Matched(
+                            tag = matchedRelease.tagName,
+                            publishedAt = matchedRelease.publishedAt,
+                            isPrerelease = matchedRelease.isPrerelease,
+                        ),
                     skippedTag = app.skippedReleaseTag,
-                    matchedTag = matchedRelease.tagName,
-                    matchedPublishedAt = matchedRelease.publishedAt,
-                    matchedIsPrerelease = matchedRelease.isPrerelease,
                 )
 
             if (verdict.skipBecameStale) {

@@ -857,11 +857,7 @@ class DetailsViewModel(
                         sourceHost = sourceHostParam,
                     )
 
-                val byPrevCategory = when (prevCategory) {
-                    ReleaseCategory.STABLE -> releases.firstOrNull { !it.isEffectivelyPreRelease() }
-                    ReleaseCategory.PRE_RELEASE -> releases.firstOrNull { it.isEffectivelyPreRelease() }
-                    ReleaseCategory.ALL -> releases.firstOrNull()
-                }
+                val byPrevCategory = releases.firstInCategory(prevCategory)
                 val selected = byPrevCategory
                     ?: releases.firstOrNull { !it.isEffectivelyPreRelease() }
                     ?: releases.firstOrNull()
@@ -2496,11 +2492,13 @@ class DetailsViewModel(
                             VersionMath.isSameVersion(it.tagName, installedApp?.installedVersion)
                         }?.isEffectivelyPreRelease() == true
                 val selectedRelease =
-                    if (installedIsPreRelease) {
-                        allReleases.firstOrNull { it.isEffectivelyPreRelease() }
-                    } else {
-                        allReleases.firstOrNull { !it.isEffectivelyPreRelease() }
-                    } ?: allReleases.firstOrNull()
+                    allReleases.firstInCategory(
+                        if (installedIsPreRelease) {
+                            ReleaseCategory.PRE_RELEASE
+                        } else {
+                            ReleaseCategory.STABLE
+                        },
+                    ) ?: allReleases.firstInCategory(ReleaseCategory.ALL)
                 val resolvedCategory =
                     if (selectedRelease?.isEffectivelyPreRelease() == true) {
                         ReleaseCategory.PRE_RELEASE
