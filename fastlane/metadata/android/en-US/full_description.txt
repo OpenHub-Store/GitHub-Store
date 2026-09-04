@@ -21,4 +21,4 @@ FEATURES
 
 Also available on Desktop (Windows, macOS, Linux) with tablet two-pane layout, fluid content width, persistent window state, and a native dark title bar on Windows 11 and macOS.
 
-Built with Kotlin Multiplatform and Compose Multiplatform. Source on GitHub at kurikomi-labs/komi-store.
+Built with Kotlin Multiplatform and Compose Multiplatform. Source on GitHub at komi-store/komi-store.

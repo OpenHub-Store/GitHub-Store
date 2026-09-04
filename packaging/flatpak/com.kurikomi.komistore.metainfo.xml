@@ -35,25 +35,25 @@
   <screenshots>
     <screenshot type="default">
       <caption>Home screen showing trending repositories</caption>
-      <image>https://raw.githubusercontent.com/kurikomi-labs/komi-store/main/media-resources/screenshots/desktop/desktop_linux_home.jpg</image>
+      <image>https://raw.githubusercontent.com/komi-store/komi-store/main/media-resources/screenshots/desktop/desktop_linux_home.jpg</image>
     </screenshot>
     <screenshot>
       <caption>Repository details with release info</caption>
-      <image>https://raw.githubusercontent.com/kurikomi-labs/komi-store/main/media-resources/screenshots/desktop/desktop_linux_details.jpg</image>
+      <image>https://raw.githubusercontent.com/komi-store/komi-store/main/media-resources/screenshots/desktop/desktop_linux_details.jpg</image>
     </screenshot>
     <screenshot>
       <caption>Downloading a package on Linux</caption>
-      <image>https://raw.githubusercontent.com/kurikomi-labs/komi-store/main/media-resources/screenshots/desktop/desktop_linux_installing_rpm.jpg</image>
+      <image>https://raw.githubusercontent.com/komi-store/komi-store/main/media-resources/screenshots/desktop/desktop_linux_installing_rpm.jpg</image>
     </screenshot>
     <screenshot>
       <caption>AppImage support on Linux</caption>
-      <image>https://raw.githubusercontent.com/kurikomi-labs/komi-store/main/media-resources/screenshots/desktop/desktop_linux_appimage.jpg</image>
+      <image>https://raw.githubusercontent.com/komi-store/komi-store/main/media-resources/screenshots/desktop/desktop_linux_appimage.jpg</image>
     </screenshot>
   </screenshots>
 
-  <url type="homepage">https://github.com/kurikomi-labs/komi-store</url>
-  <url type="bugtracker">https://github.com/kurikomi-labs/komi-store/issues</url>
-  <url type="vcs-browser">https://github.com/kurikomi-labs/komi-store</url>
+  <url type="homepage">https://github.com/komi-store/komi-store</url>
+  <url type="bugtracker">https://github.com/komi-store/komi-store/issues</url>
+  <url type="vcs-browser">https://github.com/komi-store/komi-store</url>
 
   <developer id="com.kurikomi">
     <name>Kurikomi Labs</name>

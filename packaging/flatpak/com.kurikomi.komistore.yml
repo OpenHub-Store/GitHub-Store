@@ -131,7 +131,7 @@ modules:
       # Pinned commit (Flathub requires a fixed ref — no branches). Add a
       # `tag:` line above `commit:` once a release tag includes these files.
       - type: git
-        url: https://github.com/kurikomi-labs/komi-store.git
+        url: https://github.com/komi-store/komi-store.git
         commit: f46e709c596e6579964e1b9ea5fcdc91f7497ec3
       # Gradle distribution (referenced by gradle-wrapper.properties after sed patch)
       - type: file

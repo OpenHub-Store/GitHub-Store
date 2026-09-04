@@ -5,10 +5,10 @@ cask "komi-store" do
   sha256 arm:   "df371a7c4c821125810dacaab04a7fb0bcd40162bc996b798caf21c586fd0f0f",
          intel: "2d95aa11a273528978cb2dad427e592d0705bb8e67c099a91a3216677abc4315"
 
-  url "https://github.com/kurikomi-labs/komi-store/releases/download/v#{version}/Komi-Store-#{version}-#{arch}.dmg"
+  url "https://github.com/komi-store/komi-store/releases/download/v#{version}/Komi-Store-#{version}-#{arch}.dmg"
   name "Komi Store"
   desc "Cross-platform app store for GitHub releases"
-  homepage "https://github.com/kurikomi-labs/komi-store"
+  homepage "https://github.com/komi-store/komi-store"
 
   livecheck do
     url :url

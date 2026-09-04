@@ -1,14 +1,14 @@
 # Homebrew Cask (reference copy)
 
 The Cask in this directory is a **reference/seed copy**. The live, user-facing
-Cask lives in [`kurikomi-labs/homebrew-komi-store`](https://github.com/kurikomi-labs/homebrew-komi-store)
+Cask lives in [`komi-store/homebrew-komi-store`](https://github.com/komi-store/homebrew-komi-store)
 and is auto-updated on each release by
 [`.github/workflows/homebrew-tap-publish.yml`](../../.github/workflows/homebrew-tap-publish.yml).
 
 Users install with:
 
 ```bash
-brew tap kurikomi-labs/komi-store
+brew tap komi-store/komi-store
 brew install --cask komi-store
 xattr -dr com.apple.quarantine /Applications/Komi-Store.app
 ```
