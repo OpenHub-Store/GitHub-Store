@@ -17,24 +17,24 @@
   <img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Linux/linux2.svg" />
   <br/>
   <br/>
- <a href="https://github.com/kurikomi-labs/komi-store/releases/latest">
-  <img src="https://api.github-store.org/v1/badge/kurikomi-labs/komi-store/downloads/5/2?label=Downloads%20:" alt="Downloads"/>
+ <a href="https://github.com/komi-store/komi-store/releases/latest">
+  <img src="https://api.github-store.org/v1/badge/komi-store/komi-store/downloads/5/2?label=Downloads%20:" alt="Downloads"/>
 </a>
-<a href="https://github.com/kurikomi-labs/komi-store/stargazers">
-  <img src="https://m3-markdown-badges.vercel.app/stars/3/2/OpenHub-Store/GitHub-Store" alt="Stars"/>
+<a href="https://github.com/komi-store/komi-store/stargazers">
+  <img src="https://m3-markdown-badges.vercel.app/stars/3/2/komi-store/komi-store" alt="Stars"/>
 </a>
-<a href="https://github.com/kurikomi-labs/komi-store/issues">
-  <img src="https://m3-markdown-badges.vercel.app/issues/1/2/OpenHub-Store/GitHub-Store" alt="Issues"/>
+<a href="https://github.com/komi-store/komi-store/issues">
+  <img src="https://m3-markdown-badges.vercel.app/issues/1/2/komi-store/komi-store" alt="Issues"/>
 </a>
-<a href="https://github.com/kurikomi-labs/komi-store/releases/latest">
-  <img src="https://api.github-store.org/v1/badge/kurikomi-labs/komi-store/release/9/1?label=Latest%20version%20:" alt="Latest release"/>
+<a href="https://github.com/komi-store/komi-store/releases/latest">
+  <img src="https://api.github-store.org/v1/badge/komi-store/komi-store/release/9/1?label=Latest%20version%20:" alt="Latest release"/>
 </a>
 </p>
 
 <table align="center">
   <tr>
     <td>
-      <a href="https://trendshift.io/repositories/22313" target="_blank"><img src="https://trendshift.io/api/badge/repositories/22313" alt="kurikomi-labs%2Fkomi-store | Trendshift" width="250" height="55" /></a>
+      <a href="https://trendshift.io/repositories/22313" target="_blank"><img src="https://trendshift.io/api/badge/repositories/22313" alt="komi-store%2Fkomi-store | Trendshift" width="250" height="55" /></a>
     </td>
     <td>
       <a href="https://hellogithub.com/en/repository/kurikomi-labs/komi-store" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=a95f4a4830bc4a69b56f96ac7efaacf8&claim_uid=sOz1lfiG4ARQYIK&theme=dark" alt="Featured｜HelloGitHub" width="250" height="54" /></a>
@@ -80,17 +80,17 @@ Built with Kotlin Multiplatform and Compose Multiplatform for Android and Deskto
 </div>
 
 <p align="center">
-  <a href="https://github.com/kurikomi-labs/komi-store/releases">
+  <a href="https://github.com/komi-store/komi-store/releases">
     <img src="https://i.ibb.co/q0mdc4Z/get-it-on-github.png" height="80" alt="Get it on GitHub" />
   </a>
   <a href="https://f-droid.org/en/packages/zed.rainxch.githubstore/">
     <img src="https://f-droid.org/badge/get-it-on.png" height="80" alt="Get it on F-Droid" />
   </a>
   <br/>
-  <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/kurikomi-labs/komi-store/">
+  <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/komi-store/komi-store/">
     <img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" height="55" alt="Get it on Obtainium" />
   </a>
-  <a href="https://github-store.org/app?repo=kurikomi-labs/komi-store">
+  <a href="https://github-store.org/app?repo=komi-store/komi-store">
     <img src="media-resources/ghs_download_badge.png" alt="Get it on Komi Store" height="58" />
   </a>
 </p>
@@ -101,7 +101,7 @@ Built with Kotlin Multiplatform and Compose Multiplatform for Android and Deskto
 **Scoop**
 
 ```powershell
-scoop bucket add scoop-bucket https://github.com/OpenHub-Store/scoop-bucket
+scoop bucket add scoop-bucket https://github.com/komi-store/komi-store-scoop-bucket
 scoop install scoop-bucket/github-store
 ```
 
@@ -117,7 +117,7 @@ winget install zed.rainxch.githubstore
 **Homebrew**
 
 ```bash
-brew tap OpenHub-Store/tap
+brew tap komi-store/komi-store
 brew install --cask github-store
 xattr -dr com.apple.quarantine /Applications/GitHub-Store.app
 ```
@@ -414,7 +414,7 @@ Sync the project and run the app. You should now be able to sign in with GitHub.
 
 </div>
 
-Check out Komi Store [Wiki](https://github.com/kurikomi-labs/komi-store/wiki) for FAQ and useful information
+Check out Komi Store [Wiki](https://github.com/komi-store/komi-store/wiki) for FAQ and useful information
 
 🌐 **Website:** [github-store.org](https://github-store.org)
 💬 **Discord:** [Join the community](https://discord.github-store.org)
@@ -430,9 +430,9 @@ Check out Komi Store [Wiki](https://github.com/kurikomi-labs/komi-store/wiki) fo
 
 Komi Store is 100% free. No ads. No tracking.
 
-- ⭐ **[Star](https://github.com/kurikomi-labs/komi-store/star)** this repository
-- 🐛 **[Report](https://github.com/kurikomi-labs/komi-store/issues)** bugs and issues
-- 💡 **[Suggest](https://github.com/kurikomi-labs/komi-store/discussions)** new features
+- ⭐ **[Star](https://github.com/komi-store/komi-store/star)** this repository
+- 🐛 **[Report](https://github.com/komi-store/komi-store/issues)** bugs and issues
+- 💡 **[Suggest](https://github.com/komi-store/komi-store/discussions)** new features
 - 💳 **[Sponsor](https://github.com/sponsors/rainxchzed)** the developer
 
 ---
@@ -487,11 +487,11 @@ fit for any particular purpose.
 
 </div>
 
-<a href="https://www.star-history.com/#kurikomi-labs/komi-store&type=timeline&legend=top-left">
+<a href="https://www.star-history.com/#komi-store/komi-store&type=timeline&legend=top-left">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kurikomi-labs/komi-store&type=timeline&theme=dark&legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=kurikomi-labs/komi-store&type=timeline&legend=top-left" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=kurikomi-labs/komi-store&type=timeline&legend=top-left" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=komi-store/komi-store&type=timeline&theme=dark&legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=komi-store/komi-store&type=timeline&legend=top-left" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=komi-store/komi-store&type=timeline&legend=top-left" />
   </picture>
 </a>
 

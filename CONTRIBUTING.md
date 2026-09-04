@@ -2,7 +2,7 @@
 
 Thanks for your interest in helping out. This document covers everything you need to ship a change — from setting up the project locally to landing a clean PR.
 
-If you're contributing to a sibling repo ([`backend`](https://github.com/OpenHub-Store/backend) or [`api`](https://github.com/OpenHub-Store/api)), check that repo's own contributing notes; the rules below are specific to the **GitHub-Store** client app.
+If you're contributing to a sibling repo ([`backend`](https://github.com/komi-store/komi-store-backend) or [`api`](https://github.com/komi-store/komi-store-backend-data)), check that repo's own contributing notes; the rules below are specific to the **GitHub-Store** client app.
 
 ---
 
@@ -37,7 +37,7 @@ Plenty of ways to help, even without writing code:
 - **Report bugs.** Reproducible reports with logs are gold.
 - **Suggest features.** Open an issue describing the user-facing problem first; the implementation can be discussed there.
 - **Triage issues.** Reproduce open bugs, ask for missing info, label them.
-- **Write code.** Pick up a [`good first issue`](https://github.com/kurikomi-labs/komi-store/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or any [`help wanted`](https://github.com/kurikomi-labs/komi-store/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) issue.
+- **Write code.** Pick up a [`good first issue`](https://github.com/komi-store/komi-store/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or any [`help wanted`](https://github.com/komi-store/komi-store/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) issue.
 - **Translate strings.** See [Translations](#translations).
 - **Test pre-releases.** Watch the repo for new tags and try them out.
 
@@ -48,7 +48,7 @@ Plenty of ways to help, even without writing code:
 Two ways:
 
 - **Inside the app: `Profile → Send feedback`.** Auto-fills app version, platform, and installer. Pick the channel (email or GitHub issue) and you're done.
-- **On GitHub: [open a bug report](https://github.com/kurikomi-labs/komi-store/issues/new?template=bug_report.md).** Tell us what went wrong, how to reproduce, your setup. Logs and screenshots help but aren't required.
+- **On GitHub: [open a bug report](https://github.com/komi-store/komi-store/issues/new?template=bug_report.md).** Tell us what went wrong, how to reproduce, your setup. Logs and screenshots help but aren't required.
 
 If you have logs handy, grab them from:
 
@@ -59,7 +59,7 @@ If you have logs handy, grab them from:
 
 ## Suggesting features
 
-[Open a feature request](https://github.com/kurikomi-labs/komi-store/issues/new?template=feature_request.md). Lead with the **pain**, not the solution: what are you trying to do, where does the app fall short?
+[Open a feature request](https://github.com/komi-store/komi-store/issues/new?template=feature_request.md). Lead with the **pain**, not the solution: what are you trying to do, where does the app fall short?
 
 For bigger ideas (new screens, new platform, architectural shifts), open the issue first and wait for a quick discussion before writing code.
 
@@ -77,7 +77,7 @@ For bigger ideas (new screens, new platform, architectural shifts), open the iss
 ### One-time setup
 
 ```bash
-git clone https://github.com/kurikomi-labs/komi-store.git
+git clone https://github.com/komi-store/komi-store.git
 cd komi-store
 ```
 
@@ -312,7 +312,7 @@ You don't normally need to touch this as a contributor; just be aware that landi
 
 ## Security disclosures
 
-**Do not open public issues for security vulnerabilities.** Use [GitHub's private vulnerability reporting](https://github.com/kurikomi-labs/komi-store/security/advisories/new) or email `admin@komistore.app` with the details.
+**Do not open public issues for security vulnerabilities.** Use [GitHub's private vulnerability reporting](https://github.com/komi-store/komi-store/security/advisories/new) or email `admin@komistore.app` with the details.
 
 We treat token leaks, install-flow exploits, and signing-bypass paths as critical. Other issues we'll triage on a best-effort basis.
 
@@ -322,8 +322,8 @@ We treat token leaks, install-flow exploits, and signing-bypass paths as critica
 
 - **Real-time chat:** join the [Discord server](https://discord.komistore.app) — fastest way to get a hand from maintainers and other contributors.
 - **Email:** `admin@komistore.app` for anything that doesn't fit a public channel — sponsorship, partnerships, sensitive coordination.
-- **General questions / discussion:** open a [GitHub Discussion](https://github.com/kurikomi-labs/komi-store/discussions) (if enabled) or a feature-request issue.
+- **General questions / discussion:** open a [GitHub Discussion](https://github.com/komi-store/komi-store/discussions) (if enabled) or a feature-request issue.
 - **Stuck on local setup:** open a draft PR with what you have and ask for help in the description — we'd rather help you finish than have you give up silently.
-- **Sibling repos:** [backend](https://github.com/OpenHub-Store/backend) and [api](https://github.com/OpenHub-Store/api) have their own contributing notes.
+- **Sibling repos:** [backend](https://github.com/komi-store/komi-store-backend) and [api](https://github.com/komi-store/komi-store-backend-data) have their own contributing notes.
 
 Thanks for making Komi Store better.
