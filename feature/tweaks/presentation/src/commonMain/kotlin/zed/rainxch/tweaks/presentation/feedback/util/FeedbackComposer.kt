@@ -9,7 +9,7 @@ import zed.rainxch.tweaks.presentation.feedback.model.FeedbackTopic
 
 object FeedbackComposer {
     const val FEEDBACK_EMAIL = "admin@komistore.app"
-    const val FEEDBACK_REPO = "OpenHub-Store/GitHub-Store"
+    const val FEEDBACK_REPO = "komi-store/komi-store"
     const val BODY_MAX_CHARS = 7_500
 
     fun composeUrl(state: FeedbackState, channel: FeedbackChannel): String {

@@ -314,11 +314,11 @@ class GithubStoreApp : Application() {
         private const val SELF_SHA256_FINGERPRINT =
             @Suppress("ktlint:standard:max-line-length")
             "B7:F2:8E:19:8E:48:C1:93:B0:38:C6:5D:92:DD:F7:BC:07:7B:0D:B5:9E:BC:9B:25:0A:6D:AC:48:C1:18:03:CA"
-        private const val SELF_REPO_OWNER = "kurikomi-labs"
+        private const val SELF_REPO_OWNER = "komi-store"
         private const val SELF_REPO_NAME = "komi-store"
         private const val SELF_AVATAR_URL =
             @Suppress("ktlint:standard:max-line-length")
-            "https://raw.githubusercontent.com/kurikomi-labs/komi-store/refs/heads/main/media-resources/app_icon.png"
+            "https://raw.githubusercontent.com/komi-store/komi-store/refs/heads/main/media-resources/app_icon.png"
         const val UPDATES_CHANNEL_ID = "app_updates"
         const val UPDATE_SERVICE_CHANNEL_ID = "update_service"
         const val DOWNLOADS_CHANNEL_ID = "app_downloads"
