@@ -48,9 +48,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
         // KeepOnScreenCondition is polled before each draw: while it returns
-        // true every draw request is cancelled, so the first frame the user
-        // ever sees is the real themed UI, never the unthemed placeholder.
-        // Same StateFlow the Compose gate in App() reads — single source.
+        // true every draw request is cancelled, so no placeholder frame is
+        // ever rendered. The frame released is the real themed UI; only on
+        // the rare watchdog timeout can it hold defaults briefly (see
+        // MainViewModel). Same StateFlow the Compose gate reads.
         val mainViewModel = getViewModel<MainViewModel>()
         splash.setKeepOnScreenCondition { !mainViewModel.state.value.appearanceLoaded }
         enableEdgeToEdge()

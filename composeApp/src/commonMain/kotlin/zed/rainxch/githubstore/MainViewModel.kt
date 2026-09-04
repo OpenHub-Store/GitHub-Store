@@ -65,13 +65,19 @@ class MainViewModel(
 
         // Sole writer of the gated appearance fields: combine emits only after
         // all five sources have a first value, so fields and flag land in one
-        // update. The watchdog releases the gate on defaults if that emission
-        // never arrives, mirroring the guarded language read in MainActivity.
+        // update. If that emission never arrives within the timeout — or the
+        // collector throws — the watchdog releases the gate on defaults so
+        // the splash can never be held indefinitely.
         viewModelScope.launch {
             val firstEmitted = CompletableDeferred<Unit>()
             launch {
-                withTimeoutOrNull(APPEARANCE_LOAD_TIMEOUT_MS.milliseconds) { firstEmitted.await() }
-                _state.update { it.copy(appearanceLoaded = true) }
+                if (
+                    withTimeoutOrNull(APPEARANCE_LOAD_TIMEOUT_MS.milliseconds) {
+                        firstEmitted.await()
+                    } == null
+                ) {
+                    _state.update { it.copy(appearanceLoaded = true) }
+                }
             }
             try {
                 combine(
