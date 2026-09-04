@@ -62,6 +62,7 @@ class RootServiceManager(
     suspend fun installPackage(
         apkFile: File,
         installerPackageName: String?,
+        userId: Int,
     ): Int? = withContext(Dispatchers.IO) {
         configureDefaultShell()
         if (!isRootGranted()) {
@@ -79,6 +80,7 @@ class RootServiceManager(
         val tmpPath = "/data/local/tmp/ghs_${System.currentTimeMillis()}_${(0..Int.MAX_VALUE).random()}.apk"
         val srcPath = shellQuote(apkFile.absolutePath)
         val tmpPathQuoted = shellQuote(tmpPath)
+        val safeUserId = userId.coerceAtLeast(0)
 
         try {
             val copyRes = Shell.cmd("cp $srcPath $tmpPathQuoted && chmod 644 $tmpPathQuoted").exec()
@@ -90,7 +92,7 @@ class RootServiceManager(
             }
 
             val command = buildString {
-                append("pm install ")
+                append("pm install --user ").append(safeUserId).append(' ')
                 if (safeInstaller != null) append("-i ").append(safeInstaller).append(' ')
                 append("-r ")
                 append(tmpPathQuoted)
@@ -111,7 +113,10 @@ class RootServiceManager(
         }
     }
 
-    suspend fun uninstallPackage(packageName: String): Int? = withContext(Dispatchers.IO) {
+    suspend fun uninstallPackage(
+        packageName: String,
+        userId: Int,
+    ): Int? = withContext(Dispatchers.IO) {
         configureDefaultShell()
         if (!isRootGranted()) {
             Logger.w(TAG) { "uninstallPackage() — root not granted, aborting" }
@@ -123,9 +128,10 @@ class RootServiceManager(
             }
             return@withContext STATUS_FAILURE
         }
-        val result = Shell.cmd("pm uninstall $packageName").exec()
+        val safeUserId = userId.coerceAtLeast(0)
+        val result = Shell.cmd("pm uninstall --user $safeUserId $packageName").exec()
         val stdout = result.out.joinToString("\n").trim()
-        Logger.d(TAG) { "uninstallPackage($packageName) — exit=${result.code} stdout='$stdout'" }
+        Logger.d(TAG) { "uninstallPackage($packageName, $safeUserId) — exit=${result.code} stdout='$stdout'" }
         if (result.isSuccess && stdout.contains("Success")) STATUS_SUCCESS else STATUS_FAILURE
     }
 

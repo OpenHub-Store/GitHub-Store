@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import zed.rainxch.core.data.services.dhizuku.DhizukuInstallerServiceImpl
 import zed.rainxch.core.data.services.dhizuku.DhizukuServiceManager
 import zed.rainxch.core.data.services.dhizuku.model.DhizukuStatus
 import zed.rainxch.core.data.services.root.RootServiceManager
@@ -133,25 +132,43 @@ class SilentInstallerDispatcher(
     private suspend fun trySilentInstall(filePath: String, backend: Backend): InstallOutcome? {
         Logger.d(TAG) { "Routing install through $backend" }
         val installerAttribution = cachedInstallerAttribution.resolvePackageName()
+        val userId = PackageSessionInstaller.appUserId()
+        val originatingUid = android.os.Process.myUid()
         return try {
             val file = File(filePath)
-            val (expectedPkg, expectedVc) = readApkIdentity(filePath)
+            val (expectedPkg, expectedVc) = PackageSessionInstaller.readApkIdentity(androidContext, filePath)
             val first =
                 withContext(Dispatchers.IO) {
-                    runInstall(file, backend, installerAttribution, expectedPkg, expectedVc)
+                    runInstall(
+                        file = file,
+                        backend = backend,
+                        installerAttribution = installerAttribution,
+                        expectedPkg = expectedPkg,
+                        expectedVc = expectedVc,
+                        userId = userId,
+                        originatingUid = originatingUid,
+                    )
                 }
 
             val resolved =
                 if (
                     backend == Backend.DHIZUKU &&
-                    first == DhizukuInstallerServiceImpl.STATUS_PENDING_USER_ACTION_REQUIRED &&
+                    first == PackageSessionInstaller.STATUS_PENDING_USER_ACTION_REQUIRED &&
                     !installerAttribution.isNullOrBlank()
                 ) {
                     Logger.w(TAG) {
                         "Dhizuku returned PENDING_USER_ACTION with attribution=$installerAttribution; retrying without attribution"
                     }
                     withContext(Dispatchers.IO) {
-                        runInstall(file, backend, null, expectedPkg, expectedVc)
+                        runInstall(
+                            file = file,
+                            backend = backend,
+                            installerAttribution = null,
+                            expectedPkg = expectedPkg,
+                            expectedVc = expectedVc,
+                            userId = userId,
+                            originatingUid = originatingUid,
+                        )
                     }
                 } else {
                     first
@@ -161,12 +178,17 @@ class SilentInstallerDispatcher(
                     Logger.w(TAG) { "$backend service is null, will fall back" }
                     null
                 }
-                resolved == 0 -> InstallOutcome.COMPLETED
+                resolved == PackageSessionInstaller.STATUS_SUCCESS -> InstallOutcome.COMPLETED
+                resolved == PackageSessionInstaller.STATUS_ABORTED -> {
+                    throw IllegalStateException("Installation cancelled")
+                }
                 else -> {
                     Logger.w(TAG) { "$backend install returned $resolved, will fall back" }
                     null
                 }
             }
+        } catch (e: IllegalStateException) {
+            throw e
         } catch (e: Exception) {
             Logger.e(TAG) { "$backend install exception, falling back: ${e.javaClass.simpleName}: ${e.message}" }
             null
@@ -179,55 +201,60 @@ class SilentInstallerDispatcher(
         installerAttribution: String?,
         expectedPkg: String?,
         expectedVc: Long,
+        userId: Int,
+        originatingUid: Int,
     ): Int? =
         when (backend) {
             Backend.SHIZUKU ->
                 ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { pfd ->
                     val service = shizukuServiceManager.getService() ?: return@use null
-                    service.installPackage(pfd, file.length(), installerAttribution)
+                    service.installPackage(
+                        pfd,
+                        file.length(),
+                        expectedPkg,
+                        installerAttribution,
+                        userId,
+                        originatingUid,
+                    )
                 }
             Backend.DHIZUKU ->
                 ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { pfd ->
                     val service = dhizukuServiceManager.getService() ?: return@use null
-                    service.installPackage(pfd, file.length(), expectedPkg, expectedVc, installerAttribution)
+                    service.installPackage(
+                        pfd,
+                        file.length(),
+                        expectedPkg,
+                        expectedVc,
+                        installerAttribution,
+                        userId,
+                        originatingUid,
+                    )
                 }
             Backend.ROOT ->
-
-                rootServiceManager.installPackage(file, installerAttribution)
+                rootServiceManager.installPackage(
+                    apkFile = file,
+                    installerPackageName = installerAttribution,
+                    userId = userId,
+                )
             Backend.DEFAULT -> null
         }
 
-    private fun readApkIdentity(filePath: String): Pair<String?, Long> {
-        val info = try {
-            androidContext.packageManager.getPackageArchiveInfo(filePath, 0)
-        } catch (e: Exception) {
-            Logger.w(TAG) { "getPackageArchiveInfo($filePath) failed: ${e.message}" }
-            null
-        } ?: return null to -1L
-        val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            info.longVersionCode
-        } else {
-            @Suppress("DEPRECATION")
-            info.versionCode.toLong()
-        }
-        return info.packageName to versionCode
-    }
-
     private suspend fun silentUninstall(packageName: String, backend: Backend) {
+        val userId = PackageSessionInstaller.appUserId()
         try {
             val result = when (backend) {
                 Backend.SHIZUKU -> {
                     val service = shizukuServiceManager.getService()
-                    service?.uninstallPackage(packageName)
+                    service?.uninstallPackage(packageName, userId)
                 }
                 Backend.DHIZUKU -> {
                     val service = dhizukuServiceManager.getService()
-                    service?.uninstallPackage(packageName)
+                    service?.uninstallPackage(packageName, userId)
                 }
-                Backend.ROOT -> rootServiceManager.uninstallPackage(packageName)
+                Backend.ROOT -> rootServiceManager.uninstallPackage(packageName, userId)
                 Backend.DEFAULT -> null
             }
-            if (result == null || result != 0) {
+            if (result == null || result != PackageSessionInstaller.STATUS_SUCCESS) {
                 Logger.w(TAG) { "$backend uninstall failed (result=$result), falling back" }
                 androidInstaller.uninstall(packageName)
             }
@@ -247,7 +274,6 @@ class SilentInstallerDispatcher(
             if (dhizukuServiceManager.status.value == DhizukuStatus.READY) Backend.DHIZUKU else Backend.DEFAULT
         }
         InstallerType.ROOT -> {
-
             if (rootServiceManager.status.value != RootStatus.READY) {
                 rootServiceManager.refreshStatus()
             }

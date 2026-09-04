@@ -160,7 +160,7 @@ class ShizukuServiceManager(
                             .UserServiceArgs(componentName)
                             .daemon(false)
                             .processNameSuffix("installer")
-                            .version(1)
+                            .version(2)
 
                     val connection =
                         object : ServiceConnection {

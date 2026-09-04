@@ -9,14 +9,14 @@ import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import co.touchlab.kermit.Logger
-import zed.rainxch.core.domain.utils.AssetArchitectureMatcher
-import zed.rainxch.core.domain.utils.AssetSelector
-import zed.rainxch.core.domain.utils.isAndroidApk
 import zed.rainxch.core.domain.model.account.github.GithubAsset
 import zed.rainxch.core.domain.model.system.SystemArchitecture
 import zed.rainxch.core.domain.system.InstallOutcome
 import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.system.InstallerInfoExtractor
+import zed.rainxch.core.domain.utils.AssetArchitectureMatcher
+import zed.rainxch.core.domain.utils.AssetSelector
+import zed.rainxch.core.domain.utils.isAndroidApk
 import java.io.File
 
 class AndroidInstaller(
@@ -92,25 +92,36 @@ class AndroidInstaller(
         }
 
         Logger.d { "Installing APK: $filePath" }
+        launchSystemPackageInstaller(file)
+        return InstallOutcome.DELEGATED_TO_SYSTEM
+    }
 
+    private fun launchSystemPackageInstaller(file: File) {
         val authority = "${context.packageName}.fileprovider"
         val fileUri: Uri = FileProvider.getUriForFile(context, authority, file)
-
         val intent =
             Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(fileUri, "application/vnd.android.package-archive")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
             }
 
-        if (intent.resolveActivity(context.packageManager) != null) {
-            context.startActivity(intent)
-            Logger.d { "APK installation intent launched" }
-        } else {
+        val launchContext = CurrentActivityHolder.activity() ?: context
+        if (intent.resolveActivity(launchContext.packageManager) == null) {
             throw IllegalStateException("No installer available on this device")
         }
 
-        return InstallOutcome.DELEGATED_TO_SYSTEM
+        val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        launchContext.packageManager
+            .queryIntentActivities(intent, 0)
+            .forEach { info ->
+                launchContext.grantUriPermission(info.activityInfo.packageName, fileUri, flags)
+            }
+
+        launchContext.startActivity(intent)
+        Logger.d { "APK installation intent launched via ${launchContext.javaClass.simpleName}" }
     }
 
     override fun uninstall(packageName: String) {

@@ -201,7 +201,7 @@ class DefaultDownloadOrchestrator(
                 runCatching { java.io.File(filePath).delete() }
                 markFailed(
                     spec.packageName,
-                    "Checksum mismatch — file may have been tampered with",
+                    "Checksum mismatch � file may have been tampered with",
                 )
                 return
             }
@@ -264,6 +264,7 @@ class DefaultDownloadOrchestrator(
                 }
 
                 InstallOutcome.DELEGATED_TO_SYSTEM -> {
+                    systemInstallSerializer.markCompleted(spec.packageName)
                     Logger.i {
                         "Orchestrator: AlwaysInstall path returned DELEGATED_TO_SYSTEM " +
                             "for ${spec.packageName}; Completed-with-pending so DB row stays pending"
@@ -455,6 +456,9 @@ class DefaultDownloadOrchestrator(
             systemInstallSerializer.awaitFreeAndMarkPending(packageName)
             val outcome = installer.install(filePath, ext)
             delegated = outcome == InstallOutcome.DELEGATED_TO_SYSTEM
+            if (delegated) {
+                systemInstallSerializer.markCompleted(packageName)
+            }
             if (outcome == InstallOutcome.COMPLETED) {
                 systemInstallSerializer.markCompleted(packageName)
                 try {
