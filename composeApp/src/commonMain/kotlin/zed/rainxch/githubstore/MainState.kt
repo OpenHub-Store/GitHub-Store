@@ -25,5 +25,5 @@ data class MainState(
     val appLanguageTag: String? = null,
     // False until persisted appearance preferences have loaded (or the load
     // timed out). The first frame must not render before it flips.
-    val appearanceLoaded: Boolean = false,
+    val isAppearanceLoaded: Boolean = false,
 )

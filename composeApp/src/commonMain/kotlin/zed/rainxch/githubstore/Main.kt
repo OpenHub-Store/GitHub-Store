@@ -54,7 +54,7 @@ fun App(
     // deep-link effect navigates a NavHost that is only composed after this
     // gate, and the theme would be built from untrusted defaults. Android
     // covers the wait with the splash; desktop shows a plain window frame.
-    if (!mainState.appearanceLoaded) {
+    if (!mainState.isAppearanceLoaded) {
         Box(modifier = Modifier.fillMaxSize())
         return
     }

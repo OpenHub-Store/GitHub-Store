@@ -76,7 +76,7 @@ class MainViewModel(
                         firstEmitted.await()
                     } == null
                 ) {
-                    _state.update { it.copy(appearanceLoaded = true) }
+                    _state.update { it.copy(isAppearanceLoaded = true) }
                 }
             }
             try {
@@ -89,13 +89,13 @@ class MainViewModel(
                 ) { personality, accent, paper, amoled, isDark ->
                     Appearance(personality, accent, paper, amoled, isDark)
                 }.collect { snapshot ->
-                    _state.update { it.withAppearance(snapshot).copy(appearanceLoaded = true) }
+                    _state.update { it.withAppearance(snapshot).copy(isAppearanceLoaded = true) }
                     firstEmitted.complete(Unit)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
-                _state.update { it.copy(appearanceLoaded = true) }
+                _state.update { it.copy(isAppearanceLoaded = true) }
             }
         }
 

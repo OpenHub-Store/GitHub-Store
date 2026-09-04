@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
         // the rare watchdog timeout can it hold defaults briefly (see
         // MainViewModel). Same StateFlow the Compose gate reads.
         val mainViewModel = getViewModel<MainViewModel>()
-        splash.setKeepOnScreenCondition { !mainViewModel.state.value.appearanceLoaded }
+        splash.setKeepOnScreenCondition { !mainViewModel.state.value.isAppearanceLoaded }
         enableEdgeToEdge()
 
         (shareManager as? AndroidShareManager)?.registerActivityResultLauncher(this)
