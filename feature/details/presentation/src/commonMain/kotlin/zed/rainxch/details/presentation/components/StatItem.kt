@@ -15,6 +15,7 @@ import zed.rainxch.core.presentation.components.text.KomiText
 import zed.rainxch.core.presentation.components.text.KomiTextRole
 import zed.rainxch.core.presentation.locals.LocalPersonality
 import zed.rainxch.core.presentation.utils.formatCount
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun StatItem(
@@ -55,7 +56,10 @@ fun StatItem(
             fontSize = 22.sp,
             fontWeight = FontWeight.Black,
             color = colors.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             uppercase = false,
+            
         )
     }
 }
@@ -91,6 +95,7 @@ fun TextStatItem(
             fontWeight = FontWeight.Black,
             color = colors.onSurface,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             uppercase = false,
         )
     }
