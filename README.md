@@ -101,8 +101,8 @@ Built with Kotlin Multiplatform and Compose Multiplatform for Android and Deskto
 **Scoop**
 
 ```powershell
-scoop bucket add scoop-bucket https://github.com/komi-store/komi-store-scoop-bucket
-scoop install scoop-bucket/github-store
+scoop bucket add komi-store https://github.com/komi-store/komi-store-scoop-bucket
+scoop install komi-store/komi-store
 ```
 
 **WinGet**
@@ -118,8 +118,8 @@ winget install zed.rainxch.githubstore
 
 ```bash
 brew tap komi-store/komi-store
-brew install --cask github-store
-xattr -dr com.apple.quarantine /Applications/GitHub-Store.app
+brew install --cask komi-store
+xattr -dr com.apple.quarantine /Applications/Komi-Store.app
 ```
 
 The final `xattr` command is required until the app is signed and notarized; without it, macOS Gatekeeper blocks the app with a "damaged" or "cannot be opened" error.
