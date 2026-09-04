@@ -8,7 +8,7 @@ import zed.rainxch.tweaks.presentation.feedback.model.FeedbackChannel
 import zed.rainxch.tweaks.presentation.feedback.model.FeedbackTopic
 
 object FeedbackComposer {
-    const val FEEDBACK_EMAIL = "hello@github-store.org"
+    const val FEEDBACK_EMAIL = "admin@komistore.app"
     const val FEEDBACK_REPO = "OpenHub-Store/GitHub-Store"
     const val BODY_MAX_CHARS = 7_500
 
