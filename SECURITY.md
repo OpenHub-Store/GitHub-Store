@@ -8,10 +8,10 @@ We take the security of this repository seriously. If you discover a security vu
 
 Instead, use one of the following methods:
 
-- **GitHub Security Advisories**  
+- **GitHub Security Advisories**
   Use the "Report a vulnerability" feature available in the repository’s **Security** tab.
 
-- **Email**  
+- **Email**
   Send a detailed report to: [security@komistore.app](mailto:security@komistore.app)
 
 ---
