@@ -46,6 +46,13 @@ class VersionMathTest {
                 "26.08.11f15e4",
             ),
         )
+        // short hash tails (4-5 hex chars) must also opt out of numeric compare
+        assertFalse(
+            VersionMath.versionsReconcilable(
+                "1.2.3fabc",
+                "1.2.4",
+            ),
+        )
     }
 
     @Test

@@ -7,7 +7,6 @@ import kotlin.test.assertTrue
 
 class InstalledAppUpdatesTest {
 
-    // ── fixture ──────────────────────────────────────────────────────────
 
     private fun app(
         installedVersion: String = "1.0.0",
@@ -52,7 +51,6 @@ class InstalledAppUpdatesTest {
         pendingInstallAssetName = if (pendingFilePath != null) "app-2.0.0.apk" else null,
     )
 
-    // ── confirmInstall (install zone) ────────────────────────────────────
 
     @Test
     fun confirmInstallWritesInstallZone() {
@@ -158,7 +156,6 @@ class InstalledAppUpdatesTest {
         assertEquals("2.0.0", result.latestVersionName)
     }
 
-    // ── resolvePendingFromSystem (install zone + pending resolution) ─────
 
     @Test
     fun resolvePendingFromSystemAdoptsTagAndClearsPending() {
@@ -184,7 +181,6 @@ class InstalledAppUpdatesTest {
         assertTrue(result.isUpdateAvailable)
     }
 
-    // ── observeExternalInstall (observe zone) ────────────────────────────
 
     @Test
     fun observeExternalInstallNeverTouchesInstalledTag() {
@@ -208,7 +204,6 @@ class InstalledAppUpdatesTest {
         assertTrue(result.isUpdateAvailable)
     }
 
-    // ── pending zone ─────────────────────────────────────────────────────
 
     @Test
     fun markAndClearPendingTouchOnlyPendingFlag() {
@@ -220,7 +215,6 @@ class InstalledAppUpdatesTest {
         assertFalse(cleared.isPendingInstall)
     }
 
-    // ── withLatestSnapshot (check zone, pre-install parking) ─────────────
 
     @Test
     fun withLatestSnapshotWritesOnlyCheckZone() {
@@ -242,7 +236,6 @@ class InstalledAppUpdatesTest {
         assertFalse(result.isPendingInstall)
     }
 
-    // ── chained handoff (markPending + withLatestSnapshot) ───────────────
 
     @Test
     fun chainedPreInstallHandoffCombinesBothZones() {
@@ -260,7 +253,6 @@ class InstalledAppUpdatesTest {
         assertEquals("1.0.0", result.installedVersion)
     }
 
-    // ── migrate (one-time dual-zone normalization) ───────────────────────
 
     @Test
     fun migratedVersionInfoAlignsBothSides() {
@@ -272,12 +264,10 @@ class InstalledAppUpdatesTest {
         assertEquals(150L, result.installedVersionCode)
         assertEquals("1.5.0", result.latestVersionName)
         assertEquals(150L, result.latestVersionCode)
-        // tags untouched
         assertEquals("1.0.0", result.installedVersion)
         assertEquals("2.0.0", result.latestVersion)
     }
 
-    // ── normalizeInstalledTag ────────────────────────────────────────────
 
     @Test
     fun normalizeInstalledTagAlignsTagAndClearsFlag() {

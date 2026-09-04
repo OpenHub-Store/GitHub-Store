@@ -146,6 +146,8 @@ object VersionMath {
         previousWasUpdateAvailable: Boolean,
         previousLatestTag: String?,
     ): Boolean {
+        // Lexicographic compare is only valid because GitHub API publishedAt
+        // is always UTC ISO-8601 ending in "Z" — no offset normalization here.
         if (previousLatestPublishedAt == null && matchedPublishedAt != null) return true
         val newerByTimestamp =
             matchedPublishedAt != null &&
@@ -246,7 +248,7 @@ object VersionMath {
     private val DOTTED_DIGIT_PATTERN = Regex("""\d+(?:\.\d+)*(?:-[\w.]+)?""")
 
     private val HEX_TAIL_AFTER_NUMERIC_PREFIX =
-        Regex("""^\d+(?:\.\d+)*(?:\.)?[0-9a-f]{6,}$""", RegexOption.IGNORE_CASE)
+        Regex("""^\d+(?:\.\d+)*(?:\.)?[0-9a-f]{4,}$""", RegexOption.IGNORE_CASE)
 
     private fun hasHexTailAfterNumericPrefix(version: String): Boolean =
         HEX_TAIL_AFTER_NUMERIC_PREFIX.containsMatchIn(version) &&
