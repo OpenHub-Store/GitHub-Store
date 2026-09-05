@@ -25,12 +25,16 @@ import zed.rainxch.core.domain.model.account.github.GithubAsset
 import zed.rainxch.core.domain.model.account.github.GithubRelease
 import zed.rainxch.core.domain.model.installation.InstallSource
 import zed.rainxch.core.domain.model.installation.InstalledApp
+import zed.rainxch.core.domain.model.installation.clearPending
+import zed.rainxch.core.domain.model.installation.confirmInstall
+import zed.rainxch.core.domain.model.installation.markPending
 import zed.rainxch.core.domain.model.smart_detect.MatchingPreview
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.Installer
 import zed.rainxch.core.domain.model.account.github.isEffectivelyPreRelease
 import zed.rainxch.core.domain.utils.AssetFilter
 import zed.rainxch.core.domain.utils.AssetVariant
+import zed.rainxch.core.domain.utils.UpdateVerdict
 import zed.rainxch.core.domain.utils.VersionMath
 
 class InstalledAppsRepositoryImpl(
@@ -257,6 +261,24 @@ class InstalledAppsRepositoryImpl(
         return null
     }
 
+    // Transient-failure bookkeeping: regular repositories clear the stored
+    // snapshot (self-heal); a timestamp-tracked (opaque-marker or hash-tail)
+    // flag survives, since clearing it drops latestReleasePublishedAt and the
+    // next scan would re-report the same release from a null baseline. Both
+    // paths still record lastCheckedAt so retry pacing and the "last checked"
+    // UI keep working.
+    private suspend fun recordTransientFailure(
+        storedLatestTag: String?,
+        packageName: String,
+    ) {
+        val now = System.currentTimeMillis()
+        if (VersionMath.isTimestampTrackedTag(storedLatestTag)) {
+            installedAppsDao.updateLastChecked(packageName, now)
+        } else {
+            installedAppsDao.clearUpdateMetadata(packageName, now)
+        }
+    }
+
     override suspend fun checkForUpdates(packageName: String): Boolean {
         val app = installedAppsDao.getAppByPackage(packageName) ?: return false
 
@@ -274,8 +296,7 @@ class InstalledAppsRepositoryImpl(
                 )
 
             if (releases.isEmpty()) {
-
-                installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
+                recordTransientFailure(app.latestVersion, packageName)
                 return false
             }
 
@@ -306,55 +327,47 @@ class InstalledAppsRepositoryImpl(
                     "No matching release found for ${app.appName} in window of ${releases.size}; " +
                             "filter=${app.assetFilterRegex}, fallback=${app.fallbackToOlderReleases}"
                 }
-
-                installedAppsDao.clearUpdateMetadata(packageName, System.currentTimeMillis())
+                recordTransientFailure(app.latestVersion, packageName)
                 return false
             }
 
             val (matchedRelease, primaryAsset, variantWasLost) = resolved
 
-            val installedCode = app.installedVersionCode
-            val latestCode = app.latestVersionCode
-            val codesAlreadyMatch =
-                installedCode > 0L &&
-                        latestCode != null &&
-                        latestCode > 0L &&
-                        installedCode == latestCode &&
-                        matchedRelease.tagName == app.latestVersion
+            val verdict =
+                UpdateVerdict.decide(
+                    installed =
+                        UpdateVerdict.Installed(
+                            tag = app.installedVersion,
+                            versionCode = app.installedVersionCode,
+                        ),
+                    stored =
+                        UpdateVerdict.Stored(
+                            latestTag = app.latestVersion,
+                            latestVersionCode = app.latestVersionCode,
+                            publishedAt = app.latestReleasePublishedAt,
+                            wasUpdateAvailable = app.isUpdateAvailable,
+                        ),
+                    matched =
+                        UpdateVerdict.Matched(
+                            tag = matchedRelease.tagName,
+                            publishedAt = matchedRelease.publishedAt,
+                            isPrerelease = matchedRelease.isPrerelease,
+                        ),
+                    skippedTag = app.skippedReleaseTag,
+                )
 
-            val skippedTag = app.skippedReleaseTag
-            val matchesSkipped =
-                skippedTag != null &&
-                        VersionMath.isExactSameVersion(matchedRelease.tagName, skippedTag)
-            val skipBecameStale =
-                skippedTag != null &&
-                        !matchesSkipped &&
-                        VersionMath.isVersionNewer(matchedRelease.tagName, skippedTag)
-            if (skipBecameStale) {
+            if (verdict.skipBecameStale) {
                 installedAppsDao.setSkippedReleaseTag(packageName, null)
             }
 
-            val reconcilable =
-                VersionMath.versionsReconcilable(app.installedVersion, matchedRelease.tagName)
-            val isUpdateAvailable =
-                when {
-                    codesAlreadyMatch -> false
-                    matchesSkipped -> false
-                    !reconcilable -> false
-                    else ->
-                        VersionMath.isVersionNewer(
-                            candidate = matchedRelease.tagName,
-                            current = app.installedVersion,
-                        )
-                }
+            val isUpdateAvailable = verdict.isUpdateAvailable
 
             Logger.d {
-                "Update check for ${app.appName}: " +
-                        "installedTag=${app.installedVersion}, " +
-                        "matchedTag=${matchedRelease.tagName}, " +
-                        "matchedAsset=${primaryAsset.name}, " +
-                        "codesMatch=$codesAlreadyMatch, " +
-                        "isUpdate=$isUpdateAvailable, variantLost=$variantWasLost"
+                "[UPDATE-CHECK] ${app.appName} $packageName " +
+                        "installedTag=${app.installedVersion} matchedTag=${matchedRelease.tagName} " +
+                        "storedPublishedAt=${app.latestReleasePublishedAt} " +
+                        "matchedPublishedAt=${matchedRelease.publishedAt} " +
+                        "isUpdate=$isUpdateAvailable"
             }
 
             val resolvedLatestVersionCode =
@@ -374,14 +387,14 @@ class InstalledAppsRepositoryImpl(
                 latestReleasePublishedAt = matchedRelease.publishedAt,
             )
 
-            if ((codesAlreadyMatch || !reconcilable) &&
+            if (verdict.codesAlreadyMatch &&
                 app.installedVersion != matchedRelease.tagName
             ) {
                 installedAppsDao.updateInstalledVersion(
                     packageName = packageName,
                     installedVersion = matchedRelease.tagName,
                     installedVersionName = app.installedVersionName,
-                    installedVersionCode = installedCode,
+                    installedVersionCode = app.installedVersionCode,
                     isUpdateAvailable = false,
                 )
             }
@@ -446,32 +459,19 @@ class InstalledAppsRepositoryImpl(
             ),
         )
 
-        val snapshotLatestVersion = app.latestVersion
-        val isUpdateStillAvailable =
-            !snapshotLatestVersion.isNullOrBlank() &&
-                    VersionMath.isVersionNewer(snapshotLatestVersion, newTag)
-
         installedAppsDao.updateApp(
-            app.copy(
-                installedVersion = newTag,
-                installedAssetName = newAssetName,
-                installedAssetUrl = newAssetUrl,
-                installedVersionName = newVersionName,
-                installedVersionCode = newVersionCode,
-                isUpdateAvailable = isUpdateStillAvailable,
-                latestVersionCode = if (isUpdateStillAvailable) app.latestVersionCode else newVersionCode,
-                isPendingInstall = isPendingInstall,
-                lastUpdatedAt = System.currentTimeMillis(),
-                lastCheckedAt = System.currentTimeMillis(),
-                signingFingerprint = signingFingerprint,
-
-                pendingInstallFilePath =
-                    if (isPendingInstall) app.pendingInstallFilePath else null,
-                pendingInstallVersion =
-                    if (isPendingInstall) app.pendingInstallVersion else null,
-                pendingInstallAssetName =
-                    if (isPendingInstall) app.pendingInstallAssetName else null,
-            ),
+            app.toDomain()
+                .confirmInstall(
+                    tag = newTag,
+                    assetName = newAssetName,
+                    assetUrl = newAssetUrl,
+                    versionName = newVersionName,
+                    versionCode = newVersionCode,
+                    signingFingerprint = signingFingerprint,
+                    isPending = isPendingInstall,
+                    at = System.currentTimeMillis(),
+                )
+                .toEntity(),
         )
     }
 
@@ -500,7 +500,11 @@ class InstalledAppsRepositoryImpl(
         isPending: Boolean,
     ) {
         val app = installedAppsDao.getAppByPackage(packageName) ?: return
-        installedAppsDao.updateApp(app.copy(isPendingInstall = isPending))
+        installedAppsDao.updateApp(
+            app.toDomain()
+                .let { if (isPending) it.markPending() else it.clearPending() }
+                .toEntity(),
+        )
     }
 
     override suspend fun setIncludePreReleases(

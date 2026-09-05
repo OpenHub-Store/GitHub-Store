@@ -101,11 +101,25 @@ fun SmartInstallButton(
     val displaySelected = normSelected?.let { tag ->
         VersionMath.normalizeVersion(tag).takeIf { it.isNotBlank() } ?: tag
     }
+    // A reused tag (a fixed "nightly" tag whose Release CI deletes and recreates)
+    // cannot be told apart by version string alone — the installed build and the
+    // new build carry the very same tag. Fall back to the publishedAt-based verdict
+    // the update check already computed, otherwise the channel holding the real
+    // update shows "Open" while the stable channel advertises it instead.
+    val selectedIsOpaque = normSelected?.let { VersionMath.isOpaqueMarker(it) } == true
     val isSameVersionInstalled =
         isInstalled &&
             normInstalled != null &&
             normSelected != null &&
-            VersionMath.isExactSameVersion(normInstalled, normSelected)
+            VersionMath.isExactSameVersion(normInstalled, normSelected) &&
+            !(selectedIsOpaque && installedApp?.isUpdateAvailable == true)
+
+    // Only advertise an update for the release actually on screen, so the label
+    // always matches what a tap installs.
+    val selectedIsLatestRelease =
+        normSelected != null &&
+            (installedApp?.latestVersion.isNullOrBlank() ||
+                VersionMath.isExactSameVersion(normSelected, installedApp?.latestVersion))
 
     val enabled = remember(primaryAsset, isDownloading, isInstalling) {
         primaryAsset != null && !isDownloading && !isInstalling
@@ -135,9 +149,9 @@ fun SmartInstallButton(
     val buttonText = when {
         !enabled && primaryAsset == null -> stringResource(Res.string.not_available)
         state.isPendingInstallReady -> stringResource(Res.string.install_ready)
-        isUpdateAvailable -> stringResource(
+        isUpdateAvailable && selectedIsLatestRelease -> stringResource(
             Res.string.update_to_version,
-            installedApp.latestVersion.toString(),
+            displaySelected ?: normSelected ?: "",
         )
         isInstalled &&
             normInstalled != null &&

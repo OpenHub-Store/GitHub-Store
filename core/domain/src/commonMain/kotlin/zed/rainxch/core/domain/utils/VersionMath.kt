@@ -15,6 +15,12 @@ object VersionMath {
         if (parseSemanticVersion(deflavoured) != null) {
             return deflavoured
         }
+        if (isMarkerWithOpaqueSuffix(deflavoured)) return deflavoured
+        // Must stay ahead of the numeric-prefix truncation below: a tag like
+        // 26.08.11f15e4 returned verbatim is what lets versionsReconcilable
+        // see the hex tail. Dropping it to "26.08.11" here would silently
+        // route hash builds into the numeric comparison this guards against.
+        if (hasHexTailAfterNumericPrefix(deflavoured)) return deflavoured
         val match = DOTTED_DIGIT_PATTERN.find(deflavoured)
         return match?.value ?: deflavoured
     }
@@ -103,8 +109,15 @@ object VersionMath {
     // pre-release and makes the real build look older. Callers should then track by
     // release tag instead of nagging on a bogus numeric diff (GH#729).
     fun versionsReconcilable(installed: String?, latest: String?): Boolean {
-        val a = parseSemanticVersion(normalizeVersion(installed)) ?: return false
-        val b = parseSemanticVersion(normalizeVersion(latest)) ?: return false
+        val normalizedInstalled = normalizeVersion(installed)
+        val normalizedLatest = normalizeVersion(latest)
+        if (hasHexTailAfterNumericPrefix(normalizedInstalled) ||
+            hasHexTailAfterNumericPrefix(normalizedLatest)
+        ) {
+            return false
+        }
+        val a = parseSemanticVersion(normalizedInstalled) ?: return false
+        val b = parseSemanticVersion(normalizedLatest) ?: return false
         val aHash = a.preRelease?.let { isCommitHashPreRelease(it) } == true
         val bHash = b.preRelease?.let { isCommitHashPreRelease(it) } == true
         return aHash == bHash
@@ -112,6 +125,47 @@ object VersionMath {
 
     private fun isCommitHashPreRelease(preRelease: String): Boolean =
         COMMIT_HASH_PATTERN.matches(preRelease)
+
+    private fun isMarkerWithOpaqueSuffix(version: String): Boolean {
+        val lower = version.lowercase()
+        val marker = KNOWN_PRE_RELEASE_PREFIXES.firstOrNull { lower.startsWith(it) } ?: return false
+        val rest = lower.substring(marker.length)
+        if (rest.isEmpty()) return true
+        if (rest.first() != '-' && rest.first() != '.') return false
+        val suffix = rest.substring(1)
+        return suffix.isNotEmpty() && !suffix.all { it.isDigit() }
+    }
+
+    fun isOpaqueMarker(version: String?): Boolean =
+        isMarkerWithOpaqueSuffix(normalizeVersion(version))
+
+    // Tags whose update state is tracked by release timestamp rather than a
+    // version number: opaque markers (nightly/rolling) and unparseable hash
+    // tails (InstallerX). Both rely on a stored publishedAt baseline, so a
+    // transient failure must not clear that baseline.
+    fun isTimestampTrackedTag(version: String?): Boolean {
+        if (version.isNullOrBlank()) return false
+        if (isOpaqueMarker(version)) return true
+        return hasHexTailAfterNumericPrefix(normalizeVersion(version))
+    }
+
+    fun shouldReportTimestampUpdate(
+        matchedTag: String?,
+        matchedPublishedAt: String?,
+        previousLatestPublishedAt: String?,
+        previousWasUpdateAvailable: Boolean,
+        previousLatestTag: String?,
+    ): Boolean {
+        // Lexicographic compare is only valid because GitHub API publishedAt
+        // is always UTC ISO-8601 ending in "Z" — no offset normalization here.
+        if (previousLatestPublishedAt == null && matchedPublishedAt != null) return true
+        val newerByTimestamp =
+            matchedPublishedAt != null &&
+                previousLatestPublishedAt != null &&
+                matchedPublishedAt > previousLatestPublishedAt
+        return newerByTimestamp ||
+            (previousWasUpdateAvailable && isExactSameVersion(matchedTag, previousLatestTag))
+    }
 
     fun compareVersions(a: String?, b: String?): Int {
         val normA = normalizeVersion(a)
@@ -203,6 +257,13 @@ object VersionMath {
 
     private val DOTTED_DIGIT_PATTERN = Regex("""\d+(?:\.\d+)*(?:-[\w.]+)?""")
 
+    private val HEX_TAIL_AFTER_NUMERIC_PREFIX =
+        Regex("""^\d+(?:\.\d+)*(?:\.)?[0-9a-f]{4,}$""", RegexOption.IGNORE_CASE)
+
+    private fun hasHexTailAfterNumericPrefix(version: String): Boolean =
+        HEX_TAIL_AFTER_NUMERIC_PREFIX.containsMatchIn(version) &&
+            version.any { it in 'a'..'f' || it in 'A'..'F' }
+
     private val VERSION_WORD_PREFIX =
         Regex(
             """^(version|release|app|build|ver)\s*[-_/.]\s*""",
@@ -233,6 +294,7 @@ object VersionMath {
             "snapshot",
             "canary",
             "nightly",
+            "rolling",
             "milestone",
             "ea",
             "dev",
@@ -260,6 +322,7 @@ object VersionMath {
             raw == "snapshot" -> "Snapshot"
             raw == "canary" -> "Canary"
             raw == "nightly" -> "Nightly"
+            raw == "rolling" -> "Rolling"
             raw == "milestone" || raw.startsWith("m") -> "Milestone"
             raw == "ea" -> "Early Access"
             raw == "dev" -> "Dev"
@@ -271,7 +334,7 @@ object VersionMath {
     private val PRE_RELEASE_MARKER_PATTERN =
 
         Regex(
-            "\\b(alpha|beta|rc|preview|prerelease|snapshot|canary|nightly|milestone|ea|dev|pre|m\\d+)\\d*\\b",
+            "\\b(alpha|beta|rc|preview|prerelease|snapshot|canary|nightly|rolling|milestone|ea|dev|pre|m\\d+)\\d*\\b",
             RegexOption.IGNORE_CASE,
         )
 
