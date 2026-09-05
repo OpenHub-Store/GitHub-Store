@@ -6,7 +6,6 @@ import kotlin.test.assertTrue
 
 class UpdateVerdictTest {
 
-    // ── helpers ──────────────────────────────────────────────────────────
 
     private fun decide(
         installedTag: String = "1.0.0",
@@ -33,7 +32,6 @@ class UpdateVerdictTest {
             skippedTag = skippedTag,
         )
 
-    // ── semver branch ────────────────────────────────────────────────────
 
     @Test
     fun semver_newer_reports_update() {
@@ -59,7 +57,6 @@ class UpdateVerdictTest {
         assertTrue(result.isUpdateAvailable)
     }
 
-    // ── opaque nightly: timestamp branch ────────────────────────────────
 
     @Test
     fun nightly_tag_uses_timestamp_logic() {
@@ -121,7 +118,6 @@ class UpdateVerdictTest {
         assertFalse(result.isUpdateAvailable)
     }
 
-    // ── InstallerX hash tags ────────────────────────────────────────────
 
     @Test
     fun installerx_unparseable_hash_prerelease_routes_to_timestamp() {
@@ -152,7 +148,6 @@ class UpdateVerdictTest {
         assertTrue(result.isUpdateAvailable)
     }
 
-    // ── codes already match ──────────────────────────────────────────────
 
     @Test
     fun codes_match_short_circuits_to_silent() {
@@ -168,7 +163,6 @@ class UpdateVerdictTest {
         assertTrue(result.codesAlreadyMatch)
     }
 
-    // ── skipped tag ──────────────────────────────────────────────────────
 
     @Test
     fun skipped_nightly_stays_skipped_when_republished() {
@@ -199,7 +193,6 @@ class UpdateVerdictTest {
         assertTrue(result.isUpdateAvailable)
     }
 
-    // ── irreconcilable ───────────────────────────────────────────────────
 
     @Test
     fun stable_vs_nightly_is_irreconcilable_and_silent() {
@@ -215,7 +208,6 @@ class UpdateVerdictTest {
         assertFalse(result.isUpdateAvailable)
     }
 
-    // ── installed tag rewrite gate ───────────────────────────────────────
 
     @Test
     fun rewrite_gate_allows_only_codes_already_match() {

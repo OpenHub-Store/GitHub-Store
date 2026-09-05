@@ -65,6 +65,18 @@ class VersionMathTest {
     }
 
     @Test
+    fun timestamp_tracked_covers_opaque_and_hash_tails() {
+        assertTrue(VersionMath.isTimestampTrackedTag("nightly"))
+        assertTrue(VersionMath.isTimestampTrackedTag("rolling"))
+        // InstallerX-style hash tail is not an opaque marker but is timestamp-tracked
+        assertFalse(VersionMath.isOpaqueMarker("26.08.11f15e4"))
+        assertTrue(VersionMath.isTimestampTrackedTag("26.08.11f15e4"))
+        assertTrue(VersionMath.isTimestampTrackedTag("1.2.3fabc"))
+        assertFalse(VersionMath.isTimestampTrackedTag("1.2.3"))
+        assertFalse(VersionMath.isTimestampTrackedTag(null))
+    }
+
+    @Test
     fun versions_reconcilable_semver() {
         assertTrue(VersionMath.versionsReconcilable("1.2.3", "1.2.4"))
         assertTrue(VersionMath.versionsReconcilable("v1.2.3", "1.2.3"))

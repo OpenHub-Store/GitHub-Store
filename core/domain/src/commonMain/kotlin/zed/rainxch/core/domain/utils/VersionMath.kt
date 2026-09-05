@@ -139,6 +139,16 @@ object VersionMath {
     fun isOpaqueMarker(version: String?): Boolean =
         isMarkerWithOpaqueSuffix(normalizeVersion(version))
 
+    // Tags whose update state is tracked by release timestamp rather than a
+    // version number: opaque markers (nightly/rolling) and unparseable hash
+    // tails (InstallerX). Both rely on a stored publishedAt baseline, so a
+    // transient failure must not clear that baseline.
+    fun isTimestampTrackedTag(version: String?): Boolean {
+        if (version.isNullOrBlank()) return false
+        if (isOpaqueMarker(version)) return true
+        return hasHexTailAfterNumericPrefix(normalizeVersion(version))
+    }
+
     fun shouldReportTimestampUpdate(
         matchedTag: String?,
         matchedPublishedAt: String?,

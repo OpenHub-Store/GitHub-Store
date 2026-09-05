@@ -262,16 +262,17 @@ class InstalledAppsRepositoryImpl(
     }
 
     // Transient-failure bookkeeping: regular repositories clear the stored
-    // snapshot (self-heal); an opaque-marker (nightly) flag survives, since
-    // clearing it drops latestReleasePublishedAt and the next scan would
-    // re-report from a null baseline. Both paths still record lastCheckedAt
-    // so retry pacing and the "last checked" UI keep working.
+    // snapshot (self-heal); a timestamp-tracked (opaque-marker or hash-tail)
+    // flag survives, since clearing it drops latestReleasePublishedAt and the
+    // next scan would re-report the same release from a null baseline. Both
+    // paths still record lastCheckedAt so retry pacing and the "last checked"
+    // UI keep working.
     private suspend fun recordTransientFailure(
         storedLatestTag: String?,
         packageName: String,
     ) {
         val now = System.currentTimeMillis()
-        if (VersionMath.isOpaqueMarker(storedLatestTag)) {
+        if (VersionMath.isTimestampTrackedTag(storedLatestTag)) {
             installedAppsDao.updateLastChecked(packageName, now)
         } else {
             installedAppsDao.clearUpdateMetadata(packageName, now)
